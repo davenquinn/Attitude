@@ -2,6 +2,7 @@ from __future__ import division
 import numpy as N
 from ..regress import Regression
 from ..coordinates import spherical, cartesian
+from orientation import *
 
 def spherical_plane(r,theta,coefficients=[1,1]):
 	c = coefficients

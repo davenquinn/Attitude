@@ -12,20 +12,20 @@ def rotation(angle):
 def axes(matrix):
 	"""
 	Computes the ellipse axes lengths for a covariance matrix
-	The first 
 	"""
 	return N.sqrt(eig(matrix[0:2,0:2])[0])
 
 class Orientation(object):
 	def __init__(self, coordinates):
+
 		self.fit = Regression(coordinates)
 		
 		values = self.fit.coefficients()
 		val = values[0]**2+values[1]**2
 		self.azimuth = N.arctan2(-values[1], -values[0])
-		self.rotation = rotation(self.azimuth+N.pi)
+		self.rotation = rotation(-self.azimuth)
 		self.coefficients = N.dot(self.rotation, self.fit.coefficients())
-		self.slope = N.arctan(self.coefficients[0]) 
+		self.slope = N.arctan(-self.coefficients[0]) 
 
 	def covariance_matrix(self):
 		return N.dot(self.fit.covariance_matrix(),self.rotation)
