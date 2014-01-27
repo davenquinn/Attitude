@@ -2,7 +2,7 @@ from . import Orientation
 import numpy as N
 import nose
 import functools
-from ..tests import random_plane
+from ..tests import random_plane, scattered_plane
 
 
 simple_cases = [
@@ -43,8 +43,16 @@ def test_edge_cases():
         yield check_orientation, a
 
 def test_coordinates():
-    """Tests to make sure we don't lose coordinates in the process"""
-    plane = random_plane()
+    """Tests to make sure we don't lose coordinates in the Orientation object"""
+    plane,coordinates = random_plane()
     orient = Orientation(plane)
-    assert len(plane) == len(orient.fit.C)
+    assert len(plane[0]) == len(orient.fit.C)
+
+def test_covariance():
+    """Make sure we don't get empty covariance matrices in the Orientation object"""
+    plane,coefficients = scattered_plane()
+    fit = Orientation(plane)
+    for i in fit.covariance_matrix().flatten():
+        assert i != 0
+
 

@@ -1,6 +1,6 @@
 from __future__ import division
 import numpy as N
-from ..regress import Regression
+from ..regression import Regression
 from ..coordinates import spherical, cartesian
 from orientation import *
 
@@ -30,8 +30,10 @@ def random_plane(n=1000, limit=100):
     z = make_plane(x, y, coefficients)
     return (x,y,z),coefficients
 
-def scattered_plane():
-	pass
+def scattered_plane(**kwargs):
+	scatter = kwargs.pop("scatter",0.5)
+	plane, coefficients = random_plane(**kwargs)
+	return tuple(i*(1+N.random.randn(len(i))*.5) for i in plane), coefficients
 
 def test_coordinate_transforms(n_points=1000):
 	xyz = N.random.randn(3, n_points)

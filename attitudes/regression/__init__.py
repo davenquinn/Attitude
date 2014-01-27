@@ -20,10 +20,9 @@ class Regression(object):
         Solves plane equation Z = a(C[0])+b(C[1])+c by solving linear equation Cm=Z where m=[a,b,c]
         C and Z are the dependent and independent variables, respectively.
         """
-
-        coordinates = N.column_stack(coordinates)
-        if coordinates.shape[1] != 3:
-            raise ValueError("A coordinate tensor must be a 3-column array or tuple of 3 column vectors")
+        coordinates = N.array(coordinates)
+        if len(coordinates[0]) > 3:
+            coordinates = N.swapaxes(coordinates, 0, 1)
 
         self.C = add_ones(coordinates[:,0:2])
         self.Z = coordinates[:,-1]
