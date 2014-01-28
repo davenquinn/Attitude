@@ -32,3 +32,8 @@ def normal(orientation, *args, **kwargs):
 		lat,lon = line(90-el[1], 180+el[0])
 		e = Polygon(zip(lat,lon), alpha=a[i], **kwargs)
 		ax.add_artist(e)
+
+def setup_figure(*args, **kwargs):
+	fig = P.figure(*args, **kwargs)
+	ax = fig.add_subplot(111, projection='stereonet')
+	return fig,ax

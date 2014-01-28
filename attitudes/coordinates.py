@@ -16,8 +16,12 @@ def cartesian(spherical):
 	y = zc*N.cos(phi)
 	return x,y,z
 
-def centered(coordinates): 
-	coordinates = N.column_stack(coordinates)
+def centered(coordinates):
+	try:
+		assert coordinates.shape[1] == 3
+	except Exception:
+		coordinates = N.column_stack(coordinates)
+	
 	means = N.mean(coordinates,axis=0,keepdims=True)
 	n = coordinates - means
-	return tuple([a.flatten() for a in n.transpose()]), means
+	return tuple(a.flatten() for a in n.transpose())
