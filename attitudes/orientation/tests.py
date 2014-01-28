@@ -31,8 +31,7 @@ def check_orientation(a):
 def test_directions():
     """
     Tests cardinal directions for simple cases, to make sure everything conforms to right-hand rule.
-    Also tests that error-propagation methods don't give wrong mean answer. Does not test the standard
-    deviation of these methods.
+    Does not test the standard deviation of these methods.
     """
     for a in simple_cases:
         yield check_orientation, a
@@ -50,4 +49,8 @@ def test_covariance():
     for i in fit.covariance_matrix().flatten():
         assert i != 0
 
-
+def test_rotation_matrix():
+    """Check that we have properly rotated our matrix to bring the along-strike direction into a coordinate plane."""
+    plane,coefficients = scattered_plane()
+    fit = Orientation(plane)
+    assert N.allclose(fit.coefficients[1],0)
