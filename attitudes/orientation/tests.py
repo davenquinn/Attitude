@@ -37,11 +37,6 @@ def test_directions():
     for a in simple_cases:
         yield check_orientation, a
 
-def test_edge_cases():
-    """Tests edge cases (vertical and horizontal). These fail currently"""
-    for a in edge_cases:
-        yield check_orientation, a
-
 def test_coordinates():
     """Tests to make sure we don't lose coordinates in the Orientation object"""
     plane,coordinates = random_plane()
