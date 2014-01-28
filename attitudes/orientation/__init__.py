@@ -52,8 +52,8 @@ class Orientation(object):
 	def errors(self):
 		return tuple(N.degrees(i) for i in self.standard_errors()[:2])
 
-	def error_ellipse(self, spherical=True, vector=False):
-		e = ellipse(tuple(self.coefficients[:2]), self.covariance_matrix()[:2,:2])
+	def error_ellipse(self, spherical=True, vector=False, level=1):
+		e = ellipse(tuple(self.coefficients[:2]), self.covariance_matrix()[:2,:2], level=level)
 		if spherical:
 			slope = N.arctan(-e[:,0])
 			azimuth = self.azimuth + N.arctan2(-e[:,1],-e[:,0])
