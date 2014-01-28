@@ -17,18 +17,17 @@ def axes(matrix):
 
 class Orientation(object):
 	def __init__(self, coordinates):
-
 		self.fit = Regression(coordinates)
 		
 		values = self.fit.coefficients()
 		val = values[0]**2+values[1]**2
 		self.azimuth = N.arctan2(-values[1], -values[0])
 		self.rotation = rotation(-self.azimuth)
-		self.coefficients = N.dot(self.rotation, self.fit.coefficients())
+		self.coefficients = N.dot(self.rotation, values)
 		self.slope = N.arctan(-self.coefficients[0]) 
 
 	def covariance_matrix(self):
-		return N.dot(self.fit.covariance_matrix(),self.rotation)
+		return N.dot(self.rotation,self.fit.covariance_matrix())
 
 	def standard_errors(self):
 		return N.sqrt(N.diagonal(self.covariance_matrix()))
