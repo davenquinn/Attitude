@@ -4,3 +4,4 @@
 resources
 old
 .ipynb_checkpoints
+test/*
