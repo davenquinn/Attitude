@@ -34,12 +34,22 @@ class Orientation(object):
 		return N.sqrt(N.diagonal(self.covariance_matrix()))
 
 	def strike_dip(self, uncertainties=False):
-		return tuple(N.degrees(i) for i in (self.azimuth,self.slope))
+		c = tuple(N.degrees(i) for i in (self.azimuth,self.slope))
+		if uncertainties:
+			return c,self.errors()
+		return c
+
+	def trend_plunge(self, uncertainties=False):
+		s,d = self.strike_dip()
+		s+=90
+		if uncertainties:
+			return (s,d),self.errors()
+		return (s,d)
 
 	def gradient(self, uncertainties=False):
 		return self.azimuth,self.slope
 
-	def strike_dip_errors(self, errors=False):
+	def errors(self):
 		return tuple(N.degrees(i) for i in self.standard_errors()[:2])
 
 	def error_ellipse(self, spherical=True, vector=False):
