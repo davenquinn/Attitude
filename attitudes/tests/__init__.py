@@ -20,9 +20,8 @@ def make_plane(x, y, coefficients):
 	c = coefficients
 	return c[0]*x+c[1]*y+c[2]
 
-def randomize(array, scatter=.05):
-	if scatter == 0: return array
-	return array*(1+N.random.randn(*array.shape)*scatter)
+def randomize(plane, scatter=.05):
+	return tuple(i*(1+N.random.randn(len(i))*scatter) for i in plane)
 
 def random_plane(n=1000, limit=100):
     x,y = N.random.uniform(-limit,limit,(2,n))
@@ -30,10 +29,10 @@ def random_plane(n=1000, limit=100):
     z = make_plane(x, y, coefficients)
     return (x,y,z),coefficients
 
-def scattered_plane(**kwargs):
+def scattered_plane(*args,**kwargs):
 	scatter = kwargs.pop("scatter",0.5)
-	plane, coefficients = random_plane(**kwargs)
-	return tuple(i*(1+N.random.randn(len(i))*.5) for i in plane), coefficients
+	plane, coefficients = random_plane(*args,**kwargs)
+	return randomize(plane,scatter), coefficients
 
 def test_coordinate_transforms(n_points=1000):
 	xyz = N.random.randn(3, n_points)
