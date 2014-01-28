@@ -26,6 +26,5 @@ def ellipse(center,covariance_matrix):
 
     u = N.linspace(0, 2*N.pi, 100)
     data = N.column_stack((saxes[0]*N.cos(u), saxes[1]*N.sin(u)))
-    print (data.shape, rotation_matrix.shape)
     # rotate data
-    return N.dot(data, rotation_matrix)#+ center
+    return N.dot(data, rotation_matrix)+ center

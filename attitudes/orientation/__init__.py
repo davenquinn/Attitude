@@ -22,8 +22,8 @@ class Orientation(object):
 		
 		values = self.fit.coefficients()
 		val = values[0]**2+values[1]**2
-		self.azimuth = N.arctan2(-values[1], -values[0])
-		self.rotation = rotation(-self.azimuth)
+		self.azimuth = -N.arctan2(-values[1], -values[0])
+		self.rotation = rotation(self.azimuth)
 		self.coefficients = N.dot(self.rotation,values)
 		self.slope = N.arctan(-self.coefficients[0]) 
 
@@ -34,10 +34,20 @@ class Orientation(object):
 		return N.sqrt(N.diagonal(self.covariance_matrix()))
 
 	def strike_dip(self, uncertainties=False):
-		return tuple(N.degrees(i) for i in (-self.azimuth,self.slope))
+		return tuple(N.degrees(i) for i in (self.azimuth,self.slope))
+
+	def gradient(self, uncertainties=False):
+		return self.azimuth,self.slope
 
 	def strike_dip_errors(self, errors=False):
 		return tuple(N.degrees(i) for i in self.standard_errors()[:2])
 
-	def error_ellipse(self):
-		return ellipse(tuple(self.coefficients[:2]), self.covariance_matrix()[:2,:2])
+	def error_ellipse(self, spherical=True, vector=False):
+		e = ellipse(tuple(self.coefficients[:2]), self.covariance_matrix()[:2,:2])
+		if spherical:
+			slope = N.arctan(-e[:,0])
+			azimuth = self.azimuth + N.arctan2(-e[:,1],-e[:,0])
+			if vector:
+				azimuth = azimuth + N.pi/2
+			return (azimuth,slope)
+		return (e[:,1],e[:,0])
