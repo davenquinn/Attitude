@@ -1,5 +1,7 @@
 import numpy as N
 from ..orientation import Orientation
+import json
+from ..plot import setup_figure, 
 
 def fit_planes(features):
     for i,feature in enumerate(features):
@@ -16,3 +18,11 @@ def fit_planes(features):
         fit = Orientation(coords)
 
         yield fit
+
+def process_file(filename, plot=True):
+    with open(filename) as f:
+        collection = json.load(f)["features"]
+        results = fit_planes(collection)
+        if plot:
+            ax = setup_axis()
+
