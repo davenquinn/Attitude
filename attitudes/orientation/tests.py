@@ -2,6 +2,8 @@ from . import Orientation
 import numpy as N
 import nose
 import functools
+from ..tests import random_plane
+
 
 simple_cases = [
     ([(1,0,1),(0,0,1),(0,1,0)], [-90, 45], "North-dipping"),
@@ -35,7 +37,14 @@ def test_directions():
     for a in simple_cases:
         yield check_orientation, a
 
-def tesdt_edge_cases():
+def test_edge_cases():
     """Tests edge cases (vertical and horizontal). These fail currently"""
     for a in edge_cases:
         yield check_orientation, a
+
+def test_coordinates():
+    """Tests to make sure we don't lose coordinates in the process"""
+    plane = random_plane()
+    orient = Orientation(plane)
+    assert len(plane) == len(orient.fit.C)
+

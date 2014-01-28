@@ -1,5 +1,5 @@
 from __future__ import division
-from regress import Regression
+from ..regression import Regression
 import numpy as N
 from scipy.linalg import eig
 

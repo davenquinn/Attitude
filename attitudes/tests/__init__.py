@@ -24,12 +24,14 @@ def randomize(array, scatter=.05):
 	if scatter == 0: return array
 	return array*(1+N.random.randn(*array.shape)*scatter)
 
-def random_plane(n_points=1000, scatter=.05):
-	n = 1e4 # A generically large number
-	x,y = N.random.uniform(-n,n,(2,n_points))
-	coefficients = N.random.randn(3)*10
-	z = randomize(make_plane(x, y, coefficients),scatter)
-	return (x,y,z)
+def random_plane(n=1000, limit=100):
+    x,y = N.random.uniform(-limit,limit,(2,n))
+    coefficients = N.random.randn(3)*N.array([1,1,limit/2])
+    z = make_plane(x, y, coefficients)
+    return (x,y,z),coefficients
+
+def scattered_plane():
+	pass
 
 def test_coordinate_transforms(n_points=1000):
 	xyz = N.random.randn(3, n_points)
