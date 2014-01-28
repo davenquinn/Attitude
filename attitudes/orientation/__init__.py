@@ -2,6 +2,7 @@ from __future__ import division
 from ..regression import Regression
 import numpy as N
 from scipy.linalg import eig
+from ..error.ellipse import ellipse
 
 def rotation(angle):
 	"""Rotation about the Z axis (in the XY plane)"""
@@ -36,4 +37,7 @@ class Orientation(object):
 		return tuple(N.degrees(i) for i in (-self.azimuth,self.slope))
 
 	def strike_dip_errors(self, errors=False):
-		return tuple(N.degrees(i) for i in self.standard_errors()[0:2])
+		return tuple(N.degrees(i) for i in self.standard_errors()[:2])
+
+	def error_ellipse(self):
+		return ellipse(tuple(self.coefficients[:2]), self.covariance_matrix()[:2,:2])
