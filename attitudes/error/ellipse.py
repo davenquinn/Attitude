@@ -14,12 +14,13 @@ def euler_angles(rotation_matrix):
               N.arctan2(r[1, 0],r[0, 0])]
 
 
-def ellipse(center,covariance_matrix):
+def ellipse(center,covariance_matrix,level=1):
     """Returns error ellipse in slope-azimuth space"""
     # singular value decomposition
     U, s, rotation_matrix = N.linalg.svd(covariance_matrix)
     # semi-axes (largest first)
-    saxes = N.sqrt(s)
+    saxes = N.sqrt(s)*level ## If the _area_ of a 2s ellipse is twice that of a 1s ellipse
+    # If the _axes_ are supposed to be twice as long, then it should be N.sqrt(s)*width
     volume = N.pi*N.prod(saxes)
     # rotation matrix
     angles = euler_angles(rotation_matrix)
