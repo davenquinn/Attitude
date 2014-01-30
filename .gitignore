@@ -1,7 +1,3 @@
-*.ipynb
 *.sublime-*
 *.pyc
-resources
-old
-.ipynb_checkpoints
-test/*
+etc
