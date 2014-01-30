@@ -14,7 +14,7 @@ install_requires = [
 
 setup(
     name='Attitude',
-    version=0.0,
+    version=0.1,
     description="Attitude computes the orientations of planes from point data.",
     license='MIT',
     keywords='gis data computation fitting statistics vector science geology',
@@ -26,7 +26,6 @@ setup(
     install_requires=install_requires,
     tests_require=['nose'],
     test_suite='nose.collector',
-    package_dir={'': 'attitude'},
     packages=['attitude'],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
