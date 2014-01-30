@@ -1,4 +1,4 @@
-import simplejson as json
+import json
 
 def dump_features(features, file, float_format=""):
 	class PrettyFloat(float):
