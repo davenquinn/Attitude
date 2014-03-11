@@ -7,6 +7,9 @@ def spherical_plane(r,theta,coefficients=[1,1]):
 	c = coefficients
 	return r,theta,c[0]*N.sin(theta+c[1])
 
+def strike_dip_plane(strike,dip):
+	pass
+
 def make_plane(x, y, coefficients):
 	"""z = a x + b y + c
 		scatter: percentage scatter (standard deviation) in final values (0 for exact plane)
