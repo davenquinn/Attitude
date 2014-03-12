@@ -26,7 +26,8 @@ setup(
     install_requires=install_requires,
     tests_require=['nose'],
     test_suite='nose.collector',
-    packages=['attitude'],
+    packages=find_packages(),
+    package_dir={'attitude':'attitude'},
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Science/Research',
