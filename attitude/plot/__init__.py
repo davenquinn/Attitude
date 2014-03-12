@@ -3,7 +3,8 @@ from mplstereonet.stereonet_math import line, pole
 import numpy as N
 from matplotlib.patches import Polygon
 
-def trend_plunge(ax, orientation, *args, **kwargs):
+def trend_plunge(orientation, *args, **kwargs):
+	ax = kwargs.pop("ax",P.gca())
 	levels = kwargs.pop("levels",[1])
 	kwargs["linewidth"] = 0
 
@@ -17,7 +18,8 @@ def trend_plunge(ax, orientation, *args, **kwargs):
 		e = Polygon(zip(lat,lon), alpha=a[i], **kwargs)
 		ax.add_artist(e)
 
-def normal(ax, orientation, *args, **kwargs):
+def normal(orientation, *args, **kwargs):
+	ax = kwargs.pop("ax",P.gca())
 	levels = kwargs.pop("levels",[1])
 	kwargs["linewidth"] = 0
 
@@ -34,6 +36,4 @@ def normal(ax, orientation, *args, **kwargs):
 def setup_figure(*args, **kwargs):
 	fig = P.figure(*args, **kwargs)
 	ax = fig.add_subplot(111, projection='stereonet')
-	ax.trend_plunge = trend_plunge
-	ax.normal = normal
 	return fig,ax
