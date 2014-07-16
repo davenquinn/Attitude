@@ -33,6 +33,21 @@ def normal(orientation, *args, **kwargs):
 		e = Polygon(zip(lat,lon), alpha=a[i], **kwargs)
 		ax.add_artist(e)
 
+def strike_dip(orientation, *args, **kwargs):
+	ax = kwargs.pop("ax",P.gca())
+	levels = kwargs.pop("levels",[1])
+	kwargs["linewidth"] = 0
+
+	a = kwargs.pop("alpha",0.7)
+	if len(a) != len(levels):
+		a = [a]*len(levels)
+
+	for i,level in enumerate(levels):
+		print level
+		el = map(N.degrees,orientation.error_ellipse(level=level))
+		e = Polygon(zip(*el), alpha=a[i], **kwargs)
+		ax.add_patch(e)
+
 def setup_figure(*args, **kwargs):
 	fig = P.figure(*args, **kwargs)
 	ax = fig.add_subplot(111, projection='stereonet')
