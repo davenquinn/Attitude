@@ -3,6 +3,7 @@ from ..regression import Regression
 import numpy as N
 from scipy.linalg import eig
 from ..error.ellipse import ellipse
+from ..coordinates import centered
 
 def rotation(angle):
 	"""Rotation about the Z axis (in the XY plane)"""
@@ -18,7 +19,7 @@ def axes(matrix):
 
 class Orientation(object):
 	def __init__(self, coordinates):
-		self.fit = Regression(coordinates)
+		self.fit = Regression(centered(coordinates))
 
 		values = self.fit.coefficients()
 		val = values[0]**2+values[1]**2
