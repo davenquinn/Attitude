@@ -1,3 +1,7 @@
-*.sublime-*
 *.pyc
-etc
+.DS_Store
+
+etc/
+dist/
+
+Attitude.egg-info/
