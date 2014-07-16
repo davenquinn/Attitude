@@ -31,8 +31,6 @@ If you want to use the development version (which may be more up-to-date), you c
 pip install git+git://github.com/davenquinn/Attitude.git
 ```
 
-
-
 ## Dependencies
 
 Attitude currently depends on several python modules:
@@ -41,14 +39,9 @@ Attitude currently depends on several python modules:
 - SciPy
 - matplotlib
 - mplstereonet
-- Fiona
-- Shapely
-- pyproj
 
 Only the first two are needed for the core functionality (fitting planes). The
-rest are for plotting (`matplotlib` and `mplstereonet`) and IO. I might move the IO
-into a separate library or examples, because it is fundamentally glue
-code and doesn't seem to fit with the core mission of this module.
+other two are for plotting (`matplotlib` and `mplstereonet`).
 
 # Future Plans
 

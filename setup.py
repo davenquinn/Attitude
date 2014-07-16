@@ -6,9 +6,6 @@ install_requires = [
     'numpy',
     'scipy',
     'matplotlib',
-    'fiona',
-    'shapely',
-    'pyproj',
     'mplstereonet'
     ]
 
