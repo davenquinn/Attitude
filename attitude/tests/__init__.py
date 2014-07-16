@@ -1,4 +1,4 @@
-from __future__ import division
+from __future__ import division, print_function
 import numpy as N
 from ..regression import Regression
 from ..coordinates import spherical, cartesian
@@ -50,6 +50,6 @@ def test_random_plane(n_points=1000):
 	z = make_plane(x, y, coefficients)
 
 	fitted_coefficients = Regression((x,y,z)).coefficients()
-	print coefficients, fitted_coefficients
+	print(coefficients, fitted_coefficients)
 	for i, j in zip(coefficients,fitted_coefficients):
 		assert i - j < 0.0001

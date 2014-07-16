@@ -1,3 +1,4 @@
+from __future__ import division
 import matplotlib.pyplot as P
 from mplstereonet.stereonet_math import line, pole
 import numpy as N
@@ -43,7 +44,6 @@ def strike_dip(orientation, *args, **kwargs):
 		a = [a]*len(levels)
 
 	for i,level in enumerate(levels):
-		print level
 		el = map(N.degrees,orientation.error_ellipse(level=level))
 		e = Polygon(zip(*el), alpha=a[i], **kwargs)
 		ax.add_patch(e)
