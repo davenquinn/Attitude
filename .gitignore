@@ -1,3 +1,5 @@
 *.sublime-*
 *.pyc
 etc
+
+*.egg-info
