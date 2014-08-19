@@ -1,4 +1,4 @@
-The Caltech License (Caltech)
+The MIT License (MIT)
 
 Copyright (c) 2014 Daven Quinn
 

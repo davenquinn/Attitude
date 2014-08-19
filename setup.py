@@ -6,22 +6,19 @@ install_requires = [
     'numpy',
     'scipy',
     'matplotlib',
-    'fiona',
-    'shapely',
-    'pyproj',
     'mplstereonet'
     ]
 
 setup(
     name='Attitude',
-    version=0.1,
+    version="0.1.2",
     description="Attitude computes the orientations of planes from point data.",
     license='MIT',
     keywords='gis data computation fitting statistics vector science geology',
     author='Daven Quinn',
-    author_email='code@davenquinn.com',
+    author_email='dev@davenquinn.com',
     maintainer='Daven Quinn',
-    maintainer_email='code@davenquinn.com',
+    maintainer_email='dev@davenquinn.com',
     url='http://github.com/davenquinn/Attitude',
     install_requires=install_requires,
     tests_require=['nose'],

@@ -1,3 +1,4 @@
+from __future__ import division
 import matplotlib.pyplot as P
 from mplstereonet.stereonet_math import line, pole
 import numpy as N
@@ -48,6 +49,20 @@ def normal(orientation, *args, **kwargs):
 		lat,lon = line(90-el[1], 180+el[0])
 		e = Polygon(zip(lat,lon), alpha=a[i], **kwargs)
 		ax.add_artist(e)
+
+def strike_dip(orientation, *args, **kwargs):
+	ax = kwargs.pop("ax",P.gca())
+	levels = kwargs.pop("levels",[1])
+	kwargs["linewidth"] = 0
+
+	a = kwargs.pop("alpha",0.7)
+	if len(a) != len(levels):
+		a = [a]*len(levels)
+
+	for i,level in enumerate(levels):
+		el = map(N.degrees,orientation.error_ellipse(level=level))
+		e = Polygon(zip(*el), alpha=a[i], **kwargs)
+		ax.add_patch(e)
 
 def setup_figure(*args, **kwargs):
 	projection = kwargs.pop("projection","stereonet")
