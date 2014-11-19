@@ -1,4 +1,4 @@
-from __future__ import division
+from __future__ import division, print_function
 from ..regression import Regression
 import numpy as N
 from scipy.linalg import eig
@@ -19,6 +19,7 @@ def axes(matrix):
 
 class Orientation(object):
 	def __init__(self, coordinates):
+		assert len(coordinates) >= 3
 		self.fit = Regression(centered(coordinates))
 
 		values = self.fit.coefficients()
