@@ -17,11 +17,12 @@ def cartesian(spherical):
     return x,y,z
 
 def centered(coordinates):
-    try:
-        assert coordinates.shape[1] == 3
-    except Exception:
-        coordinates = N.column_stack(coordinates)
-
-    means = N.mean(coordinates,axis=0,keepdims=True)
-    n = coordinates - means
-    return tuple(a.flatten() for a in n.transpose())
+    """ Centers coordinate distribution with respect to its
+        mean on all three axes. This is used as the input to
+        the regression model, so it can be converted easily
+        into radial coordinates.
+    """
+    coordinates = N.array(coordinates)
+    assert coordinates.shape[1] == 3
+    means = N.mean(coordinates,axis=0)
+    return coordinates - means
