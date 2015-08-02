@@ -18,9 +18,8 @@ def axes(matrix):
     return N.sqrt(eig(matrix[0:2,0:2])[0])
 
 class Orientation(object):
-    def __init__(self, coordinates):
-        assert len(coordinates) >= 3
-        self.fit = Regression(centered(coordinates))
+    def __init__(self, fit):
+        self.fit = fit
 
         values = self.fit.coefficients()
         val = values[0]**2+values[1]**2
@@ -29,11 +28,22 @@ class Orientation(object):
         self.coefficients = N.dot(self.rotation,values)
         self.slope = N.arctan(-self.coefficients[0])
 
+    @classmethod
+    def from_coordinates(cls, coordinates):
+        """
+        Enables the use of custom fits,
+        such as principle components
+        """
+        assert len(coordinates) >= 3
+        fit = Regression(centered(coordinates))
+        return cls(fit)
+
+    @property
     def covariance_matrix(self):
-        return N.dot(self.rotation,self.fit.covariance_matrix())
+        return N.dot(self.rotation,self.fit.covariance_matrix)
 
     def standard_errors(self):
-        return N.sqrt(N.diagonal(self.covariance_matrix()))
+        return N.sqrt(N.diagonal(self.covariance_matrix))
 
     def strike_dip(self, uncertainties=False):
         c = tuple(N.degrees(i) for i in (self.azimuth,self.slope))
@@ -55,7 +65,7 @@ class Orientation(object):
         return tuple(N.degrees(i) for i in self.standard_errors()[:2])
 
     def error_ellipse(self, spherical=True, vector=False, level=1):
-        e = ellipse(tuple(self.coefficients[:2]), self.covariance_matrix()[:2,:2], level=level)
+        e = ellipse(tuple(self.coefficients[:2]), self.covariance_matrix[:2,:2], level=level)
         if spherical:
             slope = N.arctan(-e[:,0])
             azimuth = self.azimuth + N.arctan2(-e[:,1],-e[:,0])
