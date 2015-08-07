@@ -49,6 +49,7 @@ class Regression(object):
     def residuals(self):
         return self.Z - self.predictions()[2]
 
+    @property
     def covariance_matrix(self):
         if self.__covariance__ is not None:
             return self.__covariance__
@@ -64,4 +65,4 @@ class Regression(object):
 
     def standard_errors(self):
         """Gets the standard errors of the coefficients"""
-        return N.sqrt(N.diagonal(self.covariance_matrix()))
+        return N.sqrt(N.diagonal(self.covariance_matrix))

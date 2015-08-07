@@ -40,7 +40,7 @@ class Orientation(object):
 
     @property
     def covariance_matrix(self):
-        return N.dot(self.rotation,self.fit.covariance_matrix)
+        return N.dot(self.fit.covariance_matrix,self.rotation)
 
     def standard_errors(self):
         return N.sqrt(N.diagonal(self.covariance_matrix))
