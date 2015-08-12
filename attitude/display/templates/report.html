@@ -1,0 +1,7 @@
+<h1>Measurement {{name}}</h1>
+<h2>Linear fit</h2>
+<ul>
+  <li>Number of points: {{ orientation.fit.nobs }}</li>
+  <li>Strike and dip: {{ orientation.strike_dip() }}</li>
+  <li>Errors: {{ orientation.errors() }}</li>
+</ul>

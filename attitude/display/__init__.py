@@ -6,6 +6,8 @@ _ = path.join(path.dirname(__file__),'templates')
 loader = FileSystemLoader(_)
 env = Environment(loader=loader)
 
+from ..orientation import Orientation
+
 def report(*arrays, **kwargs):
     """
     Outputs a standalone HTML 'report card' for a
@@ -13,4 +15,11 @@ def report(*arrays, **kwargs):
     including relevant statistical information.
     """
     name = kwargs.pop("name",None)
-    return str(name)
+
+    arr = arrays[0]
+
+
+    t = env.get_template("report.html")
+    return t.render(
+        name=name,
+        orientation = Orientation.from_coordinates(arr))
