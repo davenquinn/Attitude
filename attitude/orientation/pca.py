@@ -65,6 +65,33 @@ def test_SVD(pca):
     rec = N.dot(_.U,N.dot(_.sigma,_.V))
     assert N.allclose(_.arr,rec)
 
+def covariance_matrix(self):
+    """
+    Constructs the covariance matrix of
+    input data from
+    the singular value decomposition. Note
+    that this is different than a covariance
+    matrix of residuals, which is what we want
+    for calculating fit errors.
+
+    Using SVD output to compute covariance matrix
+    X=UΣV⊤
+    XX⊤XX⊤=(UΣV⊤)(UΣV⊤)⊤=(UΣV⊤)(VΣU⊤)
+    V is an orthogonal matrix (V⊤V=I),
+    covariance matrix of input data: XX⊤=UΣ2U⊤
+
+     Because the axes represent identity in the
+     PCA coordinate system, the PCA major axes
+     themselves represent an affine transformation
+     matrix from PCA to Cartesian space
+    """
+
+    a = N.dot(self.U,self.sigma)
+    cv = N.dot(a,a.T)
+    # This yields the covariance matrix in Cartesian
+    # coordinates
+    return cv
+
 class PCAOrientation(BaseOrientation):
     """ Gets the axis-aligned principle components
         of the dataset.
@@ -111,36 +138,40 @@ class PCAOrientation(BaseOrientation):
         self.correlation_coefficient = N.sqrt(sse/len(_))
 
     def rotated(self):
-        """ Returns a matrix 'despun' so that
-            it is aligned with the princpal
-            axes of the dataset
+        """
+        Returns a dataset 'despun' so that
+        it is aligned with the princpal
+        axes of the dataset.
         """
         return N.dot(self.U,self.sigma)
 
+    def residuals(self):
+        """
+        Returns residuals of fit against all
+        three data axes (singular values 1, 2,
+        and 3). This takes the form of data along
+        singular axis 3 (axes 1 and 2 define the plane)
+        """
+        _ = self.rotated()
+        _[:,-1] = 0
+        _ = N.dot(_,self.axes)
+        return self.arr - _
+
     @property
     def covariance_matrix(self):
-        """ Constructs the covariance matrix from
-            the singular value decomposition, and
-            rotates into the xyz plane.
-
-        Using SVD output to compute covariance matrix
-        X=UΣV⊤
-        XX⊤XX⊤=(UΣV⊤)(UΣV⊤)⊤=(UΣV⊤)(VΣU⊤)
-        V is an orthogonal matrix (V⊤V=I),
-        covariance matrix of input data: XX⊤=UΣ2U⊤
         """
-        # Because the axes represent identity in the
-        # PCA coordinate system, the PCA major axes
-        # themselves represent an affine transformation
-        # matrix from PCA to Cartesian space
-
-        a = N.dot(self.U,self.sigma)
-        cv = N.dot(a,a.T)
-        # This yields the covariance matrix in Cartesian
-        # coordinates
-        inverse_transform = N.linalg.inv(self.axes)
-        raise
-        return cv
+        Constructs the covariance matrix of residuals
+        from the PCA residuals, and rotate it into
+        the Cartesian coordinate plane.
+        """
+            #rTr = matrix_squared(self.residuals())
+        e = self.residuals()
+        # sample covariance matrix
+        cov = N.dot(e.T,e)
+        # alternatively we could use a data covariance
+        # matrix to get the errors on the fit itself
+        # N.cov(e)
+        return N.dot(cov,xTx_inv)
 
     @property
     def coefficients(self):

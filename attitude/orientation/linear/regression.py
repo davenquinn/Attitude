@@ -61,7 +61,7 @@ class Regression(object):
         else:
             #rTr = matrix_squared(self.residuals())
             e = self.residuals()
-            sse = N.dot(e,e)/self.df_e #SSE
+            sse = N.dot(e,e) #/self.df_e #SSE
             self.__covariance__ = N.dot(sse,self.xTx)
         return self.__covariance__
 
