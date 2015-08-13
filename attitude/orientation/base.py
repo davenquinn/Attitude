@@ -18,6 +18,9 @@ class BaseOrientation(object):
     def errors(self):
         return tuple(N.degrees(i) for i in self.standard_errors()[:2])
 
+    def standard_errors(self):
+        return N.sqrt(N.diagonal(self.covariance_matrix))
+
     def error_ellipse(self, spherical=True, vector=False, level=1):
         e = ellipse(tuple(self.coefficients[:2]), self.covariance_matrix[:2,:2], level=level)
         if spherical:

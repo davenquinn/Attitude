@@ -38,6 +38,21 @@ class PlanarModel(object):
 
 planar_model = PlanarModel()
 
+def axis_transform(pca_axes):
+    """
+    Creates an affine transformation matrix to
+    rotate data in PCA axes into Cartesian plane
+    """
+    from_ = N.identity(3)
+    to_ = pca_axes
+
+    # Find inverse transform for forward transform
+    # y = M x -> M = y (x)^(-1)
+    # We don't need to do least-squares since
+    # there is a simple transformation
+    trans_matrix = N.linalg.lstsq(from_,to_)[0]
+    return trans_matrix
+
 class PCAOrientation(BaseOrientation):
     """ Gets the axis-aligned principle components
         of the dataset.
@@ -95,8 +110,15 @@ class PCAOrientation(BaseOrientation):
             the singular value decomposition, and
             rotates into the xyz plane.
         """
+
+        # Because the axes represent identity in the
+        # PCA coordinate system, the PCA major axes
+        # themselves represent an affine transformation
+        # matrix from PCA to Cartesian space
+        trans_matrix = self.axes
         cv = N.cov(self.U.T)
-        return N.dot(cv,self.axes)
+        _ = N.dot(cv,trans_matrix)
+        return _
 
     @property
     def coefficients(self):
@@ -112,9 +134,6 @@ class PCAOrientation(BaseOrientation):
         _ = self.coefficients
         mag = N.linalg.norm(_)
         return N.arccos(_[2]/mag)
-
-    def standard_errors(self):
-        return N.sqrt(N.diagonal(self.covariance_matrix))
 
     def strike_dip(self):
         """ Computes strike and dip from a normal vector.
