@@ -5,8 +5,7 @@ from base64 import b64encode
 from jinja2 import FileSystemLoader, Environment
 
 from .plot import setup_figure, strike_dip, normal, trend_plunge
-from ..regression import LinearRegression, PrincipalComponents
-from ..orientation import Orientation
+from ..orientation import PCAOrientation, LinearOrientation
 
 def encode(fig):
     b = BytesIO()
@@ -32,8 +31,8 @@ def report(*arrays, **kwargs):
 
     arr = arrays[0]
 
-    r = Orientation(LinearRegression(arr))
-    pca = Orientation(PrincipalComponents(arr))
+    r = LinearOrientation(arr)
+    pca = PCAOrientation(arr)
 
     kwargs = dict(
             levels=[0.05, 1,2,3],

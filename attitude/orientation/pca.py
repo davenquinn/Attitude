@@ -3,6 +3,7 @@ import numpy as N
 from scipy.sparse import bsr_matrix
 from scipy.sparse.linalg import svds
 from ..coordinates import centered
+from .base import BaseOrientation
 
 ## magnitude of vector (by row)
 norm = lambda x: N.linalg.norm(x,2,1)
@@ -37,7 +38,7 @@ class PlanarModel(object):
 
 planar_model = PlanarModel()
 
-class PrincipalComponents(object):
+class PrincipalComponents(BaseOrientation):
     """ Gets the axis-aligned principle components
         of the dataset.
     """
@@ -90,8 +91,13 @@ class PrincipalComponents(object):
         cv = N.cov(self.U.T)
         return N.dot(cv,self.axes)
 
+    @property
     def coefficients(self):
         return self.axes[2]
+
+    def azimuth(self):
+        c = self.coefficients
+        return N.arctan2(c[0],c[1])
 
     def strike_dip(self):
         """ Computes strike and dip from a normal vector.
