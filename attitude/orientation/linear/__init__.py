@@ -30,16 +30,6 @@ class LinearOrientation(BaseOrientation):
         self.coefficients = N.dot(self.rotation,values)
         self.slope = N.arctan(-self.coefficients[0])
 
-    @classmethod
-    def from_coordinates(cls, coordinates):
-        """
-        Enables the use of custom fits,
-        such as principle components
-        """
-        assert len(coordinates) >= 3
-        fit = LinearRegression(centered(coordinates))
-        return cls(fit)
-
     @property
     def covariance_matrix(self):
         return N.dot(self.fit.covariance_matrix,self.rotation)
@@ -52,28 +42,5 @@ class LinearOrientation(BaseOrientation):
         if uncertainties:
             return c,self.errors()
         return c
-
-    def dip_direction(self, uncertainties=False):
-        s,d = self.strike_dip()
-        s+=90
-        if uncertainties:
-            return (s,d),self.errors()
-        return (s,d)
-
-    def gradient(self, uncertainties=False):
-        return self.azimuth,self.slope
-
-    def errors(self):
-        return tuple(N.degrees(i) for i in self.standard_errors()[:2])
-
-    def error_ellipse(self, spherical=True, vector=False, level=1):
-        e = ellipse(tuple(self.coefficients[:2]), self.covariance_matrix[:2,:2], level=level)
-        if spherical:
-            slope = N.arctan(-e[:,0])
-            azimuth = self.azimuth + N.arctan2(-e[:,1],-e[:,0])
-            if vector:
-                azimuth = azimuth + N.pi/2
-            return (azimuth,slope)
-        return (e[:,1],e[:,0])
 
 

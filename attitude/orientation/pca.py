@@ -75,6 +75,13 @@ class PCAOrientation(BaseOrientation):
 
         self.sigma = N.diag(self.singular_values)
 
+        #r = N.sqrt(N.sum(N.diagonal(pca.covariance_matrix)))
+        # Actually, the sum of squared errors
+        # maybe should change this
+        _ = self.rotated()
+        sse = N.sum(_[:,2]**2)
+        self.correlation_coefficient = N.sqrt(sse/len(_))
+
     def rotated(self):
         """ Returns a matrix 'despun' so that
             it is aligned with the princpal
@@ -102,8 +109,12 @@ class PCAOrientation(BaseOrientation):
 
     @property
     def slope(self):
-        mag = N.linalg.norm(nv)
-        return N.arccos(nv[2]/mag)
+        _ = self.coefficients
+        mag = N.linalg.norm(_)
+        return N.arccos(_[2]/mag)
+
+    def standard_errors(self):
+        return N.sqrt(N.diagonal(self.covariance_matrix))
 
     def strike_dip(self):
         """ Computes strike and dip from a normal vector.
