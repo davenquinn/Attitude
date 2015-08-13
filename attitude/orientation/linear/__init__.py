@@ -2,7 +2,6 @@ from __future__ import division, print_function
 import numpy as N
 from scipy.linalg import eig
 
-from ...error.ellipse import ellipse
 from ...coordinates import centered
 from ..base import BaseOrientation
 from .regression import Regression
@@ -33,9 +32,6 @@ class LinearOrientation(BaseOrientation):
     @property
     def covariance_matrix(self):
         return N.dot(self.fit.covariance_matrix,self.rotation)
-
-    def standard_errors(self):
-        return N.sqrt(N.diagonal(self.covariance_matrix))
 
     def strike_dip(self, uncertainties=False):
         c = tuple(N.degrees(i) for i in (self.azimuth,self.slope))
