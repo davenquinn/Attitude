@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import division
 import numpy as N
 from scipy.sparse import bsr_matrix
@@ -53,6 +54,17 @@ def axis_transform(pca_axes):
     trans_matrix = N.linalg.lstsq(from_,to_)[0]
     return trans_matrix
 
+
+def test_SVD(pca):
+    """
+    Function to test the validity of singular
+    value decomposition by reconstructing original
+    data.
+    """
+    _ = pca
+    rec = N.dot(_.U,N.dot(_.sigma,_.V))
+    assert N.allclose(_.arr,rec)
+
 class PCAOrientation(BaseOrientation):
     """ Gets the axis-aligned principle components
         of the dataset.
@@ -89,6 +101,7 @@ class PCAOrientation(BaseOrientation):
         self.axes = V
 
         self.sigma = N.diag(self.singular_values)
+        self.V = V
 
         #r = N.sqrt(N.sum(N.diagonal(pca.covariance_matrix)))
         # Actually, the sum of squared errors
@@ -109,16 +122,25 @@ class PCAOrientation(BaseOrientation):
         """ Constructs the covariance matrix from
             the singular value decomposition, and
             rotates into the xyz plane.
-        """
 
+        Using SVD output to compute covariance matrix
+        X=UΣV⊤
+        XX⊤XX⊤=(UΣV⊤)(UΣV⊤)⊤=(UΣV⊤)(VΣU⊤)
+        V is an orthogonal matrix (V⊤V=I),
+        covariance matrix of input data: XX⊤=UΣ2U⊤
+        """
         # Because the axes represent identity in the
         # PCA coordinate system, the PCA major axes
         # themselves represent an affine transformation
         # matrix from PCA to Cartesian space
-        trans_matrix = self.axes
-        cv = N.cov(self.U.T)
-        _ = N.dot(cv,trans_matrix)
-        return _
+
+        a = N.dot(self.U,self.sigma)
+        cv = N.dot(a,a.T)
+        # This yields the covariance matrix in Cartesian
+        # coordinates
+        inverse_transform = N.linalg.inv(self.axes)
+        raise
+        return cv
 
     @property
     def coefficients(self):
