@@ -4,7 +4,7 @@ import numpy as N
 import logging
 log = logging.getLogger(__name__)
 
-from ..coordinates import centered
+from ...coordinates import centered
 
 def add_ones(a):
     """Adds a column of 1s at the end of the array"""

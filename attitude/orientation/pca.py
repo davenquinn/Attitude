@@ -38,7 +38,7 @@ class PlanarModel(object):
 
 planar_model = PlanarModel()
 
-class PrincipalComponents(BaseOrientation):
+class PCAOrientation(BaseOrientation):
     """ Gets the axis-aligned principle components
         of the dataset.
     """
@@ -95,9 +95,15 @@ class PrincipalComponents(BaseOrientation):
     def coefficients(self):
         return self.axes[2]
 
+    @property
     def azimuth(self):
         c = self.coefficients
         return N.arctan2(c[0],c[1])
+
+    @property
+    def slope(self):
+        mag = N.linalg.norm(nv)
+        return N.arccos(nv[2]/mag)
 
     def strike_dip(self):
         """ Computes strike and dip from a normal vector.
@@ -107,9 +113,8 @@ class PrincipalComponents(BaseOrientation):
             reflecting inclusion of errors in x-y plane.
         """
         nv = self.axes[2]
-        strike = N.degrees(N.arctan2(nv[0],nv[1])-N.pi/2)
-        mag = N.linalg.norm(nv)
-        dip = N.degrees(N.arccos(nv[2]/mag))
+        strike = N.degrees(self.azimuth-N.pi/2)
+        dip = N.degrees(self.slope)
 
         # Since PCA errors are not pinned to the XYZ plane,
         # we need to make sure our results are in the

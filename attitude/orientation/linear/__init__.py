@@ -2,8 +2,9 @@ from __future__ import division, print_function
 import numpy as N
 from scipy.linalg import eig
 
-from ..error.ellipse import ellipse
-from ..coordinates import centered
+from ...error.ellipse import ellipse
+from ...coordinates import centered
+from ..base import BaseOrientation
 from .regression import Regression
 
 def axes(matrix):
