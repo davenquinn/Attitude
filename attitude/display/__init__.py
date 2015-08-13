@@ -4,6 +4,7 @@ from urllib import quote
 from base64 import b64encode
 from jinja2 import FileSystemLoader, Environment
 
+from ..regression import LinearRegression, PrincipalComponents
 from ..orientation import Orientation
 from ..plot import setup_figure, strike_dip, normal, trend_plunge
 
@@ -31,16 +32,23 @@ def report(*arrays, **kwargs):
 
     arr = arrays[0]
 
-    o = Orientation.from_coordinates(arr)
+    r = Orientation(LinearRegression(arr))
+    pca = Orientation(PrincipalComponents(arr))
 
-    fig,ax = setup_figure()
-    trend_plunge(o,
-            ax=ax,
+    kwargs = dict(
             levels=[1,2,3],
             alpha=[0.8,0.5,0.2])
+
+    fig,ax = setup_figure()
+    trend_plunge(r, ax=ax,
+            facecolor='blue',
+            **kwargs)
+    trend_plunge(pca, ax=ax,
+            facecolor='red',
+            **kwargs)
 
     t = env.get_template("report.html")
     return t.render(
         name=name,
-        orientation=o,
+        regression=r,
         strike_dip=fig)

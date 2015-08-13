@@ -1,2 +1,2 @@
 from .orientation import Orientation
-from .regression import Regression
+from .regression import LinearRegression

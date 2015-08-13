@@ -1,5 +1,5 @@
 from __future__ import division, print_function
-from ..regression import Regression
+from ..regression import LinearRegression
 import numpy as N
 from scipy.linalg import eig
 from ..error.ellipse import ellipse
@@ -35,7 +35,7 @@ class Orientation(object):
         such as principle components
         """
         assert len(coordinates) >= 3
-        fit = Regression(centered(coordinates))
+        fit = LinearRegression(centered(coordinates))
         return cls(fit)
 
     @property
