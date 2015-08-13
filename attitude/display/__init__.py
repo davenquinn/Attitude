@@ -4,9 +4,9 @@ from urllib import quote
 from base64 import b64encode
 from jinja2 import FileSystemLoader, Environment
 
+from .plot import setup_figure, strike_dip, normal, trend_plunge
 from ..regression import LinearRegression, PrincipalComponents
 from ..orientation import Orientation
-from ..plot import setup_figure, strike_dip, normal, trend_plunge
 
 def encode(fig):
     b = BytesIO()
