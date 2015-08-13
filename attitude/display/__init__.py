@@ -36,8 +36,8 @@ def report(*arrays, **kwargs):
     pca = Orientation(PrincipalComponents(arr))
 
     kwargs = dict(
-            levels=[1,2,3],
-            alpha=[0.8,0.5,0.2])
+            levels=[0.05, 1,2,3],
+            alpha=[0.8, 0.08,0.05,0.02])
 
     fig,ax = setup_figure()
     trend_plunge(r, ax=ax,
@@ -51,4 +51,5 @@ def report(*arrays, **kwargs):
     return t.render(
         name=name,
         regression=r,
+        pca=pca,
         strike_dip=fig)

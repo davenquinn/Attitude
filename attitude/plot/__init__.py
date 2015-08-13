@@ -16,6 +16,7 @@ def trend_plunge(orientation, *args, **kwargs):
     for i,level in enumerate(levels):
         el = map(N.degrees,orientation.error_ellipse(vector=True, level=level))
         lat,lon = line(el[1], el[0])
+
         e = Polygon(zip(lat,lon), alpha=a[i], **kwargs)
         ax.add_patch(e)
 
@@ -29,7 +30,8 @@ def normal(orientation, *args, **kwargs):
         a = [a]*len(levels)
 
     for i,level in enumerate(levels):
-        el = map(N.degrees,orientation.error_ellipse(vector=True, level=level))
+        _ = orientation.error_ellipse(vector=True, level=level)
+        el = map(N.degrees,_)
         lat,lon = line(90-el[1], 180+el[0])
         e = Polygon(zip(lat,lon), alpha=a[i], **kwargs)
         ax.add_patch(e)
