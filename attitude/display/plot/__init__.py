@@ -3,6 +3,15 @@ import matplotlib.pyplot as P
 from mplstereonet.stereonet_math import line, pole
 import numpy as N
 from matplotlib.patches import Polygon
+from matplotlib.ticker import FuncFormatter
+
+yloc = P.MaxNLocator(4)
+xloc = P.MaxNLocator(5)
+
+def func(val, pos):
+    return u"{0}\u00b0".format(val)
+
+formatter = FuncFormatter(func)
 
 def trend_plunge(orientation, *args, **kwargs):
     ax = kwargs.pop("ax",P.gca())
@@ -54,6 +63,8 @@ def strike_dip(orientation, *args, **kwargs):
 
         if kwargs.pop("spherical", False):
             lat,lon = line(el[1], el[0])
+        lat = el[1]
+        lon = el[0]
 
         e = Polygon(zip(lat,lon), alpha=a[i], **kwargs)
         ax.add_patch(e)
@@ -63,3 +74,22 @@ def setup_figure(*args, **kwargs):
     fig = P.figure(*args, **kwargs)
     ax = fig.add_subplot(111, projection=projection)
     return fig,ax
+
+def error_ellipse(fit):
+    fig, ax = setup_figure(projection=None, figsize=(4,3))
+    ax.yaxis.set_major_locator(yloc)
+    ax.xaxis.set_major_locator(xloc)
+    ax.xaxis.set_major_formatter(formatter)
+    ax.yaxis.set_major_formatter(formatter)
+    ax.invert_yaxis()
+
+    strike_dip(fit,
+        ax=ax,
+        levels=[1,2,3],
+        alpha=[0.5,0.4,0.3],
+        facecolor='red')
+
+    ax.autoscale_view()
+    ax.set_ylabel("Dip")
+    ax.set_xlabel("Strike")
+    return fig

@@ -214,30 +214,24 @@ class PCAOrientation(BaseOrientation):
         mag = N.linalg.norm(_)
         return N.arccos(_[2]/mag)
 
-    def _ellipse(self,level, n=1000):
+    def __ellipse(self,level, n=1000):
         """Returns error ellipse in slope-azimuth space"""
         # singular value decomposition
         U, s, rotation_matrix = N.linalg.svd(self.covariance_matrix)
         # semi-axes (largest first)
 
-        axes = N.dot(N.diag(s),rotation_matrix)
-        # Project down to two dimensions
-        trans = N.array([[1,0,0],[0,1,0]])
-
-        projected_axes = N.dot(axes,trans.T)
-
-        U, s, rotation_matrix = N.linalg.svd(projected_axes)
-
-        #s = N.dot(N.diag(s),rotation_matrix)
-        saxes = N.sqrt(s)*level ## If the _area_ of a 2s ellipse is twice that of a 1s ellipse
-        # If the _axes_ are supposed to be twice as long, then it should be N.sqrt(s)*width
-
         u = N.linspace(0, 2*N.pi, n)
-        data = N.column_stack((saxes[0]*N.cos(u), saxes[1]*N.sin(u)))
-        # rotate data
+        xy_ellipse = N.column_stack((N.cos(u),N.sin(u),N.zeros(n)))
+        transform = N.dot(xy_ellipse,self.axes)
+
+        data = N.dot(transform, N.dot(N.diag(s),rotation_matrix))
+        # Project down to two dimensions
+        # data is in cartesian coordinates in x,y,z
+        # simply throw out first principal component
+        # for approximation
+        data = data[:,:2]
         center = self.coefficients[:2]
-        raise
-        return N.dot(data,rotation_matrix)+ center
+        return data + center
 
     def strike_dip(self):
         """ Computes strike and dip from a normal vector.
@@ -259,3 +253,13 @@ class PCAOrientation(BaseOrientation):
 
         return strike, dip
 
+
+    def error_ellipse(self, spherical=True, vector=False, level=1):
+        e = self._ellipse(level)
+        if spherical:
+            slope = N.arctan(-e[:,0])
+            azimuth = self.azimuth + N.arctan2(-e[:,1],-e[:,0])
+            if vector:
+                azimuth = azimuth
+            return (azimuth,slope)
+        return (e[:,1],e[:,0])

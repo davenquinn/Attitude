@@ -4,7 +4,7 @@ from urllib import quote
 from base64 import b64encode
 from jinja2 import FileSystemLoader, Environment
 
-from .plot import setup_figure, strike_dip, normal, trend_plunge
+from .plot import setup_figure, strike_dip, normal, trend_plunge, error_ellipse
 from ..orientation import PCAOrientation, LinearOrientation
 
 import matplotlib.pyplot as P
@@ -49,9 +49,13 @@ def report(*arrays, **kwargs):
             facecolor='red',
             **kwargs)
 
+    ellipse=error_ellipse(pca)
+
     t = env.get_template("report.html")
     return t.render(
         name=name,
         regression=r,
         pca=pca,
-        strike_dip=fig)
+        strike_dip=fig,
+        linear_error=error_ellipse(r),
+        pca_ellipse=ellipse)
