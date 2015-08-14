@@ -35,8 +35,8 @@ def report(*arrays, **kwargs):
     pca = PCAOrientation(arr)
 
     kwargs = dict(
-            levels=[0.05, 1,2,3],
-            alpha=[0.8, 0.08,0.05,0.02])
+            levels=[1,2,3],
+            alpha=[0.8,0.5,0.2])
 
     fig,ax = setup_figure()
     trend_plunge(r, ax=ax,

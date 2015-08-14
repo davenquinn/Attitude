@@ -163,14 +163,39 @@ class PCAOrientation(BaseOrientation):
         Constructs the covariance matrix of residuals
         from the PCA residuals, and rotate it into
         the Cartesian coordinate plane.
+
+        Estimator covariance:
+        Cov(B) = Var(X) (X.T X)^-1
+
+         Instead of calculating the estimator
+         covariance directly as below
+         xTx = N.dot(self.arr.T,self.arr)
+         xTx_inv = N.linalg.inv(xTx)
+         we can use SVD inverse identitites
+         to show that
+         (X^T X)^(-1) = U S^-2 U^T
+         This is much easier to calculate
+
         """
-            #rTr = matrix_squared(self.residuals())
+        #rTr = matrix_squared(self.residuals())
         e = self.residuals()
+        #sse = N.dot(e,e)/self.df_e #SSE
+        #s = N.linalg.inv(self.sigma)
+        #s2 = N.dot(s,s)
+        #a = N.dot(s,self.U.T)
+        #xTx_inv = N.dot(self.U,N.dot(s,a))
+
+        xTx = N.dot(self.arr.T,self.arr)
+        xTx_inv = N.linalg.inv(xTx)
+
         # sample covariance matrix
-        cov = N.dot(e.T,e)
+        #cov = N.dot(e.T,e)
         # alternatively we could use a data covariance
         # matrix to get the errors on the fit itself
         # N.cov(e)
+        #return N.dot(cov,xTx_inv)
+
+        cov = N.dot(e.T,e)
         return N.dot(cov,xTx_inv)
 
     @property
