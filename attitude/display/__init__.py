@@ -7,6 +7,8 @@ from jinja2 import FileSystemLoader, Environment
 from .plot import setup_figure, strike_dip, normal, trend_plunge
 from ..orientation import PCAOrientation, LinearOrientation
 
+import matplotlib.pyplot as P
+
 def encode(fig):
     b = BytesIO()
     fig.savefig(b, format='png')
@@ -35,8 +37,9 @@ def report(*arrays, **kwargs):
     pca = PCAOrientation(arr)
 
     kwargs = dict(
-            levels=[1,2,3],
-            alpha=[0.8,0.5,0.2])
+            levels=[1,2,10],
+            alpha=[0.8,0.5,0.2],
+            linewidth=2)
 
     fig,ax = setup_figure()
     trend_plunge(r, ax=ax,

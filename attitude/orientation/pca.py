@@ -4,7 +4,8 @@ import numpy as N
 from scipy.sparse import bsr_matrix
 from scipy.sparse.linalg import svds
 from ..coordinates import centered
-from .base import BaseOrientation
+from .base import BaseOrientation, rotation
+from ..error.ellipse import ellipse
 
 ## magnitude of vector (by row)
 norm = lambda x: N.linalg.norm(x,2,1)
@@ -212,6 +213,31 @@ class PCAOrientation(BaseOrientation):
         _ = self.coefficients
         mag = N.linalg.norm(_)
         return N.arccos(_[2]/mag)
+
+    def _ellipse(self,level, n=1000):
+        """Returns error ellipse in slope-azimuth space"""
+        # singular value decomposition
+        U, s, rotation_matrix = N.linalg.svd(self.covariance_matrix)
+        # semi-axes (largest first)
+
+        axes = N.dot(N.diag(s),rotation_matrix)
+        # Project down to two dimensions
+        trans = N.array([[1,0,0],[0,1,0]])
+
+        projected_axes = N.dot(axes,trans.T)
+
+        U, s, rotation_matrix = N.linalg.svd(projected_axes)
+
+        #s = N.dot(N.diag(s),rotation_matrix)
+        saxes = N.sqrt(s)*level ## If the _area_ of a 2s ellipse is twice that of a 1s ellipse
+        # If the _axes_ are supposed to be twice as long, then it should be N.sqrt(s)*width
+
+        u = N.linspace(0, 2*N.pi, n)
+        data = N.column_stack((saxes[0]*N.cos(u), saxes[1]*N.sin(u)))
+        # rotate data
+        center = self.coefficients[:2]
+        raise
+        return N.dot(data,rotation_matrix)+ center
 
     def strike_dip(self):
         """ Computes strike and dip from a normal vector.

@@ -7,7 +7,11 @@ from matplotlib.patches import Polygon
 def trend_plunge(orientation, *args, **kwargs):
     ax = kwargs.pop("ax",P.gca())
     levels = kwargs.pop("levels",[1])
-    kwargs["linewidth"] = 0
+    #kwargs["linewidth"] = 0
+    defaults = dict(
+        linewidth=0)
+    kwargs.update({k:kwargs.pop(k,v)
+        for k,v in defaults.items()})
 
     a = kwargs.pop("alpha",[0.7])
     if len(a) != len(levels):
