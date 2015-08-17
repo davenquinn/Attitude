@@ -114,6 +114,7 @@ class PCAOrientation(BaseOrientation):
         # the *covariance matrix*, while dividing
         # by it leaves us with an eigen-analysis
         # of the *correlation matrix*
+
         self.n = len(self.arr)
 
         #ratio = self.n/1e4
@@ -137,6 +138,15 @@ class PCAOrientation(BaseOrientation):
         _ = self.rotated()
         sse = N.sum(_[:,2]**2)
         self.correlation_coefficient = N.sqrt(sse/len(_))
+
+    def whitened(self):
+        """
+        Returns a 'whitened' or decorrelated version of
+        the input data, where variances along all axes
+        are rescaled to 1 (i.e. the covariance matrix
+        becomes an identity matrix).
+        """
+        return N.dot(self.U,self.V.T)
 
     def rotated(self):
         """
