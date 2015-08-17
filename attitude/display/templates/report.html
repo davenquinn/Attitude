@@ -10,10 +10,14 @@
   <li>Strike and dip: {{ pca.strike_dip() }}</li>
   <li>Errors: {{ pca.errors() }}</li>
 </ul>
+
+<p>{{ aligned | figure }}</p>
+
 <h3>Trend and plunge</h3>
-{{ strike_dip | figure }}
 
-{{ linear_error | figure }}
+<p>{{ strike_dip | figure }}</p>
 
-{{ pca_ellipse | figure }}
+<p>{{ linear_error | figure }}</p>
+
+<p>{{ pca_ellipse | figure }}</p>
 

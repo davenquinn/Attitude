@@ -4,7 +4,7 @@ from urllib import quote
 from base64 import b64encode
 from jinja2 import FileSystemLoader, Environment
 
-from .plot import setup_figure, strike_dip, normal, trend_plunge, error_ellipse
+from .plot import setup_figure, strike_dip, normal, trend_plunge, error_ellipse, plot_aligned
 from ..orientation import PCAOrientation, LinearOrientation
 
 import matplotlib.pyplot as P
@@ -58,4 +58,5 @@ def report(*arrays, **kwargs):
         pca=pca,
         strike_dip=fig,
         linear_error=error_ellipse(r),
+        aligned=plot_aligned(pca),
         pca_ellipse=ellipse)
