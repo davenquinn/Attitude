@@ -214,24 +214,33 @@ class PCAOrientation(BaseOrientation):
         mag = N.linalg.norm(_)
         return N.arccos(_[2]/mag)
 
-    def __ellipse(self,level, n=1000):
+    def _ellipse(self,level, n=1000):
         """Returns error ellipse in slope-azimuth space"""
         # singular value decomposition
-        U, s, rotation_matrix = N.linalg.svd(self.covariance_matrix)
+        U, s, rotation_matrix = N.linalg.svd(self.rotated_covariance)
         # semi-axes (largest first)
 
-        u = N.linspace(0, 2*N.pi, n)
-        xy_ellipse = N.column_stack((N.cos(u),N.sin(u),N.zeros(n)))
-        transform = N.dot(xy_ellipse,self.axes)
+        saxes = N.sqrt(s)*level ## If the _area_ of a 2s ellipse is twice that of a 1s ellipse
+        # If the _axes_ are supposed to be twice as long, then it should be N.sqrt(s)*width
+        center = self.coefficients
 
-        data = N.dot(transform, N.dot(N.diag(s),rotation_matrix))
-        # Project down to two dimensions
-        # data is in cartesian coordinates in x,y,z
-        # simply throw out first principal component
-        # for approximation
-        data = data[:,:2]
-        center = self.coefficients[:2]
-        return data + center
+        u = N.linspace(0, 2*N.pi, n)
+        data = N.column_stack((saxes[0]*N.cos(u), saxes[1]*N.sin(u),N.zeros(n)))
+        # rotate data
+        return N.dot(data, rotation_matrix)+center
+
+        #u = N.linspace(0, 2*N.pi, n)
+        #xy_ellipse = N.column_stack((N.cos(u),N.sin(u),N.zeros(n)))
+        #transform = N.dot(xy_ellipse,self.axes)
+
+        #data = N.dot(transform, N.dot(N.diag(s),rotation_matrix))
+        ## Project down to two dimensions
+        ## data is in cartesian coordinates in x,y,z
+        ## simply throw out first principal component
+        ## for approximation
+        #data = data[:,:2]
+        #center = self.coefficients[:2]
+        #return data + center
 
     def strike_dip(self):
         """ Computes strike and dip from a normal vector.

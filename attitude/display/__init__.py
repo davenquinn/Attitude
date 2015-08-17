@@ -37,7 +37,7 @@ def report(*arrays, **kwargs):
     pca = PCAOrientation(arr)
 
     kwargs = dict(
-            levels=[1,2,10],
+            levels=[1,2,3],
             alpha=[0.8,0.5,0.2],
             linewidth=2)
 

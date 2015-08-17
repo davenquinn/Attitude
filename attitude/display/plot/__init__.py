@@ -52,6 +52,7 @@ def normal(orientation, *args, **kwargs):
 def strike_dip(orientation, *args, **kwargs):
     ax = kwargs.pop("ax",P.gca())
     levels = kwargs.pop("levels",[1])
+    spherical = kwargs.pop("spherical", False)
     kwargs["linewidth"] = 0
 
     a = kwargs.pop("alpha",[1])
@@ -59,12 +60,16 @@ def strike_dip(orientation, *args, **kwargs):
         a = [a]*len(levels)
 
     for i,level in enumerate(levels):
-        el = map(N.degrees,orientation.error_ellipse(level=level))
+        el = map(N.degrees,orientation.error_ellipse(
+            level=level,
+            spherical=spherical
+            ))
 
-        if kwargs.pop("spherical", False):
+        if spherical:
             lat,lon = line(el[1], el[0])
-        lat = el[1]
-        lon = el[0]
+        else:
+            lat = el[1]
+            lon = el[0]
 
         e = Polygon(zip(lat,lon), alpha=a[i], **kwargs)
         ax.add_patch(e)
@@ -87,6 +92,7 @@ def error_ellipse(fit):
         ax=ax,
         levels=[1,2,3],
         alpha=[0.5,0.4,0.3],
+        spherical=False,
         facecolor='red')
 
     ax.autoscale_view()
