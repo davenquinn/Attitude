@@ -3,9 +3,28 @@ from __future__ import division
 import numpy as N
 from scipy.sparse import bsr_matrix
 from scipy.sparse.linalg import svds
+from seaborn.algorithms import bootstrap
 from ..coordinates import centered
 from .base import BaseOrientation, rotation
 from ..error.ellipse import ellipse
+
+def dot(*matrices):
+    return reduce(N.dot, matrices)
+
+def rotate_tensor(tensor,transform):
+    """
+    Transforms a tensor by an affine transform
+    """
+    return dot(transform, tensor, transform.T)
+
+def compose_affine(*transforms):
+    """
+    Returns a composite of several affine transformations.
+    """
+    return reduce(N.dot,reversed(transforms))
+
+def normalize(v):
+    return v/N.linalg.norm(v)
 
 ## magnitude of vector (by row)
 norm = lambda x: N.linalg.norm(x,2,1)
@@ -174,40 +193,70 @@ class PCAOrientation(BaseOrientation):
         Constructs the covariance matrix of residuals
         from the PCA residuals, and rotate it into
         the Cartesian coordinate plane.
-
-        Estimator covariance:
-        Cov(B) = Var(X) (X.T X)^-1
-
-         Instead of calculating the estimator
-         covariance directly as below
-         xTx = N.dot(self.arr.T,self.arr)
-         xTx_inv = N.linalg.inv(xTx)
-         we can use SVD inverse identitites
-         to show that
-         (X^T X)^(-1) = U S^-2 U^T
-         This is much easier to calculate
-
         """
-        #rTr = matrix_squared(self.residuals())
-        e = self.residuals()
-        #sse = N.dot(e,e)/self.df_e #SSE
-        #s = N.linalg.inv(self.sigma)
-        #s2 = N.dot(s,s)
-        #a = N.dot(s,self.U.T)
-        #xTx_inv = N.dot(self.U,N.dot(s,a))
+        cov = self.sigma**2/(self.n-1)
 
-        xTx = N.dot(self.arr.T,self.arr)
-        xTx_inv = N.linalg.inv(xTx)
+        # Standardize covariance matrix
+        # (not sure why we do this yet)
+        #cov /= N.diagonal(cov).sum()
+        #cov[0,0] = 0
+        #cov[1,1] = 0
 
-        # sample covariance matrix
-        #cov = N.dot(e.T,e)
-        # alternatively we could use a data covariance
-        # matrix to get the errors on the fit itself
-        # N.cov(e)
-        #return N.dot(cov,xTx_inv)
+        return cov #reduce(N.dot,[self.axes,cov,self.axes.T])
 
-        cov = N.dot(e.T,e)
-        return N.dot(cov,xTx_inv)
+    def error_ellipsoid(self):
+        pass
+
+    def dip_normal_transform(self):
+        normal = self.axes[2]
+        vertical = N.array([0,0,1])
+        strike = normalize(N.cross(vertical,normal))
+        dip_dr = normalize(N.cross(strike,normal))
+
+        rm = N.vstack((dip_dr,strike,normal))
+        ir = N.linalg.inv(rm)
+
+        return compose_affine(self.axes,ir)
+
+    @property
+    def rotated_covariance(self):
+        """
+        Rotate covariance matrix of residuals into
+        coordinate system defined in terms of strike
+        and dip-normal components
+        """
+        # Third principal component is normal to
+        # the fitted plane
+        total_rotation = self.dip_normal_transform()
+        return rotate_tensor(self.covariance_matrix,total_rotation)
+
+    def errors(self):
+        _ = N.linalg.norm
+        dip_vector = dot(
+                self.dip_normal_transform(),
+                self.sigma)[0]
+        C = self.rotated_covariance
+
+        std_errors = N.sqrt(N.diagonal(C))
+
+        # For now we ignore errors in dip vector (acting
+        # like we have a viewpoint of infinity
+        nrm = _(dip_vector)
+        strike = N.arctan2(std_errors[1],nrm)
+        dip = N.arctan2(std_errors[2],nrm)
+
+        return tuple(N.degrees(i) for i in (strike,dip))
+
+    @property
+    def explained_variance(self):
+        """
+        Proportion of variance that is explained by the
+        first two principal components (which together
+        represent the planar fit). Analogous to R^2 of
+        linear least squares.
+        """
+        v = N.diagonal(self.covariance_matrix)
+        return v[0:2].sum()/v.sum()
 
     @property
     def coefficients(self):
@@ -224,33 +273,33 @@ class PCAOrientation(BaseOrientation):
         mag = N.linalg.norm(_)
         return N.arccos(_[2]/mag)
 
-    def _ellipse(self,level, n=1000):
-        """Returns error ellipse in slope-azimuth space"""
-        # singular value decomposition
-        U, s, rotation_matrix = N.linalg.svd(self.rotated_covariance)
-        # semi-axes (largest first)
+    #def _ellipse(self,level, n=1000):
+        #"""Returns error ellipse in slope-azimuth space"""
+        ## singular value decomposition
+        #U, s, rotation_matrix = N.linalg.svd(self.rotated_covariance)
+        ## semi-axes (largest first)
 
-        saxes = N.sqrt(s)*level ## If the _area_ of a 2s ellipse is twice that of a 1s ellipse
-        # If the _axes_ are supposed to be twice as long, then it should be N.sqrt(s)*width
-        center = self.coefficients
-
-        u = N.linspace(0, 2*N.pi, n)
-        data = N.column_stack((saxes[0]*N.cos(u), saxes[1]*N.sin(u),N.zeros(n)))
-        # rotate data
-        return N.dot(data, rotation_matrix)+center
+        #saxes = N.sqrt(s)*level ## If the _area_ of a 2s ellipse is twice that of a 1s ellipse
+        ## If the _axes_ are supposed to be twice as long, then it should be N.sqrt(s)*width
+        #center = self.coefficients
 
         #u = N.linspace(0, 2*N.pi, n)
-        #xy_ellipse = N.column_stack((N.cos(u),N.sin(u),N.zeros(n)))
-        #transform = N.dot(xy_ellipse,self.axes)
+        #data = N.column_stack((saxes[0]*N.cos(u), saxes[1]*N.sin(u),N.zeros(n)))
+        ## rotate data
+        #return N.dot(data, rotation_matrix)+center
 
-        #data = N.dot(transform, N.dot(N.diag(s),rotation_matrix))
-        ## Project down to two dimensions
-        ## data is in cartesian coordinates in x,y,z
-        ## simply throw out first principal component
-        ## for approximation
-        #data = data[:,:2]
-        #center = self.coefficients[:2]
-        #return data + center
+        ##u = N.linspace(0, 2*N.pi, n)
+        ##xy_ellipse = N.column_stack((N.cos(u),N.sin(u),N.zeros(n)))
+        ##transform = N.dot(xy_ellipse,self.axes)
+
+        ##data = N.dot(transform, N.dot(N.diag(s),rotation_matrix))
+        ### Project down to two dimensions
+        ### data is in cartesian coordinates in x,y,z
+        ### simply throw out first principal component
+        ### for approximation
+        ##data = data[:,:2]
+        ##center = self.coefficients[:2]
+        ##return data + center
 
     def strike_dip(self):
         """ Computes strike and dip from a normal vector.
@@ -259,7 +308,6 @@ class PCAOrientation(BaseOrientation):
             Sometimes, dips are greater by as much as 45 degrees,
             reflecting inclusion of errors in x-y plane.
         """
-        nv = self.axes[2]
         strike = N.degrees(self.azimuth-N.pi/2)
         dip = N.degrees(self.slope)
 
@@ -282,3 +330,9 @@ class PCAOrientation(BaseOrientation):
                 azimuth = azimuth
             return (azimuth,slope)
         return (e[:,1],e[:,0])
+
+    def bootstrap(self):
+        reg_func = lambda arr: N.linalg.svd(arr,full_matrices=False)[2][2]
+        beta_boots = bootstrap(self.arr, func=reg_func)
+        
+        return yhat, yhat_boots

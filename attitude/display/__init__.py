@@ -4,8 +4,10 @@ from urllib import quote
 from base64 import b64encode
 from jinja2 import FileSystemLoader, Environment
 
-from .plot import setup_figure, strike_dip, normal, trend_plunge, error_ellipse, plot_aligned
-from ..orientation import PCAOrientation, LinearOrientation
+from .plot import setup_figure, strike_dip, normal,\
+        trend_plunge, error_ellipse, plot_aligned,\
+        aligned_residuals, strike_dip_montecarlo
+from ..orientation import PCAOrientation, LinearOrientation, SphericalOrientation
 
 import matplotlib.pyplot as P
 
@@ -35,6 +37,7 @@ def report(*arrays, **kwargs):
 
     r = LinearOrientation(arr)
     pca = PCAOrientation(arr)
+    spherical = SphericalOrientation(arr)
 
     kwargs = dict(
             levels=[1,2,3],
@@ -42,21 +45,25 @@ def report(*arrays, **kwargs):
             linewidth=2)
 
     fig,ax = setup_figure()
-    trend_plunge(r, ax=ax,
-            facecolor='blue',
-            **kwargs)
-    trend_plunge(pca, ax=ax,
-            facecolor='red',
-            **kwargs)
+    #trend_plunge(r, ax=ax,
+            #facecolor='blue',
+            #**kwargs)
+    #trend_plunge(pca, ax=ax,
+            #facecolor='red',
+            #**kwargs)
+    strike_dip_montecarlo(pca,ax=ax)
 
     ellipse=error_ellipse(pca)
 
     t = env.get_template("report.html")
+
     return t.render(
         name=name,
         regression=r,
         pca=pca,
+        sph=spherical,
         strike_dip=fig,
         linear_error=error_ellipse(r),
         aligned=plot_aligned(pca),
+        residuals=aligned_residuals(pca),
         pca_ellipse=ellipse)

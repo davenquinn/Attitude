@@ -4,6 +4,7 @@ from mplstereonet.stereonet_math import line, pole
 import numpy as N
 from matplotlib.patches import Polygon
 from matplotlib.ticker import FuncFormatter
+import seaborn
 
 yloc = P.MaxNLocator(4)
 xloc = P.MaxNLocator(5)
@@ -74,6 +75,20 @@ def strike_dip(orientation, *args, **kwargs):
         e = Polygon(zip(lat,lon), alpha=a[i], **kwargs)
         ax.add_patch(e)
 
+def strike_dip_montecarlo(orientation, n=10000, ax=None, level=1):
+    o = orientation
+    arr = N.dot(N.random.randn(n,3)*level,o.covariance_matrix)
+    arr += o.sigma[2] # Normal vector to fit
+
+    arr = N.dot(arr,o.axes) # Rotate into cartesian coords
+
+    mag = N.linalg.norm(arr,axis=1)
+    strike = N.degrees(N.arctan2(arr[:,0],arr[:,1]))
+    dip = N.degrees(N.arccos(arr[:,2]/mag))
+
+    ax.pole(strike,dip,'r.')
+
+
 def setup_figure(*args, **kwargs):
     projection = kwargs.pop("projection","stereonet")
     fig = P.figure(*args, **kwargs)
@@ -131,3 +146,31 @@ def plot_aligned(pca):
             spine.set_visible(False)
     ax.set_xlabel("Meters")
     return fig
+
+def aligned_residuals(pca):
+    A = pca.rotated()
+    fig, axes = P.subplots(2,1,
+            sharex=True, frameon=False)
+    fig.subplots_adjust(hspace=0, wspace=0.1)
+    kw = dict(c="#555555", s=40, alpha=0.5)
+
+    #lengths = attitude.pca.singular_values[::-1]
+    lengths = (A[:,i].max()-A[:,i].min() for i in range(3))
+
+    titles = (
+        "Long cross-section (axis 3 vs. axis 1)",
+        "Short cross-section (axis 3 vs. axis 2)")
+
+    for title,ax,(a,b) in zip(titles,axes,
+            [(0,2),(1,2)]):
+
+        seaborn.regplot(A[:,a], A[:,b], ax=ax)
+        ax.text(0,1,title,
+            verticalalignment='top',
+            transform=ax.transAxes)
+        ax.autoscale(tight=True)
+        for spine in ax.spines.itervalues():
+            spine.set_visible(False)
+    ax.set_xlabel("Meters")
+    return fig
+

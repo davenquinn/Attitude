@@ -1,3 +1,6 @@
+{% extends "base.html" %}
+
+{% block content %}
 <h1>Measurement {{name}}</h1>
 <h2>Linear fit</h2>
 <ul>
@@ -9,6 +12,7 @@
 <ul>
   <li>Strike and dip: {{ pca.strike_dip() }}</li>
   <li>Errors: {{ pca.errors() }}</li>
+  <li>Explained variance: {{ pca.explained_variance }}</li>
 </ul>
 
 <p>{{ aligned | figure }}</p>
@@ -20,4 +24,14 @@
 <p>{{ linear_error | figure }}</p>
 
 <p>{{ pca_ellipse | figure }}</p>
+
+<p>{{ residuals | figure }}</p>
+
+
+<h2>Spherical</h2>
+<ul>
+  <li>Strike and dip: {{ sph.strike_dip() }}</li>
+</ul>
+
+{% endblock %}
 
