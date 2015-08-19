@@ -29,36 +29,6 @@ def normalize(v):
 ## magnitude of vector (by row)
 norm = lambda x: N.linalg.norm(x,2,1)
 
-class PlanarModel(object):
-    def __init__(self):
-        self.model = N.array([
-            [1,0,0], # line
-            [1,1,0], # plane
-            [1,1,1]  # sphere
-        ]).astype(float)
-        # Normalize to unit vectors
-        self.model /= norm(self.model)
-        self.inverted = N.linalg.inv(self.model)
-
-    def transform(self, sv):
-        sv = N.array(sv)
-        if sv.ndim == 1:
-            sv = N.expand_dims(sv,0)
-        sv /= norm(sv)
-        return N.dot(sv,self.inverted)
-
-    def planarity(self,sv):
-        res = self.transform(sv)
-        # get rid of extra dimsr
-        plan = res[:,1]**2-res[:,2]
-        plan[plan==N.nan] = 0
-        return N.squeeze(plan)
-
-    def __call__(self, sv):
-        return self.planarity(sv)
-
-planar_model = PlanarModel()
-
 def axis_transform(pca_axes):
     """
     Creates an affine transformation matrix to
@@ -231,6 +201,11 @@ class PCAOrientation(BaseOrientation):
         return rotate_tensor(self.covariance_matrix,total_rotation)
 
     def errors(self):
+        normal = self.axes[2]
+        vertical = N.array([0,0,1])
+        strike = normalize(N.cross(vertical,normal))
+        dip_dr = normalize(N.cross(strike,normal))
+
         _ = N.linalg.norm
         dip_vector = dot(
                 self.dip_normal_transform(),
