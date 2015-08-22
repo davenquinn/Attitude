@@ -26,6 +26,10 @@ def compose_affine(*transforms):
 def normalize(v):
     return v/N.linalg.norm(v)
 
+def vector_angle(v1,v2):
+    _ = N.dot(normalize(v1),normalize(v2).T)
+    return N.arccos(_)
+
 ## magnitude of vector (by row)
 norm = lambda x: N.linalg.norm(x,2,1)
 
@@ -121,12 +125,10 @@ class PCAOrientation(BaseOrientation):
         self.sigma = N.diag(self.singular_values)
         self.V = V
 
-        #r = N.sqrt(N.sum(N.diagonal(pca.covariance_matrix)))
-        # Actually, the sum of squared errors
-        # maybe should change this
-        _ = self.rotated()
-        sse = N.sum(_[:,2]**2)
-        self.correlation_coefficient = N.sqrt(sse/len(_))
+        self.normal = self.axes[2]*self.singular_values[2]
+        self._vertical = N.array([0,0,1])
+        self.strike = normalize(N.cross(self._vertical,self.normal))
+        self.dip_dr = normalize(N.cross(self.strike,self.normal))
 
     def whitened(self):
         """
@@ -160,19 +162,10 @@ class PCAOrientation(BaseOrientation):
     @property
     def covariance_matrix(self):
         """
-        Constructs the covariance matrix of residuals
-        from the PCA residuals, and rotate it into
-        the Cartesian coordinate plane.
+        Constructs the covariance matrix from PCA
+        residuals
         """
-        cov = self.sigma**2/(self.n-1)
-
-        # Standardize covariance matrix
-        # (not sure why we do this yet)
-        #cov /= N.diagonal(cov).sum()
-        #cov[0,0] = 0
-        #cov[1,1] = 0
-
-        return cov #reduce(N.dot,[self.axes,cov,self.axes.T])
+        return self.sigma**2/(self.n-1)
 
     def error_ellipsoid(self):
         pass
@@ -200,27 +193,74 @@ class PCAOrientation(BaseOrientation):
         total_rotation = self.dip_normal_transform()
         return rotate_tensor(self.covariance_matrix,total_rotation)
 
-    def errors(self):
-        normal = self.axes[2]
+    def unscented_transform(self):
+        """
+        Unscented transform of covariance matrix
+        of normal vector
+        """
+        normal = self.sigma[2]
+        # Normal vector (stays the same
+        # in rotated coordinate system)
+
+        cov = self.covariance_matrix
+
         vertical = N.array([0,0,1])
-        strike = normalize(N.cross(vertical,normal))
-        dip_dr = normalize(N.cross(strike,normal))
+        north = N.array([0,1,0])
 
-        _ = N.linalg.norm
-        dip_vector = dot(
-                self.dip_normal_transform(),
-                self.sigma)[0]
-        C = self.rotated_covariance
+        def dip_dr(normal):
+            # Rotate vector into cartesian frame
+            n = N.dot(normal,self.axes.T)
 
-        std_errors = N.sqrt(N.diagonal(C))
+            strike = -N.arctan2(-n[1],-n[0])
+            mag = N.linalg.norm(n)
+            dp = N.arccos(n[2]/mag)
+            dp_dr = strike + N.pi/2
 
-        # For now we ignore errors in dip vector (acting
-        # like we have a viewpoint of infinity
-        nrm = _(dip_vector)
-        strike = N.arctan2(std_errors[1],nrm)
-        dip = N.arctan2(std_errors[2],nrm)
+            return N.array([dp_dr,dp])
 
-        return tuple(N.degrees(i) for i in (strike,dip))
+        # Create symmetric set of sigma points
+        m = (2*cov)**(0.5)
+        pts = N.vstack((m.T + normal, m.T - normal))/6
+
+        # Sigma points in dip-dir/dip frame
+        sph_points = N.apply_along_axis(dip_dr,1,pts)
+
+        est_mean = N.mean(sph_points, axis=0)
+        arrs = N.dstack(tuple(N.outer(i,i)
+            for i in sph_points-est_mean))
+        cov_r = arrs.mean(axis=2)/cov.sum()
+        return est_mean, cov_r
+
+    def errors(self):
+        #_ = self.standard_errors()[1:]
+        mean, cov = self.unscented_transform()
+        #C = self.covariance_matrix
+        #C /= C.sum()
+        #cov = rotate_tensor(C,self.axes)[1:,1:]
+
+        return tuple(N.degrees(i) for i in N.diagonal(cov))
+
+    #def errors(self):
+        #normal = self.axes[2]
+        #vertical = N.array([0,0,1])
+        #strike = normalize(N.cross(vertical,normal))
+        #dip_dr = normalize(N.cross(strike,normal))
+
+        #_ = N.linalg.norm
+        #dip_vector = dot(
+                #self.dip_normal_transform(),
+                #self.sigma)[0]
+        #C = self.rotated_covariance
+
+        #std_errors = N.sqrt(N.diagonal(C))
+
+        ## For now we ignore errors in dip vector (acting
+        ## like we have a viewpoint of infinity
+        #nrm = _(dip_vector)
+        #strike = N.arctan2(std_errors[1],nrm)
+        #dip = N.arctan2(std_errors[2],nrm)
+
+        #return tuple(N.degrees(i) for i in (strike,dip))
 
     @property
     def explained_variance(self):
@@ -248,34 +288,6 @@ class PCAOrientation(BaseOrientation):
         mag = N.linalg.norm(_)
         return N.arccos(_[2]/mag)
 
-    #def _ellipse(self,level, n=1000):
-        #"""Returns error ellipse in slope-azimuth space"""
-        ## singular value decomposition
-        #U, s, rotation_matrix = N.linalg.svd(self.rotated_covariance)
-        ## semi-axes (largest first)
-
-        #saxes = N.sqrt(s)*level ## If the _area_ of a 2s ellipse is twice that of a 1s ellipse
-        ## If the _axes_ are supposed to be twice as long, then it should be N.sqrt(s)*width
-        #center = self.coefficients
-
-        #u = N.linspace(0, 2*N.pi, n)
-        #data = N.column_stack((saxes[0]*N.cos(u), saxes[1]*N.sin(u),N.zeros(n)))
-        ## rotate data
-        #return N.dot(data, rotation_matrix)+center
-
-        ##u = N.linspace(0, 2*N.pi, n)
-        ##xy_ellipse = N.column_stack((N.cos(u),N.sin(u),N.zeros(n)))
-        ##transform = N.dot(xy_ellipse,self.axes)
-
-        ##data = N.dot(transform, N.dot(N.diag(s),rotation_matrix))
-        ### Project down to two dimensions
-        ### data is in cartesian coordinates in x,y,z
-        ### simply throw out first principal component
-        ### for approximation
-        ##data = data[:,:2]
-        ##center = self.coefficients[:2]
-        ##return data + center
-
     def strike_dip(self):
         """ Computes strike and dip from a normal vector.
             Results are usually exactly the same as LLSQ
@@ -283,8 +295,12 @@ class PCAOrientation(BaseOrientation):
             Sometimes, dips are greater by as much as 45 degrees,
             reflecting inclusion of errors in x-y plane.
         """
-        strike = N.degrees(self.azimuth-N.pi/2)
-        dip = N.degrees(self.slope)
+        north = N.array([0,1,0])
+        _ = vector_angle(self.strike,north)
+        strike = N.degrees(_)
+
+        _ = vector_angle(self.normal,self._vertical)
+        dip = N.degrees(_)
 
         # Since PCA errors are not pinned to the XYZ plane,
         # we need to make sure our results are in the
@@ -295,19 +311,30 @@ class PCAOrientation(BaseOrientation):
 
         return strike, dip
 
+    def _ellipse(self, level=1, n=1000):
+        """Returns error ellipse of normal vector"""
+        mean,cov = self.unscented_transform()
+        #cov = rotate_tensor(self.covariance_matrix,self.axes)[:2,:2]
+        # singular value decomposition
+        U, s, rotation_matrix = N.linalg.svd(cov)
+        # semi-axes (largest first)
+
+        saxes = N.sqrt(s)*level ## If the _area_ of a 2s ellipse is twice that of a 1s ellipse
+        # If the _axes_ are supposed to be twice as long, then it should be N.sqrt(s)*width
+
+        u = N.linspace(0, 2*N.pi, n)
+        data = N.column_stack((saxes[0]*N.cos(u), saxes[1]*N.sin(u)))
+        # rotate data
+        return N.dot(data,rotation_matrix)
 
     def error_ellipse(self, spherical=True, vector=False, level=1):
         e = self._ellipse(level)
+        #if spherical:
         if spherical:
-            slope = N.arctan(-e[:,0])
-            azimuth = self.azimuth + N.arctan2(-e[:,1],-e[:,0])
-            if vector:
-                azimuth = azimuth
-            return (azimuth,slope)
+            return e + N.array([self.azimuth+N.pi/2,0])
         return (e[:,1],e[:,0])
 
     def bootstrap(self):
         reg_func = lambda arr: N.linalg.svd(arr,full_matrices=False)[2][2]
         beta_boots = bootstrap(self.arr, func=reg_func)
-        
         return yhat, yhat_boots
