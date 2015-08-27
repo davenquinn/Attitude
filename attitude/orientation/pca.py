@@ -8,6 +8,12 @@ from ..coordinates import centered
 from .base import BaseOrientation, rotation
 from ..error.ellipse import ellipse
 
+def augment(matrix):
+    size = matrix.shape
+    _ = N.identity(size[0]+1)
+    _[:size[0],:size[1]] = matrix
+    return _
+
 def dot(*matrices):
     return reduce(N.dot, matrices)
 
@@ -311,21 +317,25 @@ class PCAOrientation(BaseOrientation):
 
         return strike, dip
 
-    def _ellipse(self, level=1, n=1000):
-        """Returns error ellipse of normal vector"""
-        mean,cov = self.unscented_transform()
-        #cov = rotate_tensor(self.covariance_matrix,self.axes)[:2,:2]
-        # singular value decomposition
-        U, s, rotation_matrix = N.linalg.svd(cov)
-        # semi-axes (largest first)
+    def _ellipse(self, level):
 
-        saxes = N.sqrt(s)*level ## If the _area_ of a 2s ellipse is twice that of a 1s ellipse
-        # If the _axes_ are supposed to be twice as long, then it should be N.sqrt(s)*width
+        cov = self.covariance_matrix
+        idx = N.diag_indices(3)
+        ell = N.identity(4)
+        ell[idx] = 1/N.diagonal(cov)**2
+        ell[3,3] = -1
+        # Translate ellipse along 3rd major axis
+        T = N.identity(4)
+        T[0:3,3] = N.array([0,0,1])
+        ell = dot(T.T,ell,T)
 
-        u = N.linspace(0, 2*N.pi, n)
-        data = N.column_stack((saxes[0]*N.cos(u), saxes[1]*N.sin(u)))
-        # rotate data
-        return N.dot(data,rotation_matrix)
+        # Rotate ellipse matrix into cartesian
+        # plane
+        R = augment(self.axes)
+        ell = dot(R.T,ell,R)
+
+        # Cholesky decomposition
+        raise
 
     def error_ellipse(self, spherical=True, vector=False, level=1):
         e = self._ellipse(level)
