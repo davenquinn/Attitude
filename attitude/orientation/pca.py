@@ -3,6 +3,7 @@ from __future__ import division
 import numpy as N
 from scipy.sparse import bsr_matrix
 from scipy.sparse.linalg import svds
+from itertools import chain
 from seaborn.algorithms import bootstrap
 from ..coordinates import centered
 from .base import BaseOrientation, rotation
@@ -16,6 +17,9 @@ def augment(matrix):
 
 def dot(*matrices):
     return reduce(N.dot, matrices)
+
+def augment_vector(vec):
+    return N.append(vec,[1],axis=0)
 
 def rotate_tensor(tensor,transform):
     """
@@ -317,16 +321,23 @@ class PCAOrientation(BaseOrientation):
 
         return strike, dip
 
-    def _ellipse(self, level):
+    def _ellipse(self, level=1):
+        import sympy as S
+
+        x0,x1,x2,p0,p1,p2 = S.symbols('x_0,x_1,x_2,p_0,p_1,p_2')
+        X = S.Matrix(4,1,[x0,x1,x2,1])
 
         cov = self.covariance_matrix
         idx = N.diag_indices(3)
         ell = N.identity(4)
-        ell[idx] = 1/N.diagonal(cov)**2
+        ell[idx] = 1/(level*N.diagonal(cov))**2
         ell[3,3] = -1
+
+        normal = N.cross(self.sigma[0],self.sigma[1])
+
         # Translate ellipse along 3rd major axis
         T = N.identity(4)
-        T[0:3,3] = N.array([0,0,1])
+        T[0:3,3] = normal
         ell = dot(T.T,ell,T)
 
         # Rotate ellipse matrix into cartesian
@@ -334,8 +345,49 @@ class PCAOrientation(BaseOrientation):
         R = augment(self.axes)
         ell = dot(R.T,ell,R)
 
-        # Cholesky decomposition
-        raise
+        origin = N.array([0,0,0]).T
+
+        # matrix defining conic
+        A = S.Matrix(4,4,ell.flatten())
+
+        # Check that we have an ellipse
+        assert N.linalg.det(ell[:3,:3]) > 0
+
+        # equation of conic
+        conic = X.T*A*X
+
+        # equation of plane polar to origin (containing all points of tangency to origin)
+        _ = augment_vector(origin)
+        pole = S.Matrix(4,1,_)
+        polar = pole.T*A*X
+
+        sol0 = []
+        sol1 = []
+        for u in N.linspace(0,N.pi,50):
+            # equation of plane through origin at angle
+            ang = N.array([N.cos(u),N.sin(u),0])
+            n = augment_vector(N.cross(ang,normal))
+            n = S.Matrix(4,1,n)
+            blade = n.T*(X-pole)
+
+            # Form system of equations
+            eqns = [S.Eq(i,S.zeros(1)) for i in (conic,polar,blade)]
+
+            # Solve
+            sol = S.solve(eqns)
+
+            def spherical(solution):
+                d = N.array([complex(solution[i]) for i in (x0,x1,x2)])
+                r = N.linalg.norm(d)
+                theta = N.arctan(d[0]/d[1])
+                phi = N.arcsin(d[2]/r)
+                return N.array([theta.real,phi.real])
+
+            sol0.append(spherical(sol[0]))
+            sol1.append(spherical(sol[1]))
+
+        sol = N.vstack(chain(sol0,sol1))
+        return sol
 
     def error_ellipse(self, spherical=True, vector=False, level=1):
         e = self._ellipse(level)
