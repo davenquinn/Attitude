@@ -345,7 +345,16 @@ class PCAOrientation(BaseOrientation):
         R = augment(self.axes)
         ell = dot(R.T,ell,R)
 
+        # Cross product of ellipsoid and polar
+
+        # A conic is defined by X^T A X = 0
+        #try:
+            #U = N.linalg.cholesky(ell)
+        #except N.linalg.LinAlgError:
+            #raise Exception("Matrix is not positive-definite")
+
         origin = N.array([0,0,0]).T
+
 
         # matrix defining conic
         A = S.Matrix(4,4,ell.flatten())
@@ -360,6 +369,8 @@ class PCAOrientation(BaseOrientation):
         _ = augment_vector(origin)
         pole = S.Matrix(4,1,_)
         polar = pole.T*A*X
+
+        raise
 
         sol0 = []
         sol1 = []
