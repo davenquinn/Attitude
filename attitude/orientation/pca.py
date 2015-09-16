@@ -2,6 +2,7 @@
 from __future__ import division
 import numpy as N
 from scipy.sparse import bsr_matrix
+from scipy.linalg import lu
 from scipy.sparse.linalg import svds
 from itertools import chain
 from seaborn.algorithms import bootstrap
@@ -322,10 +323,6 @@ class PCAOrientation(BaseOrientation):
         return strike, dip
 
     def _ellipse(self, level=1):
-        import sympy as S
-
-        x0,x1,x2,p0,p1,p2 = S.symbols('x_0,x_1,x_2,p_0,p_1,p_2')
-        X = S.Matrix(4,1,[x0,x1,x2,1])
 
         cov = self.covariance_matrix
         idx = N.diag_indices(3)
@@ -353,28 +350,22 @@ class PCAOrientation(BaseOrientation):
         #except N.linalg.LinAlgError:
             #raise Exception("Matrix is not positive-definite")
 
-        origin = N.array([0,0,0]).T
-
-
-        # matrix defining conic
-        A = S.Matrix(4,4,ell.flatten())
-
         # Check that we have an ellipse
         assert N.linalg.det(ell[:3,:3]) > 0
 
-        # equation of conic
-        conic = X.T*A*X
+        L,U = lu(ell,permute_l=True)
 
+        origin = N.array([0,0,0]).T
         # equation of plane polar to origin (containing all points of tangency to origin)
-        _ = augment_vector(origin)
-        pole = S.Matrix(4,1,_)
-        polar = pole.T*A*X
+        pole = augment_vector(origin)
+        polar = dot(pole.T,ell)
 
+        #N.vstack(L,
         raise
 
         sol0 = []
         sol1 = []
-        for u in N.linspace(0,N.pi,50):
+        for u in N.linspace(0,N.pi,2):
             # equation of plane through origin at angle
             ang = N.array([N.cos(u),N.sin(u),0])
             n = augment_vector(N.cross(ang,normal))
