@@ -4,6 +4,8 @@
 # https://en.wikipedia.org/wiki/Quadric
 
 import numpy as N
+from scipy.linalg import lu
+from IPython import embed
 
 same = N.allclose
 
@@ -11,7 +13,34 @@ def dot(*matrices):
     return reduce(N.dot, matrices)
 
 def augment(vec):
-    return N.append(vec,[1],axis=0)
+    """
+    Augment a vector or square matrix
+    """
+    s = vec.shape
+    sz = list(s)
+    sz[0] += 1
+    if N.squeeze(vec).ndim == 1:
+        _ = N.ones(sz)
+        _[:-1] = vec
+    else:
+        s = vec.shape
+        _ = N.identity(sz[0])
+        _[:s[0],:s[1]] = vec
+    return _
+
+
+def point(*args):
+    assert len(args) < 4
+    return N.array(args)
+
+def column(vector):
+    return vector[:,N.newaxis]
+
+def inside(ell,p):
+    # Likely only works on ellipsoids
+    A = ell[:3,3]
+    v = p-center(ell)
+    return dot(v.T,A,v) <= 1
 
 def center(conic):
     # (https://en.wikipedia.org/wiki/Matrix_representation_of_conic_sections#Center)
@@ -35,7 +64,7 @@ def polar(conic, point):
     contains all points of tangency to the pole.
     """
     pole = augment(origin)
-    return dot(pole.T,ell)
+    return dot(ell,pole)
 
 def pole(conic, plane):
     """
@@ -73,7 +102,7 @@ assert same(ell0, dot(T.T,ell,T))
 assert N.linalg.det(ell[:3,:3]) > 0
 
 # Plane of tangency
-origin = N.array([0,0,0]).T
+origin = point(0,0,0)
 # equation of plane polar to origin
 plane = polar(ell,origin)
 
