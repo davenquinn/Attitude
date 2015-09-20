@@ -120,15 +120,29 @@ pt = hn[3]*n
 v1 = N.cross(n,[0,1,0])
 v2 = N.cross(v1,n)
 
+# plane can be represented
+#1x3 3x4
+# a v1 + b v2 + x_0 = x
+#a v1 + b v2 = x_c
+# [a b 1] [v1 v2 x0] = x
+# 4x3 3x1
+# a p = x
+# a = p^-1 x
+
+
 # transformation matrix
-m = N.row_stack(tuple(augment(i)
-    for i in (v1,v2,pt)))
+m = N.row_stack((i for i in (v1,v2,pt,[0,0,0])))
+#m = augment(m)
 
-p = N.linalg.pinv(m)
+con = dot(m.T, ell, m)
 
-e = dot(p.T,ell,p)
-from scipy.linalg import lu
-L,U = lu(ell,permute_l=True)
+#e = dot(p.T,ell,p)
+#from scipy.linalg import lu
+#L,U = lu(e,permute_l=True)
+
+offs = N.array([0,0,1])
+
+# X^T L = 0
 
 
 # X^T L = 0
