@@ -38,9 +38,10 @@ def column(vector):
 
 def inside(ell,p):
     # Likely only works on ellipsoids
-    A = ell[:3,3]
-    v = p-center(ell)
-    return dot(v.T,A,v) <= 1
+    v = augment(p)
+    _ = dot(v.T,ell,v)
+    print _
+    return _ >= 0
 
 def center(conic):
     # (https://en.wikipedia.org/wiki/Matrix_representation_of_conic_sections#Center)
@@ -113,12 +114,18 @@ assert hn[3] == 1.5
 # pole of tangent plane?
 assert same(origin, pole(ell,plane))
 
+# center is inside ellipsoid
+assert inside(ell,center(ell))
+# origin is outside of ellipsoid
+assert not inside(ell,origin)
+
 n = hn[:3]
 # point in plane
 pt = hn[3]*n
 # Get two vectors in plane
 v1 = N.cross(n,[0,1,0])
 v2 = N.cross(v1,n)
+
 
 # plane can be represented
 #1x3 3x4
@@ -129,12 +136,15 @@ v2 = N.cross(v1,n)
 # a p = x
 # a = p^-1 x
 
-
 # transformation matrix
-m = N.row_stack((i for i in (v1,v2,pt,[0,0,0])))
-#m = augment(m)
+m = N.column_stack((v1,v2,pt))
+m = N.append(m,N.array([[0,0,1]]),axis=0)
 
 con = dot(m.T, ell, m)
+
+# |a|
+# |b| [ d e f ] = ad + be + cf
+# |c|
 
 #e = dot(p.T,ell,p)
 #from scipy.linalg import lu
