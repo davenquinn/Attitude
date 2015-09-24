@@ -3,7 +3,7 @@
 
 # https://en.wikipedia.org/wiki/Quadric
 
-from __future__ import print_function
+from __future__ import print_function, division
 
 import numpy as N
 from scipy.linalg import lu
@@ -44,6 +44,11 @@ def point(*args):
 def column(vector):
     return vector[:,N.newaxis]
 
+def on(ell,p):
+    v = augment(p)
+    _ = transform(ell,v)
+    return same(_,0)
+
 def inside(ell,p):
     # Likely only works on ellipsoids
     v = augment(p)
@@ -54,6 +59,12 @@ def center(conic):
     ec = N.linalg.inv(conic[:-1,:-1])
     eo = -conic[:-1,-1]
     return dot(ec,eo.T)
+
+def major_axes(ell):
+    # Get ellipse axes
+    U,s,V = N.linalg.svd(ell[:-1,:-1])
+    scalar = -(ell.sum()-ell[:-1,:-1].sum())
+    return N.sqrt(s*scalar)*V
 
 def hessian_normal(plane):
     """
@@ -135,6 +146,12 @@ try:
 
     assert is_ellipsoid(ell)
 
+    ax = major_axes(ell)
+    c = center(ell)
+    for i in ax:
+        v = c+i
+        assert on(ell,v)
+
     # Plane of tangency
     # equation of plane polar to origin
     plane = polar(ell,origin)
@@ -171,29 +188,26 @@ try:
     # a = p^-1 x
 
     # transformation matrix
+    v1 = point(0,1,0)
+    v2 = point(0,0,1)
+    pt = point(1.5,0,0)
+
     m = N.column_stack((v1,v2,pt))
     m = N.append(m,N.array([[0,0,1]]),axis=0)
 
-    con = dot(m.T, ell, m)
+    con = transform(ell,m)
 
-    # |a|
-    # |b| [ d e f ] = ad + be + cf
-    # |c|
+    assert same(center(con),point(0,0))
 
-    #e = dot(p.T,ell,p)
-    #from scipy.linalg import lu
-    #L,U = lu(e,permute_l=True)
+    # Point is on projected conic
+    i = 1.5*N.tan(N.radians(30))
+    v = augment(point(i,0))
+    assert same(transform(con,v), 0)
 
-    offs = N.array([0,0,1])
-
-    # X^T L = 0
-
-
-    # X^T L = 0
-    # U X = 0
-
-    # T^T m^T L = 0
-    # U m T = 0e
+    ax = major_axes(con)
+    # Computed axes are on conic
+    for i in ax:
+        assert on(con,i)
 
     # Cone of tangency
     # equation of elliptic cone
@@ -201,10 +215,17 @@ try:
     cone = N.diag([-1.5,B,B,0])
 
     assert N.arctan(B/1.5) == N.radians(30)
+    # Test that point is on ellipse
+    # Likely only works on ellipsoids
+
 
     assert same(center(cone),origin)
+
+    print("No errors")
+    embed()
 
 except AssertionError as err:
     tb = traceback.format_exc()
     print(tb)
     embed()
+
