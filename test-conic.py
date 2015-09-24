@@ -3,9 +3,12 @@
 
 # https://en.wikipedia.org/wiki/Quadric
 
+from __future__ import print_function
+
 import numpy as N
 from scipy.linalg import lu
 from IPython import embed
+import traceback
 
 same = N.allclose
 
@@ -28,6 +31,11 @@ def augment(vec):
         _[:s[0],:s[1]] = vec
     return _
 
+def symmetric(arr):
+    return (arr.transpose() == arr).all()
+
+def skew_symmetric(arr):
+    return (arr.transpose() == -arr).all()
 
 def point(*args):
     assert len(args) < 4
@@ -39,14 +47,12 @@ def column(vector):
 def inside(ell,p):
     # Likely only works on ellipsoids
     v = augment(p)
-    _ = dot(v.T,ell,v)
-    print _
-    return _ >= 0
+    return transform(ell,v) <= 0
 
 def center(conic):
     # (https://en.wikipedia.org/wiki/Matrix_representation_of_conic_sections#Center)
     ec = N.linalg.inv(conic[:-1,:-1])
-    eo = conic[:-1,-1]
+    eo = -conic[:-1,-1]
     return dot(ec,eo.T)
 
 def hessian_normal(plane):
@@ -67,6 +73,22 @@ def polar(conic, point):
     pole = augment(origin)
     return dot(ell,pole)
 
+def transform(conic, T):
+    """
+    Transforms a conic or quadric by a transformation
+    matrix.
+    """
+    return dot(T.T,conic,T)
+
+def translate(conic, vector):
+    """
+    Translates a conic by a vector
+    """
+    # Translation matrix
+    T = N.identity(4)
+    T[:3,3] = -vector
+    return transform(conic,T)
+
 def pole(conic, plane):
     """
     Calculates the pole of a polar plane for
@@ -75,10 +97,15 @@ def pole(conic, plane):
     v = dot(N.linalg.inv(conic),plane)
     return v[:3]/v[3]
 
-def run_tests():
+def is_ellipsoid(ell):
+    # Check that we have an ellipsoid
+    return N.linalg.det(ell[:3,:3]) > 0
+
+try:
     # We consider a sphere with radius 1 offset 2 units on the X axis
     # the half-angle of its shadow will be sin(theta) = 1/2, or theta = 30º
     # Can we recreate this?
+    origin = point(0,0,0)
 
     r = 1
     offs = 2
@@ -87,24 +114,28 @@ def run_tests():
     ell0 = N.identity(4)
     ell0[3,3] = -1
 
-    assert same(center(ell0),[0,0,0])
+    # Center is inside origin
+    assert inside(ell0,origin)
 
-    # Translation matrix
-    T = N.identity(4)
-    T[0,3] = 2
-    ell = dot(T.T,ell0,T)
+    # Point on the edge
+    assert inside(ell0,point(1,0,0))
+
+    # Recovery of center?
+    assert same(center(ell0),origin)
+
+    # Translate conic
+    ell = translate(ell0,N.array([2,0,0]))
 
     assert same(center(ell),[2,0,0])
 
     # Check that translation is reversible
-    T[0,3] = -2
-    assert same(ell0, dot(T.T,ell,T))
+    assert same(ell0, translate(ell,N.array([-2,0,0])))
 
-    # Check that we have an ellipsoid
-    assert N.linalg.det(ell[:3,:3]) > 0
+    assert symmetric(ell)
+
+    assert is_ellipsoid(ell)
 
     # Plane of tangency
-    origin = point(0,0,0)
     # equation of plane polar to origin
     plane = polar(ell,origin)
 
@@ -119,6 +150,8 @@ def run_tests():
     assert inside(ell,center(ell))
     # origin is outside of ellipsoid
     assert not inside(ell,origin)
+
+    assert inside(ell,point(2,1,0))
 
     n = hn[:3]
     # point in plane
@@ -171,8 +204,7 @@ def run_tests():
 
     assert same(center(cone),origin)
 
-try:
-    run_tests()
 except AssertionError as err:
-    print err
-    import IPython; IPython.embed()
+    tb = traceback.format_exc()
+    print(tb)
+    embed()
