@@ -110,8 +110,8 @@ def pole(conic, plane):
     return v[:3]/v[3]
 
 def vector_angle(v1,v2):
-    _ = dot(v1,v2)
-    _/(norm(v1)*norm(v2))
+    n = (norm(v1)*norm(v2))
+    _ = dot(v1,v2)/n
     return N.arccos(_)
 
 def is_ellipsoid(ell):
@@ -213,16 +213,16 @@ try:
 
     u = N.linspace(0,2*N.pi,1000)
 
-    # Get a bundle of vectors defining ellipse
+    # Get a bundle of vectors defining cone
+    # which circumscribes ellipsoid
     angles = N.array([N.cos(u),N.sin(u)]).T
 
     # Turn into vectors
     data = dot(angles,axs)+pt
 
     for d in data:
-        assert same(
-            vector_angle(d,point(1,0,0)),
-            N.radians(30))
+        _ = vector_angle(d,point(1,0,0))
+        assert same(N.degrees(_),30)
 
     # Cone of tangency
     # equation of elliptic cone
