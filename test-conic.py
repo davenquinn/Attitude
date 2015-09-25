@@ -18,19 +18,11 @@ def dot(*matrices):
 
 def augment(vec):
     """
-    Augment a vector or square matrix
+    Augment a vector in R2 or R3
+    with a one to form a homogeneous
+    coordinate vector.
     """
-    s = vec.shape
-    sz = list(s)
-    sz[0] += 1
-    if N.squeeze(vec).ndim == 1:
-        _ = N.ones(sz)
-        _[:-1] = vec
-    else:
-        s = vec.shape
-        _ = N.identity(sz[0])
-        _[:s[0],:s[1]] = vec
-    return _
+    return N.append(vec,[1])
 
 def symmetric(arr):
     return (arr.transpose() == arr).all()
