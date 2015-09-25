@@ -83,15 +83,9 @@ try:
     assert ell.contains(vector(2,1,0))
 
     n = hn[:3]
-    # vector in plane
-    pt = hn[3]*n
     # Get two vectors in plane
     v1 = N.cross(n,[0,1,0])
     v2 = N.cross(v1,n)
-
-    # transformation matrix
-    v1 = vector(0,1,0)
-    v2 = vector(0,0,1)
     pt = plane.offset()
 
     m = N.column_stack((v1,v2,pt))
