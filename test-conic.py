@@ -13,6 +13,7 @@ from numpy.linalg import norm
 
 from attitude.geom.util import dot
 from attitude.geom.vector import vector, augment, column, angle
+from attitude.geom.conics import conic, transform
 
 same = N.allclose
 
@@ -26,17 +27,6 @@ def on(ell,p):
     v = augment(p)
     _ = transform(ell,v)
     return same(_,0)
-
-def inside(ell,p):
-    # Likely only works on ellipsoids
-    v = augment(p)
-    return transform(ell,v) <= 0
-
-def center(conic):
-    # (https://en.wikipedia.org/wiki/Matrix_representation_of_conic_sections#Center)
-    ec = N.linalg.inv(conic[:-1,:-1])
-    eo = -conic[:-1,-1]
-    return dot(ec,eo.T)
 
 def major_axes(ell):
     # Get ellipse axes
@@ -61,13 +51,6 @@ def polar(conic, vector):
     """
     pole = augment(vector)
     return dot(ell,pole)
-
-def transform(conic, T):
-    """
-    Transforms a conic or quadric by a transformation
-    matrix.
-    """
-    return dot(T.T,conic,T)
 
 def translate(conic, vector):
     """
@@ -100,22 +83,23 @@ try:
     offs = 2
 
     # Ellipsoid
-    ell0 = N.identity(4)
-    ell0[3,3] = -1
+    _ = N.identity(4)
+    _[3,3] = -1
+    ell0 = conic(_)
 
     # Center is inside origin
-    assert inside(ell0,origin)
+    assert ell0.contains(origin)
 
     # vector on the edge
-    assert inside(ell0,vector(1,0,0))
+    assert ell0.contains(vector(1,0,0))
 
     # Recovery of center?
-    assert same(center(ell0),origin)
+    assert same(ell0.center(),origin)
 
     # Translate conic
-    ell = translate(ell0,N.array([2,0,0]))
+    ell = conic(translate(ell0,vector(2,0,0)))
 
-    assert same(center(ell),[2,0,0])
+    assert same(ell.center(),[2,0,0])
 
     # Check that translation is reversible
     assert same(ell0, translate(ell,N.array([-2,0,0])))
@@ -125,7 +109,7 @@ try:
     assert is_ellipsoid(ell)
 
     ax = major_axes(ell)
-    c = center(ell)
+    c = ell.center()
     for i in ax:
         v = c+i
         assert on(ell,v)
@@ -142,11 +126,11 @@ try:
     assert same(origin, pole(ell,plane))
 
     # center is inside ellipsoid
-    assert inside(ell,center(ell))
+    assert ell.contains(ell.center())
     # origin is outside of ellipsoid
-    assert not inside(ell,origin)
+    assert not ell.contains(origin)
 
-    assert inside(ell,vector(2,1,0))
+    assert ell.contains(vector(2,1,0))
 
     n = hn[:3]
     # vector in plane
@@ -163,9 +147,9 @@ try:
     m = N.column_stack((v1,v2,pt))
     m = N.append(m,N.array([[0,0,1]]),axis=0)
 
-    con = transform(ell,m)
+    con = conic(transform(ell,m))
 
-    assert same(center(con),vector(0,0))
+    assert same(con.center(),vector(0,0))
 
     # vector is on projected conic
     i = 1.5*N.tan(N.radians(30))
@@ -200,13 +184,13 @@ try:
     # equation of elliptic cone
     B = N.sqrt(3)/2 # cos(30º)
     cone = N.diag([-1.5,B,B,0])
+    cone = conic(cone)
 
     assert N.arctan(B/1.5) == N.radians(30)
     # Test that vector is on ellipse
     # Likely only works on ellipsoids
 
-
-    assert same(center(cone),origin)
+    assert same(cone.center(),origin)
 
     print("No errors")
     embed()

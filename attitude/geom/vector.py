@@ -1,6 +1,8 @@
 import numpy as N
 from numpy.linalg import norm
 
+from .util import dot
+
 def vector(*args):
     """
     A single vector in any coordinate basis,
