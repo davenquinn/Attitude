@@ -11,31 +11,16 @@ from IPython import embed
 import traceback
 from numpy.linalg import norm
 
+from attitude.geom.util import dot
+from attitude.geom.vector import vector, augment, column, angle
+
 same = N.allclose
-
-def dot(*matrices):
-    return reduce(N.dot, matrices)
-
-def augment(vec):
-    """
-    Augment a vector in R2 or R3
-    with a one to form a homogeneous
-    coordinate vector.
-    """
-    return N.append(vec,[1])
 
 def symmetric(arr):
     return (arr.transpose() == arr).all()
 
 def skew_symmetric(arr):
     return (arr.transpose() == -arr).all()
-
-def point(*args):
-    assert len(args) < 4
-    return N.array(args)
-
-def column(vector):
-    return vector[:,N.newaxis]
 
 def on(ell,p):
     v = augment(p)
@@ -67,14 +52,14 @@ def hessian_normal(plane):
     to the origin."""
     return plane/N.linalg.norm(plane[:3])
 
-def polar(conic, point):
+def polar(conic, vector):
     """
-    Calculates the polar plane to a point (a 'pole')
+    Calculates the polar plane to a vector (a 'pole')
     for a given conic section. For poles
     outside the conic, the polar plane
-    contains all points of tangency to the pole.
+    contains all vectors of tangency to the pole.
     """
-    pole = augment(origin)
+    pole = augment(vector)
     return dot(ell,pole)
 
 def transform(conic, T):
@@ -101,11 +86,6 @@ def pole(conic, plane):
     v = dot(N.linalg.inv(conic),plane)
     return v[:3]/v[3]
 
-def vector_angle(v1,v2):
-    n = (norm(v1)*norm(v2))
-    _ = dot(v1,v2)/n
-    return N.arccos(_)
-
 def is_ellipsoid(ell):
     # Check that we have an ellipsoid
     return N.linalg.det(ell[:3,:3]) > 0
@@ -114,7 +94,7 @@ try:
     # We consider a sphere with radius 1 offset 2 units on the X axis
     # the half-angle of its shadow will be sin(theta) = 1/2, or theta = 30º
     # Can we recreate this?
-    origin = point(0,0,0)
+    origin = vector(0,0,0)
 
     r = 1
     offs = 2
@@ -126,8 +106,8 @@ try:
     # Center is inside origin
     assert inside(ell0,origin)
 
-    # Point on the edge
-    assert inside(ell0,point(1,0,0))
+    # vector on the edge
+    assert inside(ell0,vector(1,0,0))
 
     # Recovery of center?
     assert same(center(ell0),origin)
@@ -166,30 +146,30 @@ try:
     # origin is outside of ellipsoid
     assert not inside(ell,origin)
 
-    assert inside(ell,point(2,1,0))
+    assert inside(ell,vector(2,1,0))
 
     n = hn[:3]
-    # point in plane
+    # vector in plane
     pt = hn[3]*n
     # Get two vectors in plane
     v1 = N.cross(n,[0,1,0])
     v2 = N.cross(v1,n)
 
     # transformation matrix
-    v1 = point(0,1,0)
-    v2 = point(0,0,1)
-    pt = point(1.5,0,0)
+    v1 = vector(0,1,0)
+    v2 = vector(0,0,1)
+    pt = vector(1.5,0,0)
 
     m = N.column_stack((v1,v2,pt))
     m = N.append(m,N.array([[0,0,1]]),axis=0)
 
     con = transform(ell,m)
 
-    assert same(center(con),point(0,0))
+    assert same(center(con),vector(0,0))
 
-    # Point is on projected conic
+    # vector is on projected conic
     i = 1.5*N.tan(N.radians(30))
-    v = augment(point(i,0))
+    v = augment(vector(i,0))
     assert same(transform(con,v), 0)
 
     ax = major_axes(con)
@@ -213,7 +193,7 @@ try:
     data = dot(angles,axs)+pt
 
     for d in data:
-        _ = vector_angle(d,point(1,0,0))
+        _ = angle(d,vector(1,0,0))
         assert same(N.degrees(_),30)
 
     # Cone of tangency
@@ -222,7 +202,7 @@ try:
     cone = N.diag([-1.5,B,B,0])
 
     assert N.arctan(B/1.5) == N.radians(30)
-    # Test that point is on ellipse
+    # Test that vector is on ellipse
     # Likely only works on ellipsoids
 
 

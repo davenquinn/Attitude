@@ -1,4 +1,5 @@
 import numpy as N
+from numpy.linalg import norm
 
 def vector(*args):
     """
@@ -18,6 +19,17 @@ def augment(vec):
 def column(vec):
     """
     Return a vector with a new trailing axis
-    (with singular dimension) added.
+    (of singular dimension) added.
     """
     return vec[:,N.newaxis]
+
+def angle(v1,v2, cos=False):
+    """
+    Find the angle between two vectors.
+
+    :param cos: If True, the cosine of the
+    angle will be returned. False by default.
+    """
+    n = (norm(v1)*norm(v2))
+    _ = dot(v1,v2)/n
+    return _ if cos else N.arccos(_)
