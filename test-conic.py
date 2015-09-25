@@ -92,7 +92,7 @@ try:
     # transformation matrix
     v1 = vector(0,1,0)
     v2 = vector(0,0,1)
-    pt = vector(1.5,0,0)
+    pt = plane.offset()
 
     m = N.column_stack((v1,v2,pt))
     m = N.append(m,N.array([[0,0,1]]),axis=0)

@@ -51,4 +51,4 @@ class Plane(N.ndarray):
         origin or an arbitrary point.
         """
         v = plane.hessian_normal()
-        return v[:3]*v[3]
+        return -v[:3]*v[3]
