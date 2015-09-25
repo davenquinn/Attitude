@@ -9,6 +9,7 @@ import numpy as N
 from scipy.linalg import lu
 from IPython import embed
 import traceback
+from numpy.linalg import norm
 
 same = N.allclose
 
@@ -108,6 +109,11 @@ def pole(conic, plane):
     v = dot(N.linalg.inv(conic),plane)
     return v[:3]/v[3]
 
+def vector_angle(v1,v2):
+    _ = dot(v1,v2)
+    _/(norm(v1)*norm(v2))
+    return N.arccos(_)
+
 def is_ellipsoid(ell):
     # Check that we have an ellipsoid
     return N.linalg.det(ell[:3,:3]) > 0
@@ -177,16 +183,6 @@ try:
     v1 = N.cross(n,[0,1,0])
     v2 = N.cross(v1,n)
 
-
-    # plane can be represented
-    #1x3 3x4
-    # a v1 + b v2 + x_0 = x
-    #a v1 + b v2 = x_c
-    # [a b 1] [v1 v2 x0] = x
-    # 4x3 3x1
-    # a p = x
-    # a = p^-1 x
-
     # transformation matrix
     v1 = point(0,1,0)
     v2 = point(0,0,1)
@@ -208,6 +204,25 @@ try:
     # Computed axes are on conic
     for i in ax:
         assert on(con,i)
+
+    # Rotate major axes into 3d space
+    a,b = ax.shape
+    axs = N.zeros((a,b+1))
+    axs[:a,:b] = ax
+    axs = dot(axs,m[:3].T)
+
+    u = N.linspace(0,2*N.pi,1000)
+
+    # Get a bundle of vectors defining ellipse
+    angles = N.array([N.cos(u),N.sin(u)]).T
+
+    # Turn into vectors
+    data = dot(angles,axs)+pt
+
+    for d in data:
+        assert same(
+            vector_angle(d,point(1,0,0)),
+            N.radians(30))
 
     # Cone of tangency
     # equation of elliptic cone
