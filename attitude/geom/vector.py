@@ -13,7 +13,7 @@ def vector(*args):
 def augment(vec):
     """
     Augment a vector in any orthonormal basis
-    with a trailing to form a homogeneous
+    with a trailing 1 to form a homogeneous
     coordinate vector in that coordinate system.
     """
     return N.append(vec,[1])
@@ -35,3 +35,20 @@ def angle(v1,v2, cos=False):
     n = (norm(v1)*norm(v2))
     _ = dot(v1,v2)/n
     return _ if cos else N.arccos(_)
+
+class Plane(N.ndarray):
+    def hessian_normal(plane):
+        """
+        Return the Hessian Normal form of a plane
+        (ax + by + cz + d = 0) where [a,b,c] forms
+        the unit normal vector and d is the distance
+        to the origin."""
+        return plane/N.linalg.norm(plane[:3])
+
+    def offset(plane):
+        """
+        Returns the offset of the plane from the
+        origin or an arbitrary point.
+        """
+        v = plane.hessian_normal()
+        return v[:3]*v[3]

@@ -13,7 +13,7 @@ from numpy.linalg import norm
 
 from attitude.geom.util import dot
 from attitude.geom.vector import vector, augment, column, angle
-from attitude.geom.conics import conic, transform
+from attitude.geom.conics import conic
 
 same = N.allclose
 
@@ -22,56 +22,6 @@ def symmetric(arr):
 
 def skew_symmetric(arr):
     return (arr.transpose() == -arr).all()
-
-def on(ell,p):
-    v = augment(p)
-    _ = transform(ell,v)
-    return same(_,0)
-
-def major_axes(ell):
-    # Get ellipse axes
-    U,s,V = N.linalg.svd(ell[:-1,:-1])
-    scalar = -(ell.sum()-ell[:-1,:-1].sum())
-    return N.sqrt(s*scalar)*V
-
-def hessian_normal(plane):
-    """
-    Return the Hessian Normal form of a plane
-    (ax + by + cz + d = 0) where [a,b,c] forms
-    the unit normal vector and d is the distance
-    to the origin."""
-    return plane/N.linalg.norm(plane[:3])
-
-def polar(conic, vector):
-    """
-    Calculates the polar plane to a vector (a 'pole')
-    for a given conic section. For poles
-    outside the conic, the polar plane
-    contains all vectors of tangency to the pole.
-    """
-    pole = augment(vector)
-    return dot(ell,pole)
-
-def translate(conic, vector):
-    """
-    Translates a conic by a vector
-    """
-    # Translation matrix
-    T = N.identity(4)
-    T[:3,3] = -vector
-    return transform(conic,T)
-
-def pole(conic, plane):
-    """
-    Calculates the pole of a polar plane for
-    a given conic section.
-    """
-    v = dot(N.linalg.inv(conic),plane)
-    return v[:3]/v[3]
-
-def is_ellipsoid(ell):
-    # Check that we have an ellipsoid
-    return N.linalg.det(ell[:3,:3]) > 0
 
 try:
     # We consider a sphere with radius 1 offset 2 units on the X axis
@@ -97,33 +47,33 @@ try:
     assert same(ell0.center(),origin)
 
     # Translate conic
-    ell = conic(translate(ell0,vector(2,0,0)))
+    ell = ell0.translate(vector(2,0,0))
 
     assert same(ell.center(),[2,0,0])
 
     # Check that translation is reversible
-    assert same(ell0, translate(ell,N.array([-2,0,0])))
+    assert same(ell0, ell.translate(vector(-2,0,0)))
 
     assert symmetric(ell)
 
-    assert is_ellipsoid(ell)
+    assert ell.is_elliptical()
 
-    ax = major_axes(ell)
+    ax = ell.major_axes()
     c = ell.center()
     for i in ax:
         v = c+i
-        assert on(ell,v)
+        assert ell.contains(v,shell_only=True)
 
     # Plane of tangency
     # equation of plane polar to origin
-    plane = polar(ell,origin)
+    plane = ell.polar_plane(origin)
 
     # distance from tangent plane to origin
-    hn = hessian_normal(plane)
+    hn = plane.hessian_normal()
     assert hn[3] == 1.5
 
     # pole of tangent plane?
-    assert same(origin, pole(ell,plane))
+    assert same(origin, ell.pole(plane))
 
     # center is inside ellipsoid
     assert ell.contains(ell.center())
@@ -147,19 +97,19 @@ try:
     m = N.column_stack((v1,v2,pt))
     m = N.append(m,N.array([[0,0,1]]),axis=0)
 
-    con = conic(transform(ell,m))
+    con = ell.transform(m)
 
     assert same(con.center(),vector(0,0))
 
     # vector is on projected conic
     i = 1.5*N.tan(N.radians(30))
     v = augment(vector(i,0))
-    assert same(transform(con,v), 0)
+    assert same(con.solve(v), 0)
 
-    ax = major_axes(con)
+    ax = con.major_axes()
     # Computed axes are on conic
     for i in ax:
-        assert on(con,i)
+        assert con.contains(i, shell_only=True)
 
     # Rotate major axes into 3d space
     a,b = ax.shape
@@ -183,8 +133,8 @@ try:
     # Cone of tangency
     # equation of elliptic cone
     B = N.sqrt(3)/2 # cos(30º)
-    cone = N.diag([-1.5,B,B,0])
-    cone = conic(cone)
+    _ = N.diag([1.5,B,B,0])
+    cone = conic(_)
 
     assert N.arctan(B/1.5) == N.radians(30)
     # Test that vector is on ellipse
