@@ -82,16 +82,7 @@ try:
 
     assert ell.contains(vector(2,1,0))
 
-    n = hn[:3]
-    # Get two vectors in plane
-    v1 = N.cross(n,[0,1,0])
-    v2 = N.cross(v1,n)
-    pt = plane.offset()
-
-    m = N.column_stack((v1,v2,pt))
-    m = N.append(m,N.array([[0,0,1]]),axis=0)
-
-    con = ell.transform(m)
+    con, m, pt = ell.projection()
 
     assert same(con.center(),vector(0,0))
 
@@ -106,9 +97,7 @@ try:
         assert con.contains(i, shell_only=True)
 
     # Rotate major axes into 3d space
-    a,b = ax.shape
-    axs = N.zeros((a,b+1))
-    axs[:a,:b] = ax
+    axs = N.append(ax,N.zeros((2,1)),axis=1)
     axs = dot(axs,m[:3].T)
 
     u = N.linspace(0,2*N.pi,1000)

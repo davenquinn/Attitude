@@ -1,7 +1,7 @@
 import numpy as N
 
 from .util import dot
-from .vector import augment, Plane
+from .vector import vector, augment, Plane, angle
 
 class Conic(N.ndarray):
     def center(conic):
@@ -79,6 +79,46 @@ class Conic(N.ndarray):
         """
         v = dot(N.linalg.inv(conic),plane)
         return v[:3]/v[3]
+
+    def projection(self, **kwargs):
+        """
+        The elliptical cut of an ellipsoidal
+        conic describing all points of tangency
+        to the conic as viewed from the origin.
+        """
+        v = kwargs.pop('viewpoint',vector(0,0,0))
+        plane = self.polar_plane(v)
+
+        if not kwargs.pop('axes',None):
+            n = plane.normal()
+            # Two vectors in plane
+            # Perhaps need to add a case for when
+            # plane is perpendicular to this vector
+            v1 = N.cross(n,[0,1,0])
+            v2 = N.cross(v1,n)
+            axes = (v1,v2)
+        pt = plane.offset()
+
+        m = N.append(
+            N.column_stack((axes[0],axes[1],pt)),
+            N.array([[0,0,1]]),axis=0)
+
+        return self.transform(m), m, pt
+
+    def maximum_angle(self):
+        conic, T, center = self.projection()
+        ax = conic.major_axes()
+
+        # Rotate into 3d space
+        _ = N.zeros((2,1))
+        ax = N.append(ax,_,axis=1)
+        ax = dot(ax,m[:3].T)
+
+        v = ax[0]+pt
+        return angle(v,pt)
+
+
+
 
 def conic(x):
     return N.array(x).view(Conic)
