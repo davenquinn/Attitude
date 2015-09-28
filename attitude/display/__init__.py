@@ -45,12 +45,15 @@ def report(*arrays, **kwargs):
             linewidth=2)
 
     fig,ax = setup_figure()
-    trend_plunge(r, ax=ax,
+    normal(r, ax=ax,
             facecolor='blue',
             **kwargs)
-    trend_plunge(pca, ax=ax,
+    normal(pca, ax=ax,
             facecolor='red',
             **kwargs)
+
+    ax.pole(*r.strike_dip(), color='blue')
+    ax.pole(*pca.strike_dip(), color='red')
     #strike_dip_montecarlo(pca,ax=ax, level=10)
 
     ellipse=error_ellipse(pca)

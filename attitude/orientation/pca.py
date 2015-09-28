@@ -136,10 +136,10 @@ class PCAOrientation(BaseOrientation):
         self.sigma = N.diag(self.singular_values)
         self.V = V
 
-        self.normal = N.cross(self.axes[1], self.axes[2])
+        self.normal = N.cross(self.axes[0], self.axes[1])
 
         self._vertical = N.array([0,0,1])
-        self.strike = normalize(N.cross(self._vertical,self.normal))
+        self.strike = N.cross(self.normal,self._vertical)
         self.dip_dr = normalize(N.cross(self.strike,self.normal))
 
     def whitened(self):
@@ -178,17 +178,6 @@ class PCAOrientation(BaseOrientation):
         residuals
         """
         return self.sigma**2/(self.n-1)
-
-    def dip_normal_transform(self):
-        normal = self.axes[2]
-        vertical = N.array([0,0,1])
-        strike = normalize(N.cross(vertical,normal))
-        dip_dr = normalize(N.cross(strike,normal))
-
-        rm = N.vstack((dip_dr,strike,normal))
-        ir = N.linalg.inv(rm)
-
-        return compose_affine(self.axes,ir)
 
     @property
     def explained_variance(self):
@@ -248,11 +237,9 @@ class PCAOrientation(BaseOrientation):
         ell[3,3] = -1
         ell = conic(ell)
 
-        normal = N.cross(self.sigma[0],self.sigma[1])
-
         # Translate ellipse along 3rd major axis
         T = N.identity(4)
-        T[0:3,3] = normal
+        T[0:3,3] = self.sigma[2]
         ell = ell.transform(T)
 
         # Rotate ellipse matrix into cartesian
@@ -277,13 +264,13 @@ class PCAOrientation(BaseOrientation):
         r = N.linalg.norm(data,axis=1)
         theta = N.arccos(data[:,2]/r)
         phi = N.arctan2(data[:,1],data[:,0])
+
         return N.column_stack((theta,phi))
 
     def error_ellipse(self, spherical=True, vector=False, level=1):
         e = self._ellipse(level)
         #if spherical:
-        if spherical:
-            return e + N.array([self.azimuth+N.pi/2,0])
+        #    return e + N.array([self.azimuth+N.pi/2,0])
         return (e[:,1],e[:,0])
 
     def bootstrap(self):
