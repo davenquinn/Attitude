@@ -10,14 +10,13 @@ from ..coordinates import centered
 from .base import BaseOrientation, rotation
 from ..error.ellipse import ellipse
 
+from ..util import dot
+
 def augment(matrix):
     size = matrix.shape
     _ = N.identity(size[0]+1)
     _[:size[0],:size[1]] = matrix
     return _
-
-def dot(*matrices):
-    return reduce(N.dot, matrices)
 
 def augment_vector(vec):
     return N.append(vec,[1],axis=0)
@@ -204,44 +203,6 @@ class PCAOrientation(BaseOrientation):
         total_rotation = self.dip_normal_transform()
         return rotate_tensor(self.covariance_matrix,total_rotation)
 
-    def unscented_transform(self):
-        """
-        Unscented transform of covariance matrix
-        of normal vector
-        """
-        normal = self.sigma[2]
-        # Normal vector (stays the same
-        # in rotated coordinate system)
-
-        cov = self.covariance_matrix
-
-        vertical = N.array([0,0,1])
-        north = N.array([0,1,0])
-
-        def dip_dr(normal):
-            # Rotate vector into cartesian frame
-            n = N.dot(normal,self.axes.T)
-
-            strike = -N.arctan2(-n[1],-n[0])
-            mag = N.linalg.norm(n)
-            dp = N.arccos(n[2]/mag)
-            dp_dr = strike + N.pi/2
-
-            return N.array([dp_dr,dp])
-
-        # Create symmetric set of sigma points
-        m = (2*cov)**(0.5)
-        pts = N.vstack((m.T + normal, m.T - normal))/6
-
-        # Sigma points in dip-dir/dip frame
-        sph_points = N.apply_along_axis(dip_dr,1,pts)
-
-        est_mean = N.mean(sph_points, axis=0)
-        arrs = N.dstack(tuple(N.outer(i,i)
-            for i in sph_points-est_mean))
-        cov_r = arrs.mean(axis=2)/cov.sum()
-        return est_mean, cov_r
-
     def errors(self):
         #_ = self.standard_errors()[1:]
         mean, cov = self.unscented_transform()
@@ -250,28 +211,6 @@ class PCAOrientation(BaseOrientation):
         #cov = rotate_tensor(C,self.axes)[1:,1:]
 
         return tuple(N.degrees(i) for i in N.diagonal(cov))
-
-    #def errors(self):
-        #normal = self.axes[2]
-        #vertical = N.array([0,0,1])
-        #strike = normalize(N.cross(vertical,normal))
-        #dip_dr = normalize(N.cross(strike,normal))
-
-        #_ = N.linalg.norm
-        #dip_vector = dot(
-                #self.dip_normal_transform(),
-                #self.sigma)[0]
-        #C = self.rotated_covariance
-
-        #std_errors = N.sqrt(N.diagonal(C))
-
-        ## For now we ignore errors in dip vector (acting
-        ## like we have a viewpoint of infinity
-        #nrm = _(dip_vector)
-        #strike = N.arctan2(std_errors[1],nrm)
-        #dip = N.arctan2(std_errors[2],nrm)
-
-        #return tuple(N.degrees(i) for i in (strike,dip))
 
     @property
     def explained_variance(self):
