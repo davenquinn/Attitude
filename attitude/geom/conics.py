@@ -106,6 +106,8 @@ class Conic(N.ndarray):
             N.column_stack((axes[0],axes[1],pt)),
             N.array([[0,0,1]]),axis=0)
 
+        # This isn't an ideal return signature
+        # but it's what we're working with now
         return self.transform(m), m, pt
 
     def maximum_angle(self):
@@ -117,8 +119,8 @@ class Conic(N.ndarray):
         ax = N.append(ax,_,axis=1)
         ax = dot(ax,m[:3].T)
 
-        v = ax[0]+pt
-        return angle(v,pt)
+        v = ax[0]+center
+        return angle(v,center)
 
 def conic(x):
     return N.array(x).view(Conic)
