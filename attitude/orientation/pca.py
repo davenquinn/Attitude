@@ -212,12 +212,10 @@ class PCAOrientation(BaseOrientation):
             Sometimes, dips are greater by as much as 45 degrees,
             reflecting inclusion of errors in x-y plane.
         """
-        north = N.array([0,1,0])
-        _ = vector_angle(self.strike,north)
-        strike = N.degrees(_)
-
-        _ = vector_angle(self.normal,self._vertical)
-        dip = N.degrees(_)
+        n = self.axes[2]
+        r = N.linalg.norm(n)
+        strike = N.degrees(N.arctan2(n[0],n[1]))-90
+        dip = N.degrees(N.arccos(n[2]/r))
 
         # Since PCA errors are not pinned to the XYZ plane,
         # we need to make sure our results are in the
