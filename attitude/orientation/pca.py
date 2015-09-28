@@ -10,7 +10,8 @@ from ..coordinates import centered
 from .base import BaseOrientation, rotation
 from ..error.ellipse import ellipse
 
-from ..util import dot
+from ..geom.util import dot
+from ..geom.conics import conic
 
 def augment(matrix):
     size = matrix.shape
@@ -135,7 +136,8 @@ class PCAOrientation(BaseOrientation):
         self.sigma = N.diag(self.singular_values)
         self.V = V
 
-        self.normal = self.axes[2]*self.singular_values[2]
+        self.normal = N.cross(self.axes[1], self.axes[2])
+
         self._vertical = N.array([0,0,1])
         self.strike = normalize(N.cross(self._vertical,self.normal))
         self.dip_dr = normalize(N.cross(self.strike,self.normal))
@@ -177,9 +179,6 @@ class PCAOrientation(BaseOrientation):
         """
         return self.sigma**2/(self.n-1)
 
-    def error_ellipsoid(self):
-        pass
-
     def dip_normal_transform(self):
         normal = self.axes[2]
         vertical = N.array([0,0,1])
@@ -190,27 +189,6 @@ class PCAOrientation(BaseOrientation):
         ir = N.linalg.inv(rm)
 
         return compose_affine(self.axes,ir)
-
-    @property
-    def rotated_covariance(self):
-        """
-        Rotate covariance matrix of residuals into
-        coordinate system defined in terms of strike
-        and dip-normal components
-        """
-        # Third principal component is normal to
-        # the fitted plane
-        total_rotation = self.dip_normal_transform()
-        return rotate_tensor(self.covariance_matrix,total_rotation)
-
-    def errors(self):
-        #_ = self.standard_errors()[1:]
-        mean, cov = self.unscented_transform()
-        #C = self.covariance_matrix
-        #C /= C.sum()
-        #cov = rotate_tensor(C,self.axes)[1:,1:]
-
-        return tuple(N.degrees(i) for i in N.diagonal(cov))
 
     @property
     def explained_variance(self):
@@ -268,67 +246,38 @@ class PCAOrientation(BaseOrientation):
         ell = N.identity(4)
         ell[idx] = 1/(level*N.diagonal(cov))**2
         ell[3,3] = -1
+        ell = conic(ell)
 
         normal = N.cross(self.sigma[0],self.sigma[1])
 
         # Translate ellipse along 3rd major axis
         T = N.identity(4)
         T[0:3,3] = normal
-        ell = dot(T.T,ell,T)
+        ell = ell.transform(T)
 
         # Rotate ellipse matrix into cartesian
         # plane
         R = augment(self.axes)
-        ell = dot(R.T,ell,R)
+        ell = ell.transform(R)
 
-        # Cross product of ellipsoid and polar
+        con, matrix, center = ell.projection()
+        ax = con.major_axes()
 
-        # A conic is defined by X^T A X = 0
-        #try:
-            #U = N.linalg.cholesky(ell)
-        #except N.linalg.LinAlgError:
-            #raise Exception("Matrix is not positive-definite")
+        # Rotate major axes into 3d space
+        axs = N.append(ax,N.zeros((2,1)),axis=1)
+        axs = dot(axs,matrix[:3].T)
+        u = N.linspace(0,2*N.pi,1000)
 
-        # Check that we have an ellipse
-        assert N.linalg.det(ell[:3,:3]) > 0
+        # Get a bundle of vectors defining cone
+        # which circumscribes ellipsoid
+        angles = N.array([N.cos(u),N.sin(u)]).T
+        # Turn into vectors
+        data = dot(angles,axs)+center
 
-        L,U = lu(ell,permute_l=True)
-
-        origin = N.array([0,0,0]).T
-        # equation of plane polar to origin (containing all points of tangency to origin)
-        pole = augment_vector(origin)
-        polar = dot(pole.T,ell)
-
-        #N.vstack(L,
-        raise
-
-        sol0 = []
-        sol1 = []
-        for u in N.linspace(0,N.pi,2):
-            # equation of plane through origin at angle
-            ang = N.array([N.cos(u),N.sin(u),0])
-            n = augment_vector(N.cross(ang,normal))
-            n = S.Matrix(4,1,n)
-            blade = n.T*(X-pole)
-
-            # Form system of equations
-            eqns = [S.Eq(i,S.zeros(1)) for i in (conic,polar,blade)]
-
-            # Solve
-            sol = S.solve(eqns)
-
-            def spherical(solution):
-                d = N.array([complex(solution[i]) for i in (x0,x1,x2)])
-                r = N.linalg.norm(d)
-                theta = N.arctan(d[0]/d[1])
-                phi = N.arcsin(d[2]/r)
-                return N.array([theta.real,phi.real])
-
-            sol0.append(spherical(sol[0]))
-            sol1.append(spherical(sol[1]))
-
-        sol = N.vstack(chain(sol0,sol1))
-        return sol
+        r = N.linalg.norm(data,axis=1)
+        theta = N.arccos(data[:,2]/r)
+        phi = N.arctan2(data[:,1],data[:,0])
+        return N.column_stack((theta,phi))
 
     def error_ellipse(self, spherical=True, vector=False, level=1):
         e = self._ellipse(level)
