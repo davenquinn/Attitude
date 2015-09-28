@@ -1,3 +1,5 @@
+from __future__ import division
+
 import numpy as N
 from numpy.linalg import norm
 

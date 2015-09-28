@@ -1,3 +1,5 @@
+from __future__ import division
+
 import numpy as N
 
 from .util import dot
@@ -26,8 +28,9 @@ class Conic(N.ndarray):
         """
         Gets major axes of ellipsoids
         """
-        U,s,V = N.linalg.svd(ell[:-1,:-1])
-        scalar = -(ell.sum()-ell[:-1,:-1].sum())
+        _ = ell[:-1,:-1]
+        U,s,V = N.linalg.svd(_)
+        scalar = -(ell.sum()-_.sum())
         return N.sqrt(s*scalar)*V
 
     def is_elliptical(ell):
@@ -36,7 +39,7 @@ class Conic(N.ndarray):
         ellipsoid, or n-dimensional equivalent.
         """
         # Check that we have an ellipsoid
-        return N.linalg.det(ell[:3,:3]) > 0
+        return N.linalg.det(ell[:-1,:-1]) > 0
 
     def solve(conic,v):
         """
@@ -58,8 +61,8 @@ class Conic(N.ndarray):
         Translates a conic by a vector
         """
         # Translation matrix
-        T = N.identity(4)
-        T[:3,3] = -vector
+        T = N.identity(len(conic))
+        T[:-1,-1] = -vector
         return conic.transform(T)
 
     def polar_plane(conic, vector):
@@ -116,9 +119,6 @@ class Conic(N.ndarray):
 
         v = ax[0]+pt
         return angle(v,pt)
-
-
-
 
 def conic(x):
     return N.array(x).view(Conic)
