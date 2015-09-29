@@ -41,7 +41,7 @@ class BaseOrientation(object):
     @property
     def rotated_covariance(self):
         r = rotation(self.azimuth)
-        return reduce(N.dot,[r,self.covariance_matrix,r.T])
+        return reduce(N.dot,[r.T,self.covariance_matrix,r])
 
     def standard_errors(self):
         return N.sqrt(N.diagonal(self.rotated_covariance))
@@ -49,7 +49,7 @@ class BaseOrientation(object):
     def _ellipse(self,level):
         return ellipse(
                 tuple(self.coefficients[:2]),
-                self.rotated_covariance[:2,:2],
+                self.covariance_matrix[:2,:2],
                 level=level)
 
     def error_ellipse(self, spherical=True, vector=False, level=1):

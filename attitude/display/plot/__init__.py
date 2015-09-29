@@ -6,14 +6,6 @@ from matplotlib.patches import Polygon
 from matplotlib.ticker import FuncFormatter
 import seaborn
 
-yloc = P.MaxNLocator(4)
-xloc = P.MaxNLocator(5)
-
-def func(val, pos):
-    return u"{0}\u00b0".format(val)
-
-formatter = FuncFormatter(func)
-
 def trend_plunge(orientation, *args, **kwargs):
     ax = kwargs.pop("ax",P.gca())
     levels = kwargs.pop("levels",[1])
@@ -37,6 +29,7 @@ def trend_plunge(orientation, *args, **kwargs):
 def normal(orientation, *args, **kwargs):
     ax = kwargs.pop("ax",P.gca())
     levels = kwargs.pop("levels",[1])
+    normal = kwargs.pop("normal",False)
     kwargs["linewidth"] = 0
 
     a = kwargs.pop("alpha",0.7)
@@ -67,10 +60,10 @@ def strike_dip(orientation, *args, **kwargs):
             ))
 
         if spherical:
-            lat,lon = line(el[1], el[0])
+            lat,lon = line(el[0], el[1])
         else:
-            lat = el[1]
-            lon = el[0]
+            lat = el[0]
+            lon = el[1]
 
         e = Polygon(zip(lat,lon), alpha=a[i], **kwargs)
         ax.add_patch(e)
@@ -96,6 +89,15 @@ def setup_figure(*args, **kwargs):
     return fig,ax
 
 def error_ellipse(fit):
+
+    yloc = P.MaxNLocator(4)
+    xloc = P.MaxNLocator(5)
+
+    def func(val, pos):
+        return u"{0}\u00b0".format(val)
+
+    formatter = FuncFormatter(func)
+
     fig, ax = setup_figure(projection=None, figsize=(4,3))
     ax.yaxis.set_major_locator(yloc)
     ax.xaxis.set_major_locator(xloc)

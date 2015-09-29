@@ -52,8 +52,8 @@ def report(*arrays, **kwargs):
             facecolor='red',
             **kwargs)
 
-    ax.pole(*r.strike_dip(), color='blue')
-    ax.pole(*pca.strike_dip(), color='red')
+    #ax.pole(*r.strike_dip(), color='blue')
+    #ax.pole(*pca.strike_dip(), color='red')
     #strike_dip_montecarlo(pca,ax=ax, level=10)
 
     ellipse=error_ellipse(pca)

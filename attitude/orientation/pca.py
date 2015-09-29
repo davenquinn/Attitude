@@ -11,6 +11,7 @@ from .base import BaseOrientation, rotation
 from ..error.ellipse import ellipse
 
 from ..geom.util import dot
+from ..geom.vector import vector
 from ..geom.conics import conic
 
 def augment(matrix):
@@ -136,7 +137,11 @@ class PCAOrientation(BaseOrientation):
         self.sigma = N.diag(self.singular_values)
         self.V = V
 
-        self.normal = N.cross(self.axes[0], self.axes[1])
+        # Similar to normal vector, but not rotated into
+        # Cartesian frame
+        self.offset = N.cross(self.sigma[0],self.sigma[1])
+
+        self.normal = self.axes[2]
 
         self._vertical = N.array([0,0,1])
         self.strike = N.cross(self.normal,self._vertical)
@@ -226,24 +231,29 @@ class PCAOrientation(BaseOrientation):
 
         return strike, dip
 
-    def _ellipse(self, level=1):
+    def as_conic(self, level=1):
+
+        if dot(self.axes[2],vector(0,0,1)) < 0:
+            self.axes *= -1
 
         cov = self.covariance_matrix
         idx = N.diag_indices(3)
         ell = N.identity(4)
-        ell[idx] = 1/(level*N.diagonal(cov))**2
+        ell[idx] = 1/N.diagonal(cov)*level**2 #cov*level**2#
         ell[3,3] = -1
         ell = conic(ell)
 
         # Translate ellipse along 3rd major axis
-        T = N.identity(4)
-        T[0:3,3] = self.sigma[2]
-        ell = ell.transform(T)
+        ell = ell.translate(self.sigma[2])
 
         # Rotate ellipse matrix into cartesian
         # plane
         R = augment(self.axes)
-        ell = ell.transform(R)
+        return ell.transform(R)
+
+    def _ellipse(self, level=1):
+
+        ell = self.as_conic(level=level)
 
         con, matrix, center = ell.projection()
         ax = con.major_axes()
@@ -260,16 +270,20 @@ class PCAOrientation(BaseOrientation):
         data = dot(angles,axs)+center
 
         r = N.linalg.norm(data,axis=1)
-        theta = N.arccos(data[:,2]/r)
-        phi = N.arctan2(data[:,1],data[:,0])
+        plunge = N.arccos(data[:,2]/r)
+        trend = N.arctan2(data[:,0],data[:,1])
 
-        return N.column_stack((theta,phi))
+        m = N.linalg.norm(axs,axis=1)
+        c = N.linalg.norm(center)
+        a_dist = [N.degrees(N.arctan2(i,c)) for i in m]
+
+        return N.column_stack((trend,plunge))
 
     def error_ellipse(self, spherical=True, vector=False, level=1):
         e = self._ellipse(level)
         #if spherical:
         #    return e + N.array([self.azimuth+N.pi/2,0])
-        return (e[:,1],e[:,0])
+        return (e[:,0],e[:,1])
 
     def bootstrap(self):
         reg_func = lambda arr: N.linalg.svd(arr,full_matrices=False)[2][2]
