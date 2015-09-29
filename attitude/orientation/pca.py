@@ -239,12 +239,12 @@ class PCAOrientation(BaseOrientation):
         cov = self.covariance_matrix
         idx = N.diag_indices(3)
         ell = N.identity(4)
-        ell[idx] = 1/N.diagonal(cov)*level**2 #cov*level**2#
+        ell[idx] = cov[idx]*level**2 #cov*level**2#
         ell[3,3] = -1
         ell = conic(ell)
 
         # Translate ellipse along 3rd major axis
-        ell = ell.translate(self.sigma[2])
+        ell = ell.translate(self.offset)
 
         # Rotate ellipse matrix into cartesian
         # plane
@@ -259,8 +259,8 @@ class PCAOrientation(BaseOrientation):
         ax = con.major_axes()
 
         # Rotate major axes into 3d space
-        axs = N.append(ax,N.zeros((2,1)),axis=1)
-        axs = dot(axs,matrix[:3].T)
+        axs_ = N.append(ax,N.zeros((2,1)),axis=1)
+        axs = dot(axs_,matrix[:3])
         u = N.linspace(0,2*N.pi,1000)
 
         # Get a bundle of vectors defining cone
@@ -270,14 +270,17 @@ class PCAOrientation(BaseOrientation):
         data = dot(angles,axs)+center
 
         r = N.linalg.norm(data,axis=1)
-        plunge = N.arccos(data[:,2]/r)
+        plunge = N.arcsin(data[:,2]/r)
         trend = N.arctan2(data[:,0],data[:,1])
 
         m = N.linalg.norm(axs,axis=1)
         c = N.linalg.norm(center)
         a_dist = [N.degrees(N.arctan2(i,c)) for i in m]
 
-        return N.column_stack((trend,plunge))
+        #raise
+        #(N.pi+azimuth,N.pi/2-slope)
+
+        return N.column_stack((N.pi+trend,plunge))
 
     def error_ellipse(self, spherical=True, vector=False, level=1):
         e = self._ellipse(level)

@@ -39,7 +39,7 @@ def normal(orientation, *args, **kwargs):
     for i,level in enumerate(levels):
         _ = orientation.error_ellipse(vector=True, level=level)
         el = map(N.degrees,_)
-        lat,lon = line(90-el[1], 180+el[0])
+        lat,lon = line(el[1], el[0])
         e = Polygon(zip(lat,lon), alpha=a[i], **kwargs)
         ax.add_patch(e)
 
@@ -63,7 +63,7 @@ def strike_dip(orientation, *args, **kwargs):
             lat,lon = line(el[0], el[1])
         else:
             lat = el[0]
-            lon = el[1]
+            lon = 90-el[1]
 
         e = Polygon(zip(lat,lon), alpha=a[i], **kwargs)
         ax.add_patch(e)

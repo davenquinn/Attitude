@@ -59,5 +59,5 @@ class BaseOrientation(object):
             azimuth = self.azimuth + N.arctan2(-e[:,1],-e[:,0])
             if vector:
                 azimuth = azimuth + N.pi/2
-            return (azimuth,slope)
+            return (N.pi+azimuth,N.pi/2-slope)
         return (e[:,1],e[:,0])
