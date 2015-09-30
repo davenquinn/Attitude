@@ -239,7 +239,7 @@ class PCAOrientation(BaseOrientation):
         cov = self.covariance_matrix
         idx = N.diag_indices(3)
         ell = N.identity(4)
-        ell[idx] = cov[idx]*level**2 #cov*level**2#
+        ell[idx] = 1/cov[idx]*level**2 #cov*level**2#
         ell[3,3] = -1
         ell = conic(ell)
 
@@ -267,26 +267,43 @@ class PCAOrientation(BaseOrientation):
         # which circumscribes ellipsoid
         angles = N.array([N.cos(u),N.sin(u)]).T
         # Turn into vectors
-        data = dot(angles,axs)+center
+        return dot(angles,axs),center
+
+    def plane_errors(self, **kwargs):
+        data, center = self._ellipse(**kwargs)
+        data += center
+        v = N.cross(data,center)
+        #2v = N.cross(ax,data)
+
+        r = N.linalg.norm(v,axis=1)
+        plunge = N.arcsin(v[:,2]/r)
+        trend = N.arctan2(v[:,0],v[:,1])
+
+        v = N.cross(center,data)
+        #v = N.cross(ax,data)
+
+        r = N.linalg.norm(v,axis=1)
+        plunge2 = N.arcsin(v[:,2]/r)
+        trend2 = N.arctan2(v[:,0],v[:,1])
+
+        return ((N.pi+trend,plunge),(N.pi+trend2,plunge2))
+
+
+    def error_ellipse(self, spherical=True, vector=False, level=1):
+        data,center = self._ellipse(level)
+        data += center
 
         r = N.linalg.norm(data,axis=1)
         plunge = N.arcsin(data[:,2]/r)
         trend = N.arctan2(data[:,0],data[:,1])
 
-        m = N.linalg.norm(axs,axis=1)
-        c = N.linalg.norm(center)
-        a_dist = [N.degrees(N.arctan2(i,c)) for i in m]
+        #m = N.linalg.norm(axs,axis=1)
+        #c = N.linalg.norm(center)
+        #a_dist = [N.degrees(N.arctan2(i,c)) for i in m]
 
-        #raise
-        #(N.pi+azimuth,N.pi/2-slope)
-
-        return N.column_stack((N.pi+trend,plunge))
-
-    def error_ellipse(self, spherical=True, vector=False, level=1):
-        e = self._ellipse(level)
         #if spherical:
         #    return e + N.array([self.azimuth+N.pi/2,0])
-        return (e[:,0],e[:,1])
+        return (trend,plunge)
 
     def bootstrap(self):
         reg_func = lambda arr: N.linalg.svd(arr,full_matrices=False)[2][2]

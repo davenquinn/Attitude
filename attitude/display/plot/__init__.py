@@ -43,6 +43,25 @@ def normal(orientation, *args, **kwargs):
         e = Polygon(zip(lat,lon), alpha=a[i], **kwargs)
         ax.add_patch(e)
 
+def plane_confidence(orientation, *args, **kwargs):
+    ax = kwargs.pop('ax',P.gca())
+    levels = kwargs.pop("levels",[1])
+
+    a = kwargs.pop("alpha",[0.7])
+    if len(a) != len(levels):
+        a = [a]*len(levels)
+
+    for i, level in enumerate(levels):
+        a,b = orientation.plane_errors()
+        el = map(N.degrees,a)
+        el2 = map(N.degrees,b)
+        print(el)
+        ax.plot(el[0],el[1], '.')
+        #ax.fill(el,el2[::-1])
+        #lat,lon = line(el[1], el[0])
+        #e = Polygon(zip(lat,lon), alpha=a[i], **kwargs)
+        #ax.add_patch(e)
+
 def strike_dip(orientation, *args, **kwargs):
     ax = kwargs.pop("ax",P.gca())
     levels = kwargs.pop("levels",[1])
