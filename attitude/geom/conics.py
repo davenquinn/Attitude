@@ -33,13 +33,21 @@ class Conic(N.ndarray):
         scalar = -(ell.sum()-_.sum())
         return N.sqrt(s*scalar)*V
 
-    def is_elliptical(ell):
+    def __type(self):
+        return N.linalg.det(self[:-1,:-1])
+
+    def is_elliptical(self):
         """
         Check that geometry is an ellipse,
         ellipsoid, or n-dimensional equivalent.
         """
-        # Check that we have an ellipsoid
-        return N.linalg.det(ell[:-1,:-1]) > 0
+        return self.__type() > 0
+
+    def is_hyperbolic(self):
+        return self.__type() < 0
+
+    def is_parabolic(self):
+        return self.__type() == 0
 
     def solve(conic,v):
         """
@@ -121,6 +129,13 @@ class Conic(N.ndarray):
 
         v = ax[0]+center
         return angle(v,center)
+
+    def dual(self):
+        """
+        The inverse conic that represents the bundle
+        of lines tangent to this conic.
+        """
+        return N.linalg.inv(self)
 
 def conic(x):
     return N.array(x).view(Conic)

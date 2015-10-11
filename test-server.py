@@ -5,7 +5,7 @@ from flask import Flask
 test = Flask(__name__)
 
 from syrtis.core import app, db
-from syrtis.models import Attitude
+from syrtis.models import Attitude, AttitudeGroup
 from attitude.display import env, report
 from attitude.orientation.tests import test_cases
 
@@ -16,19 +16,29 @@ def list():
     """
     with app.app_context():
         measurements = db.session.query(Attitude.id).all()
+        measurements += ['G'+str(i) for i in
+                db.session.query(AttitudeGroup.id).all()]
         measurements += test_cases
         t = env.get_template("list.html")
         return t.render(measurements=measurements)
 
 @test.route("/<id>/")
 def measurement(id):
+    acc = lambda m: m.array
     with app.app_context():
         try:
-            measurement = db.session.query(Attitude).get(id)
+            if id.startswith('G'):
+                id = int(id[1:])
+                model = AttitudeGroup
+                acc = lambda m: m.centered_array
+            else:
+                id = int(id)
+                model = Attitude
+            measurement = db.session.query(model).get(id)
         except Exception:
-            _ = [i for i in test_cases if i.id == id]
-            measurement = _[0]
-        return report(measurement.array,name=id)
+             _ = [i for i in test_cases if i.id == id]
+             measurement = _[0]
+        return report(acc(measurement),name=id)
 
 test.run(debug=True)
 

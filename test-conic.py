@@ -113,6 +113,8 @@ try:
         _ = angle(d,vector(1,0,0))
         assert same(N.degrees(_),30)
 
+    assert ell.dual().is_hyperbolic()
+
     # Cone of tangency
     # equation of elliptic cone
     B = N.sqrt(3)/2 # cos(30º)

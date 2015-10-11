@@ -14,7 +14,7 @@ import matplotlib.pyplot as P
 
 def encode(fig):
     b = BytesIO()
-    fig.savefig(b, format='png')
+    fig.savefig(b, format='png',bbox_inches='tight')
     b.seek(0)
     return '<img src ="{},{}"/>'.format(
             'data:image/png;base64',
