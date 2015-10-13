@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import division
 import matplotlib.pyplot as P
 from mplstereonet.stereonet_math import line, pole
@@ -190,6 +191,8 @@ def plot_aligned(pca):
     colors = ['cornflowerblue','red']
 
     hyp = pca.as_hyperbola(rotated=False)
+    d = N.abs(N.diagonal(hyp)[:-1])
+    hyp_axes = N.sqrt(1/d)
 
     for title,ax,(a,b),ylabel in zip(titles,axes,
             [(0,1),(0,2),(1,2)],ylabels):
@@ -203,19 +206,17 @@ def plot_aligned(pca):
             title += ": {:.0f} m".format(lengths[a])
 
             # Plot hyperbola
-            n = vector(0,0,0)
-            n[1-a] = 1
-            p = plane(n)
-            h1, rotation, offset = hyp.slice(p)
-            d = N.abs(N.diagonal(h1)[:-1])
-            axes = N.sqrt(1/d)
-            u = lambda x: N.arcsinh(x/axes[a])
-            y = lambda x: axes[1]*N.cosh(u(x))
+            u = lambda x: N.arcsinh(x/hyp_axes[a])
+            y = lambda x: hyp_axes[-1]*N.cosh(u(x))
+            bounds = minmax[0]
             x_ = N.linspace(bounds[0],bounds[1],100)
 
             vals = y(x_)
             ax.plot(x_,vals, color='#aaaaaa',alpha=0.5)
             ax.plot(x_,-vals, color='#aaaaaa',alpha=0.5)
+
+            angular_error = N.degrees(N.arctan(hyp_axes[-1]/hyp_axes[a]))
+            title += u" angular error: {0:.1f}º".format(angular_error)
 
         ax.scatter(A[:,a], A[:,b], **kw)
         ax.set_aspect("equal")
