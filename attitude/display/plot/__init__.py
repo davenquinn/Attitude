@@ -9,6 +9,8 @@ from matplotlib.gridspec import GridSpec
 from matplotlib.ticker import FuncFormatter
 import seaborn
 
+from ...geom.vector import vector,plane
+
 def trend_plunge(orientation, *args, **kwargs):
     ax = kwargs.pop("ax",P.gca())
     levels = kwargs.pop("levels",[1])
@@ -187,21 +189,37 @@ def plot_aligned(pca):
 
     colors = ['cornflowerblue','red']
 
-    hyp = pca.as_hyperbola()
+    hyp = pca.as_hyperbola(rotated=False)
 
     for title,ax,(a,b),ylabel in zip(titles,axes,
             [(0,1),(0,2),(1,2)],ylabels):
 
         kwargs = dict(linewidth=2, alpha=0.5)
-        ax.plot(minmax[a],(0,0), c=colors[a], **kwargs)
+        bounds = minmax[a]
+        ax.plot(bounds,(0,0), c=colors[a], **kwargs)
         if b != 2:
             ax.plot((0,0),minmax[b], c=colors[b], **kwargs)
+        else:
+            title += ": {:.0f} m".format(lengths[a])
+
+            # Plot hyperbola
+            n = vector(0,0,0)
+            n[1-a] = 1
+            p = plane(n)
+            h1, rotation, offset = hyp.slice(p)
+            d = N.abs(N.diagonal(h1)[:-1])
+            axes = N.sqrt(1/d)
+            u = lambda x: N.arcsinh(x/axes[a])
+            y = lambda x: axes[1]*N.cosh(u(x))
+            x_ = N.linspace(bounds[0],bounds[1],100)
+
+            vals = y(x_)
+            ax.plot(x_,vals, color='#aaaaaa',alpha=0.5)
+            ax.plot(x_,-vals, color='#aaaaaa',alpha=0.5)
 
         ax.scatter(A[:,a], A[:,b], **kw)
         ax.set_aspect("equal")
 
-        if b == 2:
-            title += ": {:.0f} m".format(lengths[a])
         ax.text(0.01,.99,title,
             verticalalignment='top',
             transform=ax.transAxes)

@@ -255,7 +255,8 @@ class PCAOrientation(BaseOrientation):
         """
         Hyperbolic error area
         """
-        pca_res = self.singular_values
+        pca_res = 1/(self.singular_values/4)
+        #pca_res = self.singular_values
         arr = N.identity(4)
         arr[0,0] = pca_res[0]
         arr[1,1] = pca_res[1]
