@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
 # https://en.wikipedia.org/wiki/Quadric
@@ -7,7 +6,6 @@ from __future__ import print_function, division
 
 import numpy as N
 from scipy.linalg import lu
-from IPython import embed
 import traceback
 from numpy.linalg import norm
 
@@ -23,7 +21,7 @@ def symmetric(arr):
 def skew_symmetric(arr):
     return (arr.transpose() == -arr).all()
 
-try:
+def test_conic():
     # We consider a sphere with radius 1 offset 2 units on the X axis
     # the half-angle of its shadow will be sin(theta) = 1/2, or theta = 30º
     # Can we recreate this?
@@ -126,12 +124,3 @@ try:
     # Likely only works on ellipsoids
 
     assert same(cone.center(),origin)
-
-    print("No errors")
-    embed()
-
-except AssertionError as err:
-    tb = traceback.format_exc()
-    print(tb)
-    embed()
-
