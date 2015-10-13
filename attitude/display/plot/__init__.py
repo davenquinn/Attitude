@@ -139,6 +139,9 @@ def error_ellipse(fit):
     ax.set_xlabel("Strike")
     return fig
 
+def error_hyperbola(pca):
+    pass
+
 def plot_aligned(pca):
     """ Plots the residuals of a principal component
         analysis of attiude data.
