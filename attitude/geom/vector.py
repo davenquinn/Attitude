@@ -58,3 +58,7 @@ class Plane(N.ndarray):
     def normal(plane):
         v = plane.hessian_normal()
         return v[:3]
+
+def plane(normal,offset=0):
+    # This only works in Hessian-Normal form
+    return N.append(normal,offset).view(Plane)

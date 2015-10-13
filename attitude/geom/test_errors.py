@@ -1,8 +1,10 @@
 from __future__ import division
 
 import numpy as N
-from .vector import vector
+from .vector import vector, plane
 from .conics import conic
+
+from scipy.linalg import lu
 
 same = N.allclose
 
@@ -17,4 +19,29 @@ def test_conic_errors():
 
     assert same(hyp.center(), vector(0,0,0))
     assert hyp.is_hyperbolic()
+
+    # Get hyperbolic slice on xz plane
+    n = vector(0,1,0)
+    p = plane(n)
+    assert same(p.normal(),n)
+    assert same(p.offset(),vector(0,0,0))
+
+    n = p.normal()
+    # Two vectors in plane
+    # Perhaps need to add a case for when
+    # plane is perpendicular to this vector
+    v1 = N.cross(n,vector(0,1,0))
+    if N.linalg.norm(v1) == 0:
+        # we need to use another axis
+        v1 = N.cross(n,vector(0,0,1))
+    v2 = N.cross(v1,n)
+    axes = (v1,v2)
+    pt = p.offset()
+
+    m = N.append(
+        N.column_stack((axes[0],axes[1],pt)),
+        N.array([[0,0,1]]),axis=0)
+
+    h1 = hyp.transform(m)
+    assert h1.is_hyperbolic()
 
