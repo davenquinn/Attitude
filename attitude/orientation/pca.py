@@ -251,6 +251,19 @@ class PCAOrientation(BaseOrientation):
         R = augment(self.axes)
         return ell.transform(R)
 
+    def as_hyperbola(self, rotated=False):
+        """
+        Hyperbolic error area
+        """
+        pca_res = 1/(self.singular_values/4)#((self.singular_values/2)**2)
+        #pca_res = self.singular_values
+        arr = N.identity(4)
+        arr[0,0] = pca_res[0]
+        arr[1,1] = pca_res[1]
+        arr[2,2] = -pca_res[2]
+        arr[3,3] = -1
+        return conic(arr)
+
     def _ellipse(self, level=1):
 
         ell = self.as_conic(level=level)

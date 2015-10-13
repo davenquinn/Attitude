@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import division
 import matplotlib.pyplot as P
 from mplstereonet.stereonet_math import line, pole
@@ -8,6 +9,8 @@ from matplotlib.patches import Polygon
 from matplotlib.gridspec import GridSpec
 from matplotlib.ticker import FuncFormatter
 import seaborn
+
+from ...geom.vector import vector,plane
 
 def trend_plunge(orientation, *args, **kwargs):
     ax = kwargs.pop("ax",P.gca())
@@ -187,19 +190,37 @@ def plot_aligned(pca):
 
     colors = ['cornflowerblue','red']
 
+    hyp = pca.as_hyperbola(rotated=False)
+    d = N.abs(N.diagonal(hyp)[:-1])
+    hyp_axes = N.sqrt(1/d)
+
     for title,ax,(a,b),ylabel in zip(titles,axes,
             [(0,1),(0,2),(1,2)],ylabels):
 
         kwargs = dict(linewidth=2, alpha=0.5)
-        ax.plot(minmax[a],(0,0), c=colors[a], **kwargs)
+        bounds = minmax[a]
+        ax.plot(bounds,(0,0), c=colors[a], **kwargs)
         if b != 2:
             ax.plot((0,0),minmax[b], c=colors[b], **kwargs)
+        else:
+            title += ": {:.0f} m".format(lengths[a])
+
+            # Plot hyperbola
+            u = lambda x: N.arcsinh(x/hyp_axes[a])
+            y = lambda x: hyp_axes[-1]*N.cosh(u(x))
+            bounds = minmax[0]
+            x_ = N.linspace(bounds[0],bounds[1],100)
+
+            vals = y(x_)
+            ax.plot(x_,vals, color='#aaaaaa',alpha=0.5)
+            ax.plot(x_,-vals, color='#aaaaaa',alpha=0.5)
+
+            angular_error = N.degrees(N.arctan(hyp_axes[-1]/hyp_axes[a]))
+            title += u" angular error: {0:.1f}º".format(angular_error)
 
         ax.scatter(A[:,a], A[:,b], **kw)
         ax.set_aspect("equal")
 
-        if b == 2:
-            title += ": {:.0f} m".format(lengths[a])
         ax.text(0.01,.99,title,
             verticalalignment='top',
             transform=ax.transAxes)

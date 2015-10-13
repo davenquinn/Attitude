@@ -91,21 +91,14 @@ class Conic(N.ndarray):
         v = dot(N.linalg.inv(conic),plane)
         return v[:3]/v[3]
 
-    def projection(self, **kwargs):
-        """
-        The elliptical cut of an ellipsoidal
-        conic describing all points of tangency
-        to the conic as viewed from the origin.
-        """
-        v = kwargs.pop('viewpoint',vector(0,0,0))
-        plane = self.polar_plane(v)
-
+    def slice(self, plane, **kwargs):
         if not kwargs.pop('axes',None):
             n = plane.normal()
             # Two vectors in plane
-            # Perhaps need to add a case for when
-            # plane is perpendicular to this vector
-            v1 = N.cross(n,[0,1,0])
+            v1 = N.cross(n,vector(0,1,0))
+            if N.linalg.norm(v1) == 0:
+                # we need to use another axis
+                v1 = N.cross(n,vector(0,0,1))
             v2 = N.cross(v1,n)
             axes = (v1,v2)
         pt = plane.offset()
@@ -117,6 +110,16 @@ class Conic(N.ndarray):
         # This isn't an ideal return signature
         # but it's what we're working with now
         return self.transform(m), m, pt
+
+    def projection(self, **kwargs):
+        """
+        The elliptical cut of an ellipsoidal
+        conic describing all points of tangency
+        to the conic as viewed from the origin.
+        """
+        v = kwargs.pop('viewpoint',vector(0,0,0))
+        plane = self.polar_plane(v)
+        return self.slice(plane, **kwargs)
 
     def maximum_angle(self):
         conic, T, center = self.projection()
