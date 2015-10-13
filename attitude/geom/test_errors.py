@@ -9,7 +9,8 @@ from scipy.linalg import lu
 same = N.allclose
 
 def test_conic_errors():
-    pca_res = [500,300,2]
+    pca_res = N.array([500,300,2])**2
+    pca_res = 1/pca_res
     arr = N.identity(4)
     arr[0,0] = pca_res[0]
     arr[1,1] = pca_res[1]
@@ -19,6 +20,8 @@ def test_conic_errors():
 
     assert same(hyp.center(), vector(0,0,0))
     assert hyp.is_hyperbolic()
+
+    # Plotting hyperbolic slice
 
     # Get hyperbolic slice on xz plane
     n = vector(0,1,0)
@@ -44,4 +47,12 @@ def test_conic_errors():
 
     h1 = hyp.transform(m)
     assert h1.is_hyperbolic()
+    d = N.abs(N.diagonal(h1)[:-1])
+    axes = N.sqrt(1/d)
+    assert same(axes,N.array([500,2]))
+
+    #y = lambda x: axes[1]*N.tan(N.arccos(axes[0]/x))
+    u = lambda x: N.arcsinh(x/axes[0])
+    y = lambda x: axes[1]*N.cosh(u(x))
+    assert y(0) == axes[1]
 
