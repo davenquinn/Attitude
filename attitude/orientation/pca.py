@@ -262,7 +262,11 @@ class PCAOrientation(BaseOrientation):
 
         arr = N.identity(4)*-1
         arr[idx] = d
-        return conic(arr)
+        hyp = conic(arr)
+        if rotated:
+            R = augment(self.axes)
+            hyp = hyp.transform(R)
+        return hyp
 
     def _ellipse(self, level=1):
 

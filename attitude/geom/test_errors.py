@@ -3,8 +3,7 @@ from __future__ import division
 import numpy as N
 from .vector import vector, plane
 from .conics import conic
-
-from scipy.linalg import lu
+from ..error import asymptotes
 
 same = N.allclose
 
@@ -40,3 +39,8 @@ def test_conic_errors():
     y = lambda x: axes[1]*N.cosh(u(x))
     assert y(0) == axes[1]
 
+    # Plotting asymptotes
+
+    vec = asymptotes(hyp, n=1000)
+    assert len(vec) == 1000
+    assert same(vec[0,0], pca_res[0])
