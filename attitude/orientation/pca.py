@@ -255,13 +255,13 @@ class PCAOrientation(BaseOrientation):
         """
         Hyperbolic error area
         """
-        pca_res = 1/(self.singular_values/4)#((self.singular_values/2)**2)
-        #pca_res = self.singular_values
-        arr = N.identity(4)
-        arr[0,0] = pca_res[0]
-        arr[1,1] = pca_res[1]
-        arr[2,2] = -pca_res[2]
-        arr[3,3] = -1
+        idx = N.diag_indices(3)
+        _ = 1/self.covariance_matrix[idx]
+        d = list(_)
+        d[-1] *= -1
+
+        arr = N.identity(4)*-1
+        arr[idx] = d
         return conic(arr)
 
     def _ellipse(self, level=1):
