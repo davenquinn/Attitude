@@ -147,6 +147,12 @@ class PCAOrientation(BaseOrientation):
         self.strike = N.cross(self.normal,self._vertical)
         self.dip_dr = normalize(N.cross(self.strike,self.normal))
 
+        # Hyperbolic form of PCA
+        self.hyp = self.as_hyperbola(rotated=False)
+        d = N.abs(N.diagonal(self.hyp)[:-1])
+        self.hyp_axes = N.sqrt(1/d)
+
+
     def whitened(self):
         """
         Returns a 'whitened' or decorrelated version of
@@ -176,6 +182,22 @@ class PCAOrientation(BaseOrientation):
         _ = N.dot(_,self.axes)
         return self.arr - _
 
+    def __angular_error(self, axis_length):
+        """
+        The angular error for an in-plane axis of
+        given length (either a PCA major axis or
+        an intermediate direction).
+        """
+        return N.arctan2(self.hyp_axes[-1],axis_length)
+
+    def angular_errors(self):
+        """
+        Minimum and maximum angular errors
+        corresponding to 1st and 2nd axes
+        of PCA distribution.
+        """
+        return tuple(self.__angular_error(i)
+                for i in self.hyp_axes[:-1])
     @property
     def covariance_matrix(self):
         """
