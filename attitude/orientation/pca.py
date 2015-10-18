@@ -42,6 +42,19 @@ def vector_angle(v1,v2):
     _ = N.dot(normalize(v1),normalize(v2).T)
     return N.arccos(_)
 
+def ellipse(axes, n=1000):
+    """
+    Get a parameterized set of vectors defining
+    ellipse for a major and minor axis length.
+    Resulting vector bundle has major axes
+    along axes given.
+    """
+    u = N.linspace(0,2*N.pi,n)
+    # Get a bundle of vectors defining
+    # a full rotation around the unit circle
+    angles = N.array([N.cos(u),N.sin(u)]).T
+    return dot(angles,axes)
+
 ## magnitude of vector (by row)
 norm = lambda x: N.linalg.norm(x,2,1)
 
@@ -308,24 +321,33 @@ class PCAOrientation(BaseOrientation):
         # Turn into vectors
         return dot(angles,axs),center
 
-    def plane_errors(self, **kwargs):
-        data, center = self._ellipse(**kwargs)
-        data += center
-        v = N.cross(data,center)
-        #2v = N.cross(ax,data)
+    def plane_errors(self, sheet='upper',**kwargs):
+        ell = ellipse(self.sigma[:2], **kwargs)
+        res = self.sigma[2]
 
-        r = N.linalg.norm(v,axis=1)
-        plunge = N.arcsin(v[:,2]/r)
-        trend = N.arctan2(v[:,0],v[:,1])
+        if sheet == 'upper':
+            ell += res
+        else:
+            ell -= res
 
-        v = N.cross(center,data)
-        #v = N.cross(ax,data)
+        res = dot(ell,self.axes).T
 
-        r = N.linalg.norm(v,axis=1)
-        plunge2 = N.arcsin(v[:,2]/r)
-        trend2 = N.arctan2(v[:,0],v[:,1])
+        az = N.arctan2(res[0],res[1])
+        mag = N.linalg.norm(res[:2],axis=0)
+        slope = N.arctan2(mag, res[2])
 
-        return ((N.pi+trend,plunge),(N.pi+trend2,plunge2))
+        _ = N.vstack((slope,az)).transpose()
+        return _#N.degrees(_)
+
+    @property
+    def slope(self):
+        _ = self.coefficients
+        mag = N.linalg.norm(_)
+        return N.arccos(_[2]/mag)
+
+
+
+
 
 
     def error_ellipse(self, spherical=True, vector=False, level=1):

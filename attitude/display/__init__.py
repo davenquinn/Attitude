@@ -7,7 +7,7 @@ from jinja2 import FileSystemLoader, Environment
 from .plot import setup_figure, strike_dip, normal,\
         trend_plunge, error_ellipse, plot_aligned,\
         aligned_residuals, strike_dip_montecarlo,\
-        plane_confidence
+        plane_confidence, error_asymptotes
 from ..orientation import PCAOrientation, LinearOrientation, SphericalOrientation
 
 import matplotlib.pyplot as P
@@ -52,6 +52,7 @@ def report(*arrays, **kwargs):
     normal(pca, ax=ax,
             facecolor='red',
             **kwargs)
+    error_asymptotes(pca,ax=ax)
 
     #ax.pole(*r.strike_dip(), color='blue')
     #ax.pole(*pca.strike_dip(), color='red')

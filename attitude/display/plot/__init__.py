@@ -143,6 +143,19 @@ def error_ellipse(fit):
     ax.set_xlabel("Strike")
     return fig
 
+def error_asymptotes(pca,**kwargs):
+    """
+    Plots asymptotic error bounds for
+    hyperbola on a stereonet.
+    """
+    ax = kwargs.pop("ax",P.gca())
+
+    _ = pca.plane_errors('upper', n=10000)
+    ax.plot(_[:,0],_[:,1],'-')
+
+    _ = pca.plane_errors('lower', n=10000)
+    ax.plot(_[:,0],_[:,1],'-')
+
 def aligned_residuals(pca):
     A = pca.rotated()
     fig, axes = P.subplots(2,1,
