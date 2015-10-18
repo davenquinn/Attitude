@@ -52,8 +52,6 @@ def report(*arrays, **kwargs):
     normal(pca, ax=ax,
             facecolor='red',
             **kwargs)
-    plane_confidence(pca, ax=ax,
-            facecolor='red')
 
     #ax.pole(*r.strike_dip(), color='blue')
     #ax.pole(*pca.strike_dip(), color='red')
