@@ -150,11 +150,13 @@ def error_asymptotes(pca,**kwargs):
     """
     ax = kwargs.pop("ax",P.gca())
 
-    _ = pca.plane_errors('upper', n=10000)
-    ax.plot(_[:,0],_[:,1],'-')
+    lon,lat = pca.plane_errors('upper', n=1000)
+    ax.plot(lon,lat,'-')
 
-    _ = pca.plane_errors('lower', n=10000)
-    ax.plot(_[:,0],_[:,1],'-')
+    lon,lat = pca.plane_errors('lower', n=1000)
+    ax.plot(lon,lat,'-')
+
+    ax.plane(*pca.strike_dip())
 
 def aligned_residuals(pca):
     A = pca.rotated()

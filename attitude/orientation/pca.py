@@ -322,33 +322,32 @@ class PCAOrientation(BaseOrientation):
         return dot(angles,axs),center
 
     def plane_errors(self, sheet='upper',**kwargs):
-        ell = ellipse(self.sigma[:2], **kwargs)
-        res = self.sigma[2]
+        d = N.sqrt(self.covariance_matrix)
+        ell = ellipse(d[:2], **kwargs)
+        res = d[2]
 
         if sheet == 'upper':
             ell += res
         else:
             ell -= res
 
-        res = dot(ell,self.axes).T
+        res = dot(ell,self.axes.T).T
 
-        az = N.arctan2(res[0],res[1])
-        mag = N.linalg.norm(res[:2],axis=0)
-        slope = N.arctan2(mag, res[2])
+        #az = N.arctan2(res[0],res[1])
+        #mag = N.linalg.norm(res[:2],axis=0)
+        #slope = N.pi/2+N.arctan2(res[2],mag)
 
-        _ = N.vstack((slope,az)).transpose()
-        return _#N.degrees(_)
+        r = N.linalg.norm(res,axis=0)
+        lon = N.arctan2(res[1],res[0])
+        lat = N.arcsin(res[2]/r)
+
+        return lon,lat#slope,az
 
     @property
     def slope(self):
         _ = self.coefficients
         mag = N.linalg.norm(_)
         return N.arccos(_[2]/mag)
-
-
-
-
-
 
     def error_ellipse(self, spherical=True, vector=False, level=1):
         data,center = self._ellipse(level)
