@@ -1,6 +1,6 @@
 from __future__ import division, print_function
 import numpy as N
-from ..regression import Regression
+from ..orientation.linear import Regression
 from ..coordinates import spherical, cartesian
 
 def spherical_plane(r,theta,coefficients=[1,1]):

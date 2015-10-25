@@ -2,7 +2,7 @@ from . import Orientation
 import numpy as N
 import nose
 import functools
-from ..tests import random_plane, scattered_plane
+from ..test import random_plane, scattered_plane
 
 
 simple_cases = [
@@ -13,6 +13,13 @@ simple_cases = [
     ([(0,2,1),(1,1,0), (0,0,1)], [0,45], "East-dipping (sloping up)"),
     ([(0,0,1),(1,0,0),(0,1,0)], [-45,N.degrees(N.arctan(N.sqrt(2)))], "Northeast-dipping")
 ]
+
+class TestCase(object):
+    def __init__(self, array, strike_dip, id):
+        self.id = id
+        self.array = N.array(array)
+
+test_cases = [TestCase(*i) for i in simple_cases]
 
 edge_cases = [
     ([(0,0,0),(1,1,0), (0,2,0), (4,2,0)], [0,0], "Flat"),

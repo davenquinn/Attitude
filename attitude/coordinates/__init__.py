@@ -2,11 +2,11 @@ import numpy as N
 
 def spherical(coordinates):
     """No error is propagated"""
-    x,y,z = coordinates
-    r = N.sqrt(x**2+y**2+z**2)
-    theta = N.arccos(z/r)
-    phi = N.arctan2(y,x)
-    return r,theta,phi
+    c = coordinates
+    r = N.linalg.norm(c,axis=0)
+    theta = N.arccos(c[2]/r)
+    phi = N.arctan2(c[1],c[0])
+    return N.column_stack((r,theta,phi))
 
 def cartesian(spherical):
     r,theta,phi = spherical
