@@ -322,7 +322,9 @@ class PCAOrientation(BaseOrientation):
         return dot(angles,axs),center
 
     def plane_errors(self, sheet='upper',**kwargs):
+        from mplstereonet.stereonet_math import cart2sph
         d = N.sqrt(self.covariance_matrix)
+        assert N.allclose(d.sum(),N.diag(d).sum())
         ell = ellipse(d[:2], **kwargs)
         res = d[2]
 
@@ -331,17 +333,14 @@ class PCAOrientation(BaseOrientation):
         else:
             ell -= res
 
-        res = dot(ell,self.axes.T).T
+        res = dot(ell,self.axes).T
+        X = res[0]
+        Y = res[1]
+        Z = res[2]
 
-        #az = N.arctan2(res[0],res[1])
-        #mag = N.linalg.norm(res[:2],axis=0)
-        #slope = N.pi/2+N.arctan2(res[2],mag)
+        lon,lat = cart2sph(-Z,X,Y)
 
-        r = N.linalg.norm(res,axis=0)
-        lon = N.arctan2(res[1],res[0])
-        lat = N.arcsin(res[2]/r)
-
-        return lon,lat#slope,az
+        return lon,lat
 
     @property
     def slope(self):

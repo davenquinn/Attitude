@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
 import matplotlib.pyplot as P
-from mplstereonet.stereonet_math import line, pole
+from mplstereonet.stereonet_math import line, pole, _rotate
 import numpy as N
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
