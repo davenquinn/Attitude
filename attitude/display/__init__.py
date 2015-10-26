@@ -62,5 +62,4 @@ def report(*arrays, **kwargs):
         sph=spherical,
         linear_error=error_ellipse(r),
         aligned=plot_aligned(pca),
-        residuals=aligned_residuals(pca),
         pca_ellipse=ellipse)
