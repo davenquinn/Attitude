@@ -4,4 +4,5 @@
 node_modules/
 etc/
 dist/
+attitude/display/templates/build/*
 Attitude.egg-info/
