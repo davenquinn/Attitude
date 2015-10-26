@@ -51,19 +51,6 @@ def report(*arrays, **kwargs):
             alpha=[0.8,0.5,0.2],
             linewidth=2)
 
-    fig,ax = setup_figure()
-    normal(r, ax=ax,
-            facecolor='blue',
-            **kwargs)
-    normal(pca, ax=ax,
-            facecolor='red',
-            **kwargs)
-    error_asymptotes(pca,ax=ax)
-
-    #ax.pole(*r.strike_dip(), color='blue')
-    #ax.pole(*pca.strike_dip(), color='red')
-    #strike_dip_montecarlo(pca,ax=ax, level=10)
-
     ellipse=error_ellipse(pca)
 
     t = env.get_template("report.html")
@@ -73,7 +60,6 @@ def report(*arrays, **kwargs):
         regression=r,
         pca=pca,
         sph=spherical,
-        strike_dip=fig,
         linear_error=error_ellipse(r),
         aligned=plot_aligned(pca),
         residuals=aligned_residuals(pca),
