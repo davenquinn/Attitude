@@ -35,6 +35,11 @@ svg {
   .dataFrame {
     path {
       fill: transparentize(red, 0.5);
+      &.nominal {
+        fill: none;
+        stroke: darken(red,10%);
+        stroke-width: 2px;
+      }
     }
   }
 }

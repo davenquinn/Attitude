@@ -329,7 +329,7 @@ class PCAOrientation(BaseOrientation):
 
         if sheet == 'upper':
             ell += res
-        else:
+        elif sheet == 'lower':
             ell -= res
 
         res = dot(ell,self.axes).T
@@ -347,7 +347,8 @@ class PCAOrientation(BaseOrientation):
             return list(zip(N.degrees(lon),N.degrees(lat)))
         return dict(
             upper=_('upper'),
-            lower=_('lower'))
+            lower=_('lower'),
+            nominal=_('nominal'))
 
     @property
     def slope(self):

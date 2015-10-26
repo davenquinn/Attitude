@@ -47,6 +47,18 @@ class Stereonet
       .datum rewind(data)
       .attr
         class: 'data'
-        d: @path
+
+    data =
+      type: 'Feature'
+      geometry:
+        type: 'LineString'
+        coordinates: d.nominal
+    @frame.append 'path'
+      .datum data
+      .attr
+        class: 'nominal'
+
+    @frame.selectAll 'path'
+      .attr d: @path
 
 module.exports = Stereonet
