@@ -3,7 +3,6 @@ rewind = require 'geojson-rewind'
 
 class Stereonet
   constructor: (el)->
-    console.log 'Creating stereonet'
     @width = 500
     @height = @width
     @center = [@width/2, @height/2]

@@ -3,11 +3,12 @@ from io import BytesIO
 from urllib import quote
 from base64 import b64encode
 from jinja2 import FileSystemLoader, Environment
+import numpy as N
 import json
 
 from .plot import setup_figure, strike_dip, normal,\
         trend_plunge, error_ellipse, plot_aligned,\
-        aligned_residuals, strike_dip_montecarlo,\
+        strike_dip_montecarlo,\
         plane_confidence, error_asymptotes
 from ..orientation import PCAOrientation, LinearOrientation, SphericalOrientation
 
@@ -40,7 +41,10 @@ def report(*arrays, **kwargs):
     """
     name = kwargs.pop("name",None)
 
-    arr = arrays[0]
+    if len(arrays) > 1:
+        arr = N.vstack(arrays)
+    else:
+        arr = arrays[0]
 
     r = LinearOrientation(arr)
     pca = PCAOrientation(arr)

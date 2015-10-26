@@ -28,21 +28,21 @@ def list():
 
 @test.route("/<id>/")
 def measurement(id):
-    acc = lambda m: m.array
     with app.app_context():
         try:
             if id.startswith('G'):
                 id = int(id[1:])
-                model = AttitudeGroup
-                acc = lambda m: m.centered_array
+                m = (db.session.query(AttitudeGroup).get(id))
+                measurements = [i.centered_array
+                        for i in m.measurements]
             else:
                 id = int(id)
-                model = Attitude
-            measurement = db.session.query(model).get(id)
-        except Exception:
-             _ = [i for i in test_cases if i.id == id]
-             measurement = _[0]
-        return report(acc(measurement),name=id)
+                m = db.session.query(Attitude).get(id)
+                measurements = [m.centered_array]
+        except ValueError:
+             measurements = [i for i in test_cases if i.id == id]
+        kwargs = dict(name=id)
+        return report(*measurements, **kwargs)
 
 test.run(debug=True)
 
