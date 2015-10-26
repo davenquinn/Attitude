@@ -4,10 +4,13 @@ from flask import Flask
 
 test = Flask(__name__)
 
+from collections import namedtuple
 from syrtis.core import app, db
 from syrtis.models import Attitude, AttitudeGroup
 from attitude.display import env, report
 from attitude.orientation.tests import test_cases
+
+result = namedtuple('Result',('id'))
 
 @test.route("/")
 def list():
@@ -15,8 +18,9 @@ def list():
     List of test cases
     """
     with app.app_context():
-        measurements = db.session.query(Attitude.id).all()
-        measurements += ['G'+str(i) for i in
+        measurements = [result(i[0]) for i in
+                db.session.query(Attitude.id).all()]
+        measurements += [result('G'+str(i[0])) for i in
                 db.session.query(AttitudeGroup.id).all()]
         measurements += test_cases
         t = env.get_template("list.html")
