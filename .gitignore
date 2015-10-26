@@ -1,6 +1,7 @@
 *.pyc
 .cache
 .DS_Store
+node_modules/
 etc/
 dist/
 Attitude.egg-info/

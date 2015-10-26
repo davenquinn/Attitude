@@ -3,6 +3,7 @@ from io import BytesIO
 from urllib import quote
 from base64 import b64encode
 from jinja2 import FileSystemLoader, Environment
+import json
 
 from .plot import setup_figure, strike_dip, normal,\
         trend_plunge, error_ellipse, plot_aligned,\
@@ -20,11 +21,16 @@ def encode(fig):
             'data:image/png;base64',
             quote(b64encode(b.read())))
 
+def to_json(value):
+    """A filter that outputs Python objects as JSON"""
+    return json.dumps(value)
+
 _ = path.join(path.dirname(__file__),'templates')
 # Load templates
 loader = FileSystemLoader(_)
 env = Environment(loader=loader)
 env.filters['figure'] = encode
+env.filters['json'] = to_json
 
 def report(*arrays, **kwargs):
     """

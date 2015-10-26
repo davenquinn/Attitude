@@ -19,3 +19,22 @@ img {
   max-width: 100%;
   align: center;
 }
+
+svg {
+  path {
+    fill: none;
+    &.sphere {
+      stroke: black;
+      stroke-width: 2;
+    }
+    &.graticule {
+      stroke: #eee;
+      stroke-width: 1;
+    }
+  }
+  .dataFrame {
+    path {
+      fill: transparentize(red, 0.5);
+    }
+  }
+}

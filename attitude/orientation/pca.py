@@ -342,6 +342,14 @@ class PCAOrientation(BaseOrientation):
 
         return lon,lat
 
+    def error_coords(self):
+        def _(half):
+            lon,lat = self.plane_errors(half)
+            return list(zip(N.degrees(lon),N.degrees(lat)))
+        return dict(
+            upper=_('upper'),
+            lower=_('lower'))
+
     @property
     def slope(self):
         _ = self.coefficients

@@ -14,6 +14,10 @@
 
 <p>{{ aligned | figure }}</p>
 
+<h3>Stereonet</h3>
+<div class='stereonet' data-curves='{{ pca.error_coords() | json }}'>
+</div>
+
 <h3>Trend and plunge</h3>
 
 <p>{{ strike_dip | figure }}</p>
@@ -31,4 +35,8 @@
 </ul>
 
 {% endblock %}
+
+{% block scripts %}
+<script>{% include "build/stereonet.js" %}</script>
+{% endblock scripts %}
 
