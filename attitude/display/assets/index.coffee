@@ -9,4 +9,10 @@ el.attr 'data-curves', ''
 
 console.log data
 stereonet = new Stereonet el
-stereonet.addData data
+
+if data.components.length > 0
+  for i in data.components
+    stereonet.addData i
+
+stereonet.addData data.main
+stereonet.draw()

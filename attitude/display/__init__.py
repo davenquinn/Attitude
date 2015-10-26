@@ -41,8 +41,11 @@ def report(*arrays, **kwargs):
     """
     name = kwargs.pop("name",None)
 
-    if len(arrays) > 1:
-        arr = N.vstack(arrays)
+    grouped = len(arrays) > 1
+    if grouped:
+        arr = N.concatenate(arrays)
+        components = [PCAOrientation(a)
+            for a in arrays]
     else:
         arr = arrays[0]
 

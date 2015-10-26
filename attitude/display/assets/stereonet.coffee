@@ -57,6 +57,7 @@ class Stereonet
       .attr
         class: 'nominal'
 
+  draw: =>
     @frame.selectAll 'path'
       .attr d: @path
 
