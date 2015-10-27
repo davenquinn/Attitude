@@ -1,21 +1,17 @@
 d3 = require 'd3'
 rewind = require 'geojson-rewind'
 
+projections =
+  wulff: d3.geo.azimuthalEqualArea
+  schmidt: d3.geo.azimuthalEquidistant
+
 class Stereonet
   constructor: (el)->
     @width = 500
     @height = @width
     @center = [@width/2, @height/2]
 
-    #d3.geo.azimuthalEquidistant()
-    @projection = d3.geo.azimuthalEqualArea()
-      .clipAngle 90-1e-3
-      .scale 150
-      .translate @center
-      .precision .1
-
-    @path = d3.geo.path()
-      .projection @projection
+    @setupProjection()
 
     @drag = d3.behavior.drag()
       .origin =>
@@ -86,6 +82,17 @@ class Stereonet
         'stroke-width': 2
         'stroke-dasharray': '2 4'
         fill: 'none'
+
+  setupProjection: (type='wulff')->
+    @projectionType = type
+    @projection = projections[type]()
+      .clipAngle 90-1e-3
+      .scale 150
+      .translate @center
+      .precision .1
+
+    @path = d3.geo.path()
+      .projection @projection
 
   addData: (d, main=true)->
     newClass = if main then 'main' else 'component'
