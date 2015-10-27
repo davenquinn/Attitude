@@ -48,7 +48,7 @@ def report(*arrays, **kwargs):
             for a in arrays]
     else:
         arr = arrays[0]
-    components = []
+        components = []
 
     r = LinearOrientation(arr)
     pca = PCAOrientation(arr)

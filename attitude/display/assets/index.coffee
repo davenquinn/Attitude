@@ -12,7 +12,7 @@ stereonet = new Stereonet el
 
 if data.components.length > 0
   for i in data.components
-    stereonet.addData i
+    stereonet.addData(i, false)
 
 stereonet.addData data.main
 stereonet.draw()

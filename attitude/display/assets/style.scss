@@ -22,22 +22,31 @@ img {
 
 svg {
   path {
-    fill: none;
     &.sphere {
+      fill: none;
       stroke: black;
       stroke-width: 2;
     }
     &.graticule {
+      fill: none;
       stroke: #eee;
       stroke-width: 1;
     }
   }
   .dataFrame {
     path {
-      fill: transparentize(red, 0.5);
+      &.errors {
+        &.main {
+          fill: transparentize(red, 0.5);
+        }
+        fill: none;//transparentize(#aaa, 0.5);
+      }
       &.nominal {
+        &.main {
+          stroke: darken(red,10%);
+        }
         fill: none;
-        stroke: darken(red,10%);
+        stroke: darken(#ccc,10%);
         stroke-width: 2px;
       }
     }

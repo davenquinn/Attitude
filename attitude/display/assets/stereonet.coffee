@@ -35,7 +35,8 @@ class Stereonet
     @frame = @svg.append 'g'
       .attr class: 'dataFrame'
 
-  addData: (d)->
+  addData: (d, main=true)->
+    newClass = if main then 'main' else 'component'
     coords = [d.upper, d.lower]
     data =
       type: 'Feature'
@@ -45,7 +46,7 @@ class Stereonet
     @frame.append 'path'
       .datum rewind(data)
       .attr
-        class: 'data'
+        class: "errors #{newClass}"
 
     data =
       type: 'Feature'
@@ -55,7 +56,8 @@ class Stereonet
     @frame.append 'path'
       .datum data
       .attr
-        class: 'nominal'
+        class: "nominal #{newClass}"
+        #stroke: if main then 'rgb(255,0,0)' else 'rgb(100,100,100)'
 
   draw: =>
     @frame.selectAll 'path'
