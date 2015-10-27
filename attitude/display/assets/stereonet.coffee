@@ -7,7 +7,8 @@ class Stereonet
     @height = @width
     @center = [@width/2, @height/2]
 
-    @projection = d3.geo.azimuthalEquidistant()
+    #d3.geo.azimuthalEquidistant()
+    @projection = d3.geo.azimuthalEqualArea()
       .clipAngle 90-1e-3
       .scale 150
       .translate @center
@@ -16,6 +17,28 @@ class Stereonet
     @path = d3.geo.path()
       .projection @projection
 
+    dragstarted = (d) ->
+      #stopPropagation prevents dragging to "bubble up" which triggers same event for all elements below this object
+      d3.event.sourceEvent.stopPropagation()
+      d3.select @
+        .classed 'dragging', true
+
+    dragged = =>
+      @projection.rotate [d3.event.x, -d3.event.y]
+      @svg.selectAll('path').attr d: @path
+
+    dragended = (d) ->
+      d3.select @
+        .classed 'dragging', false
+
+    @drag = d3.behavior.drag()
+      .origin =>
+        r = @projection.rotate()
+        {x: r[0], y: -r[1]}
+      .on 'drag', dragged
+      .on 'dragstart', dragstarted
+      .on 'dragend', dragended
+
     graticule = d3.geo.graticule()
 
     @svg = d3.select el[0][0]
@@ -23,6 +46,7 @@ class Stereonet
         .attr "viewBox", "0,0,500,500"
         .attr "width", @width
         .attr "height", @height
+        .call @drag
 
     @svg.append "path"
       .datum graticule
@@ -57,7 +81,6 @@ class Stereonet
       .datum data
       .attr
         class: "nominal #{newClass}"
-        #stroke: if main then 'rgb(255,0,0)' else 'rgb(100,100,100)'
 
   draw: =>
     @frame.selectAll 'path'
