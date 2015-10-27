@@ -39,7 +39,7 @@ svg {
         &.main {
           fill: transparentize(red, 0.5);
         }
-        fill: none;//transparentize(#aaa, 0.5);
+        fill: transparentize(#aaa, 0.5);
       }
       &.nominal {
         &.main {

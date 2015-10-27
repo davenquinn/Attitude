@@ -61,6 +61,20 @@ def report(*arrays, **kwargs):
 
     ellipse=error_ellipse(pca)
 
+    def coords(c):
+        comp  = i.error_coords()
+        if N.dot(i.normal,pca.normal) < 0:
+            u = comp.pop('upper')
+            l = comp.pop('lower')
+            comp['upper'] = l
+            comp['lower'] = u
+        return comp
+
+    stereonet_data = dict(
+        main=pca.error_coords(),
+        components=[coords(i)
+            for i in components])
+
     t = env.get_template("report.html")
 
     return t.render(
@@ -68,9 +82,7 @@ def report(*arrays, **kwargs):
         regression=r,
         pca=pca,
         sph=spherical,
-        stereonet_data=dict(
-            main=pca.error_coords(),
-            components=[i.error_coords() for i in components]),
+        stereonet_data=stereonet_data,
         linear_error=error_ellipse(r),
         aligned=plot_aligned(pca),
         pca_ellipse=ellipse)
