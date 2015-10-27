@@ -3,11 +3,12 @@ from io import BytesIO
 from urllib import quote
 from base64 import b64encode
 from jinja2 import FileSystemLoader, Environment
+import numpy as N
 import json
 
 from .plot import setup_figure, strike_dip, normal,\
         trend_plunge, error_ellipse, plot_aligned,\
-        aligned_residuals, strike_dip_montecarlo,\
+        strike_dip_montecarlo,\
         plane_confidence, error_asymptotes
 from ..orientation import PCAOrientation, LinearOrientation, SphericalOrientation
 
@@ -40,7 +41,14 @@ def report(*arrays, **kwargs):
     """
     name = kwargs.pop("name",None)
 
-    arr = arrays[0]
+    grouped = len(arrays) > 1
+    if grouped:
+        arr = N.concatenate(arrays)
+        components = [PCAOrientation(a)
+            for a in arrays]
+    else:
+        arr = arrays[0]
+    components = []
 
     r = LinearOrientation(arr)
     pca = PCAOrientation(arr)
@@ -60,6 +68,9 @@ def report(*arrays, **kwargs):
         regression=r,
         pca=pca,
         sph=spherical,
+        stereonet_data=dict(
+            main=pca.error_coords(),
+            components=[i.error_coords() for i in components]),
         linear_error=error_ellipse(r),
         aligned=plot_aligned(pca),
         pca_ellipse=ellipse)

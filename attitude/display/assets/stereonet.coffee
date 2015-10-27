@@ -3,7 +3,6 @@ rewind = require 'geojson-rewind'
 
 class Stereonet
   constructor: (el)->
-    console.log 'Creating stereonet'
     @width = 500
     @height = @width
     @center = [@width/2, @height/2]
@@ -58,6 +57,7 @@ class Stereonet
       .attr
         class: 'nominal'
 
+  draw: =>
     @frame.selectAll 'path'
       .attr d: @path
 
