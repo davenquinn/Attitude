@@ -17,27 +17,20 @@ class Stereonet
     @path = d3.geo.path()
       .projection @projection
 
-    dragstarted = (d) ->
-      #stopPropagation prevents dragging to "bubble up" which triggers same event for all elements below this object
-      d3.event.sourceEvent.stopPropagation()
-      d3.select @
-        .classed 'dragging', true
-
-    dragged = =>
-      @projection.rotate [d3.event.x, -d3.event.y]
-      @svg.selectAll('path').attr d: @path
-
-    dragended = (d) ->
-      d3.select @
-        .classed 'dragging', false
-
     @drag = d3.behavior.drag()
       .origin =>
         r = @projection.rotate()
         {x: r[0], y: -r[1]}
-      .on 'drag', dragged
-      .on 'dragstart', dragstarted
-      .on 'dragend', dragended
+      .on 'drag', =>
+        @projection.rotate [d3.event.x, -d3.event.y]
+        @svg.selectAll('path').attr d: @path
+      .on 'dragstart', (d) ->
+        d3.event.sourceEvent.stopPropagation()
+        d3.select @
+          .classed 'dragging', true
+      .on 'dragend', (d) ->
+        d3.select @
+          .classed 'dragging', false
 
     graticule = d3.geo.graticule()
 
