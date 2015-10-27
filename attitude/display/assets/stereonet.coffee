@@ -62,12 +62,30 @@ class Stereonet
         class: 'dataFrame'
         'clip-path': 'url(#clip)'
 
+    @dframe = @frame.append 'g'
+
     @svg.append 'use'
       .attr
         'xlink:href': '#sphere'
         fill: 'none'
         stroke: 'black'
         'stroke-width': 2
+
+    # Create horizontal
+    data =
+      type: 'Feature'
+      geometry:
+        type: 'LineString'
+        coordinates: [[90,0],[0,90],[-90,0],[0,-90],[90,0]]
+
+    @frame.append 'path'
+      .datum data
+      .attr
+        class: 'horizontal'
+        stroke: 'black'
+        'stroke-width': 2
+        'stroke-dasharray': '2 4'
+        fill: 'none'
 
   addData: (d, main=true)->
     newClass = if main then 'main' else 'component'
@@ -77,7 +95,7 @@ class Stereonet
       geometry:
         type: 'Polygon'
         coordinates: coords
-    @frame.append 'path'
+    @dframe.append 'path'
       .datum rewind(data)
       .attr
         class: "errors #{newClass}"
@@ -87,7 +105,7 @@ class Stereonet
       geometry:
         type: 'LineString'
         coordinates: d.nominal
-    @frame.append 'path'
+    @dframe.append 'path'
       .datum data
       .attr
         class: "nominal #{newClass}"
