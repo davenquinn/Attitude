@@ -45,12 +45,29 @@ class Stereonet
       .datum graticule
       .attr class:"graticule", d:@path
 
-    @svg.append "path"
-        .datum {type: "Sphere"}
-        .attr class:"sphere", d:@path
+    defs = @svg.append "defs"
+    defs.append "path"
+      .datum {type: "Sphere"}
+      .attr
+        id:"sphere",
+        d:@path
+
+    defs.append "svg:clipPath"
+      .attr id: "clip"
+      .append 'use'
+        .attr 'xlink:href': '#sphere'
 
     @frame = @svg.append 'g'
-      .attr class: 'dataFrame'
+      .attr
+        class: 'dataFrame'
+        'clip-path': 'url(#clip)'
+
+    @svg.append 'use'
+      .attr
+        'xlink:href': '#sphere'
+        fill: 'none'
+        stroke: 'black'
+        'stroke-width': 2
 
   addData: (d, main=true)->
     newClass = if main then 'main' else 'component'
