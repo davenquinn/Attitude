@@ -4,6 +4,7 @@ import numpy as N
 from scipy.sparse import bsr_matrix
 from scipy.linalg import lu
 from scipy.sparse.linalg import svds
+from scipy.integrate import quad
 from itertools import chain
 from ..coordinates import centered
 from .base import BaseOrientation, rotation
@@ -164,6 +165,20 @@ class PCAOrientation(BaseOrientation):
         d = N.abs(N.diagonal(self.hyp)[:-1])
         self.hyp_axes = N.sqrt(1/d)
 
+    def solid_angle(self):
+        """
+        Numerical integration method to find the
+        solid angle (in steradians) within the limits
+        of an error hyperbola for the given planar fit.
+        """
+        d = N.diag(N.sqrt(self.covariance_matrix))[:2]
+        def func(theta):
+            th = N.array([N.cos(theta),N.sin(theta)])
+            r = N.linalg.norm(dot(d,th))
+            return self.__angular_error(r)
+        i = quad(func, 0, N.pi/2)[0]
+        # cover for all slices of hyperbola
+        return 8*i
 
     def whitened(self):
         """
