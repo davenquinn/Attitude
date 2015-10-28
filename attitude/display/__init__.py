@@ -12,8 +12,6 @@ from .plot import setup_figure, strike_dip, normal,\
         plane_confidence, error_asymptotes
 from ..orientation import PCAOrientation, LinearOrientation
 
-import matplotlib.pyplot as P
-
 def encode(fig):
     b = BytesIO()
     fig.savefig(b, format='png',bbox_inches='tight')
