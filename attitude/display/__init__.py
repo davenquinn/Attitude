@@ -10,7 +10,7 @@ from .plot import setup_figure, strike_dip, normal,\
         trend_plunge, error_ellipse, plot_aligned,\
         strike_dip_montecarlo,\
         plane_confidence, error_asymptotes
-from ..orientation import PCAOrientation, LinearOrientation, SphericalOrientation
+from ..orientation import PCAOrientation, LinearOrientation
 
 import matplotlib.pyplot as P
 
@@ -52,7 +52,6 @@ def report(*arrays, **kwargs):
 
     r = LinearOrientation(arr)
     pca = PCAOrientation(arr)
-    spherical = SphericalOrientation(arr)
 
     kwargs = dict(
             levels=[1,2,3],
@@ -81,7 +80,6 @@ def report(*arrays, **kwargs):
         name=name,
         regression=r,
         pca=pca,
-        sph=spherical,
         stereonet_data=stereonet_data,
         linear_error=error_ellipse(r),
         aligned=plot_aligned(pca),
