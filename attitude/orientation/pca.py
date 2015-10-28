@@ -356,9 +356,9 @@ class PCAOrientation(BaseOrientation):
 
         return lon,lat
 
-    def error_coords(self):
+    def error_coords(self, **kwargs):
         def _(half):
-            lon,lat = self.plane_errors(half)
+            lon,lat = self.plane_errors(half, **kwargs)
             return list(zip(N.degrees(lon),N.degrees(lat)))
         return dict(
             upper=_('upper'),
