@@ -69,7 +69,7 @@ def report(*arrays, **kwargs):
 
     stereonet_data = dict(
         main=pca.error_coords(),
-        components=[coords(i)
+        components=[i.error_coords()
             for i in components])
 
     t = env.get_template("report.html")

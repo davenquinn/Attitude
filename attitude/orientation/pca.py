@@ -360,9 +360,15 @@ class PCAOrientation(BaseOrientation):
         def _(half):
             lon,lat = self.plane_errors(half, **kwargs)
             return list(zip(N.degrees(lon),N.degrees(lat)))
+
+        # Switch hemispheres if PCA is upside-down
+        u = 'upper'
+        l = 'lower'
+        if self.normal[2] < 0:
+            l,u = u,l
         return dict(
-            upper=_('upper'),
-            lower=_('lower'),
+            upper=_(u),
+            lower=_(l),
             nominal=_('nominal'))
 
     @property
