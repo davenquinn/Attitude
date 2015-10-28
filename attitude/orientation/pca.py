@@ -5,7 +5,6 @@ from scipy.sparse import bsr_matrix
 from scipy.linalg import lu
 from scipy.sparse.linalg import svds
 from itertools import chain
-from seaborn.algorithms import bootstrap
 from ..coordinates import centered
 from .base import BaseOrientation, rotation
 from ..error.ellipse import ellipse
@@ -330,7 +329,7 @@ class PCAOrientation(BaseOrientation):
 
         if sheet == 'upper':
             ell += res
-        else:
+        elif sheet == 'lower':
             ell -= res
 
         res = dot(ell,self.axes).T
@@ -341,6 +340,15 @@ class PCAOrientation(BaseOrientation):
         lon,lat = cart2sph(-Z,X,Y)
 
         return lon,lat
+
+    def error_coords(self):
+        def _(half):
+            lon,lat = self.plane_errors(half)
+            return list(zip(N.degrees(lon),N.degrees(lat)))
+        return dict(
+            upper=_('upper'),
+            lower=_('lower'),
+            nominal=_('nominal'))
 
     @property
     def slope(self):
@@ -363,8 +371,3 @@ class PCAOrientation(BaseOrientation):
         #if spherical:
         #    return e + N.array([self.azimuth+N.pi/2,0])
         return (trend,plunge)
-
-    def bootstrap(self):
-        reg_func = lambda arr: N.linalg.svd(arr,full_matrices=False)[2][2]
-        beta_boots = bootstrap(self.arr, func=reg_func)
-        return yhat, yhat_boots

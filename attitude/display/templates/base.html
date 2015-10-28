@@ -6,11 +6,12 @@
         <title></title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>{% include "style.css" %}</style>
+        <style>{% include "build/style.css" %}</style>
     </head>
     <body>
       <div id=wrap>
         {% block content %}{% endblock %}
       </div>
+      {% block scripts %}{% endblock %}
     </body>
 </html>

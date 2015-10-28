@@ -1,6 +1,8 @@
 *.pyc
 .cache
 .DS_Store
+node_modules/
 etc/
 dist/
+attitude/display/templates/build/*
 Attitude.egg-info/

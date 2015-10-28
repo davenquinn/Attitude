@@ -2,14 +2,10 @@
 
 {% block content %}
 <h1>Measurement {{name}}</h1>
-<h2>Linear fit</h2>
-<ul>
-  <li>Number of points: {{ regression.fit.nobs }}</li>
-  <li>Strike and dip: {{ regression.strike_dip() }}</li>
-  <li>Errors: {{ regression.errors() }}</li>
-</ul>
+
 <h2>Principal components</h2>
 <ul>
+  <li>Number of points: {{ pca.n }}</li>
   <li>Strike and dip: {{ pca.strike_dip() }}</li>
   <li>Axes: {{ pca.singular_values}}
   <li>Errors: {{ pca.errors() }}</li>
@@ -18,21 +14,25 @@
 
 <p>{{ aligned | figure }}</p>
 
-<h3>Trend and plunge</h3>
+<h3>Stereonet</h3>
+<div class='stereonet' data-curves='{{ stereonet_data | json }}'>
+</div>
 
-<p>{{ strike_dip | figure }}</p>
+<h3>Trend and plunge</h3>
 
 <p>{{ linear_error | figure }}</p>
 
 <p>{{ pca_ellipse | figure }}</p>
 
-<p>{{ residuals | figure }}</p>
-
-
-<h2>Spherical</h2>
+<h2>Linear fit</h2>
 <ul>
-  <li>Strike and dip: {{ sph.strike_dip() }}</li>
+  <li>Strike and dip: {{ regression.strike_dip() }}</li>
+  <li>Errors: {{ regression.errors() }}</li>
 </ul>
 
 {% endblock %}
+
+{% block scripts %}
+<script>{% include "build/stereonet.js" %}</script>
+{% endblock scripts %}
 

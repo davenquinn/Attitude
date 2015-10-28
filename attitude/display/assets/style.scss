@@ -1,0 +1,54 @@
+/* Typography */
+
+* {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+h1,h2,h3 {
+  font-weight: 300;
+}
+
+#wrap {
+  width: 60em;
+  max-width: 90%;
+  margin: 2em auto;
+  position: relative;
+}
+
+img {
+  max-width: 100%;
+  align: center;
+}
+
+svg {
+  path {
+    &.sphere {
+      fill: none;
+      stroke: black;
+      stroke-width: 2;
+    }
+    &.graticule {
+      fill: none;
+      stroke: #eee;
+      stroke-width: 1;
+    }
+  }
+  .dataFrame {
+    path {
+      &.errors {
+        &.main {
+          fill: transparentize(red, 0.5);
+        }
+        fill: transparentize(#aaa, 0.5);
+      }
+      &.nominal {
+        &.main {
+          stroke: darken(red,10%);
+        }
+        fill: none;
+        stroke: darken(#ccc,10%);
+        stroke-width: 2px;
+      }
+    }
+  }
+}
