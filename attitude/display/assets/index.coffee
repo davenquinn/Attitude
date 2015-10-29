@@ -11,8 +11,16 @@ console.log data
 stereonet = new Stereonet el
 
 if data.components.length > 0
+  opts = {class: 'component', level: 1}
   for i in data.components
-    stereonet.addData(i, false)
+    stereonet.addGirdle i[1],opts
+    stereonet.addPath i.nominal, opts
 
-stereonet.addData data.main
+opts =
+  class: 'main'
+  level: 1
+
+stereonet.addGirdle data.main[1], opts
+stereonet.addPath data.main.nominal, opts
+
 stereonet.draw()
