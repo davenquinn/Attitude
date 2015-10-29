@@ -109,6 +109,7 @@ class Stereonet
       .datum rewind(data)
       .attr
         class: "errors #{opts.class}"
+        'fill-opacity': Math.pow(1/(level*2),1.5)
 
   addPath: (d,opts)=>
     if not opts.class?

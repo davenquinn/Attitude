@@ -37,9 +37,9 @@ svg {
     path {
       &.errors {
         &.main {
-          fill: transparentize(red, 0.5);
+          fill: red;
         }
-        fill: transparentize(#aaa, 0.5);
+        fill: #aaa;
       }
       &.nominal {
         &.main {
