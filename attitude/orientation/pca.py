@@ -349,14 +349,9 @@ class PCAOrientation(BaseOrientation):
         elif sheet == 'lower':
             ell -= res
 
-        res = dot(ell,self.axes).T
-        X = res[0]
-        Y = res[1]
-        Z = res[2]
-
-        lon,lat = cart2sph(-Z,X,Y)
-
-        return lon,lat
+        _ = dot(ell,self.axes).T
+        lon,lat = cart2sph(-_[2],_[0],_[1])
+        return N.array(zip(lon,lat))
 
     def error_coords(self, **kwargs):
 
@@ -372,9 +367,9 @@ class PCAOrientation(BaseOrientation):
             l,u = u,l
 
         def _(half, level=1):
-            lon,lat = self.plane_errors(half,
+            lonlat = self.plane_errors(half,
                     level=level, **kwargs)
-            return list(zip(N.degrees(lon),N.degrees(lat)))
+            return N.degrees(lonlat).tolist()
 
         def __(level):
             return dict(
