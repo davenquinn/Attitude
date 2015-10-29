@@ -64,8 +64,6 @@ def plot_aligned(pca):
     d = N.abs(N.diagonal(hyp)[:-1])
     hyp_axes = N.sqrt(1/d)
 
-    angular_errors = pca.angular_errors()
-
     for title,ax,(a,b),ylabel in zip(titles,axes,
             [(0,1),(0,2),(1,2)],ylabels):
 
@@ -86,9 +84,6 @@ def plot_aligned(pca):
             vals = y(x_)
             ax.plot(x_,vals, color='#aaaaaa',alpha=0.5)
             ax.plot(x_,-vals, color='#aaaaaa',alpha=0.5)
-
-            _ = N.degrees(angular_errors[a])
-            title += u" angular error: {0:.1f}º".format(_)
 
         ax.scatter(A[:,a], A[:,b], **kw)
         ax.set_aspect("equal")
