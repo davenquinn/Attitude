@@ -10,9 +10,17 @@ el.attr 'data-curves', ''
 console.log data
 stereonet = new Stereonet el
 
+addItem = (d, opts)->
+  for level in [1,2]
+    opts.level = level
+    stereonet.addGirdle d[level],opts
+  stereonet.addPath d.nominal, opts
+
 if data.components.length > 0
   for i in data.components
-    stereonet.addData(i, false)
+    addItem i, class: 'component'
 
-stereonet.addData data.main
+console.log data.main
+addItem data.main, class: 'main'
+
 stereonet.draw()

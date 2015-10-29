@@ -336,40 +336,53 @@ class PCAOrientation(BaseOrientation):
         return dot(angles,axs),center
 
     def plane_errors(self, sheet='upper',**kwargs):
+        level = kwargs.pop('level',1)
+
         from mplstereonet.stereonet_math import cart2sph
         d = N.sqrt(self.covariance_matrix)
-        assert N.allclose(d.sum(),N.diag(d).sum())
+
         ell = ellipse(d[:2], **kwargs)
-        res = d[2]
+        res = d[2]*level
 
         if sheet == 'upper':
             ell += res
         elif sheet == 'lower':
             ell -= res
 
-        res = dot(ell,self.axes).T
-        X = res[0]
-        Y = res[1]
-        Z = res[2]
-
-        lon,lat = cart2sph(-Z,X,Y)
-
-        return lon,lat
+        _ = dot(ell,self.axes).T
+        lon,lat = cart2sph(-_[2],_[0],_[1])
+        return N.array(zip(lon,lat))
 
     def error_coords(self, **kwargs):
-        def _(half):
-            lon,lat = self.plane_errors(half, **kwargs)
-            return list(zip(N.degrees(lon),N.degrees(lat)))
+
+        # Support for multiple levels of errors
+        # (not sure if this directly corresponds
+        # to sigma).
+        levels = kwargs.pop('levels',None)
 
         # Switch hemispheres if PCA is upside-down
         u = 'upper'
         l = 'lower'
         if self.normal[2] < 0:
             l,u = u,l
-        return dict(
-            upper=_(u),
-            lower=_(l),
-            nominal=_('nominal'))
+
+        def _(half, level=1):
+            lonlat = self.plane_errors(half,
+                    level=level, **kwargs)
+            return N.degrees(lonlat).tolist()
+
+        def __(level):
+            return dict(
+                upper=_(u, level),
+                lower=_(l, level))
+
+        out = dict(nominal=_('nominal'))
+        if levels is None:
+            i = __(1)
+        else:
+            i = {l:__(l) for l in levels}
+        out.update(i)
+        return out
 
     @property
     def slope(self):

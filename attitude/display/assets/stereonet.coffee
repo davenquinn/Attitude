@@ -94,8 +94,11 @@ class Stereonet
     @path = d3.geo.path()
       .projection @projection
 
-  addData: (d, main=true)->
-    newClass = if main then 'main' else 'component'
+  addGirdle: (d, opts)=>
+    if not opts.class?
+      opts.class = 'main'
+    level = opts.level or 1
+
     coords = [d.upper, d.lower]
     data =
       type: 'Feature'
@@ -105,17 +108,21 @@ class Stereonet
     @dframe.append 'path'
       .datum rewind(data)
       .attr
-        class: "errors #{newClass}"
+        class: "errors #{opts.class}"
+        'fill-opacity': Math.pow(1/(level*2),1.5)
 
+  addPath: (d,opts)=>
+    if not opts.class?
+      opts.class = 'main'
     data =
       type: 'Feature'
       geometry:
         type: 'LineString'
-        coordinates: d.nominal
+        coordinates: d
     @dframe.append 'path'
       .datum data
       .attr
-        class: "nominal #{newClass}"
+        class: "nominal #{opts.class}"
 
   draw: =>
     @frame.selectAll 'path'

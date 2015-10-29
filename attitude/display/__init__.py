@@ -58,18 +58,10 @@ def report(*arrays, **kwargs):
 
     ellipse=error_ellipse(pca)
 
-    def coords(c):
-        comp  = i.error_coords()
-        if N.dot(i.normal,pca.normal) < 0:
-            u = comp.pop('upper')
-            l = comp.pop('lower')
-            comp['upper'] = l
-            comp['lower'] = u
-        return comp
-
+    kwargs = dict(n=500,levels=[1,2])
     stereonet_data = dict(
-        main=pca.error_coords(),
-        components=[i.error_coords()
+        main=pca.error_coords(**kwargs),
+        components=[i.error_coords(**kwargs)
             for i in components])
 
     t = env.get_template("report.html")
