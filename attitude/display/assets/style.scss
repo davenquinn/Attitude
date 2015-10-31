@@ -37,13 +37,13 @@ svg {
     path {
       &.errors {
         &.main {
-          fill: red;
+          fill: purple;
         }
         fill: #aaa;
       }
       &.nominal {
         &.main {
-          stroke: darken(red,10%);
+          stroke: darken(purple,10%);
         }
         fill: none;
         stroke: darken(#ccc,10%);
