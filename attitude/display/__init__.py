@@ -71,6 +71,8 @@ def report(*arrays, **kwargs):
         regression=r,
         pca=pca,
         stereonet_data=stereonet_data,
+        angular_errors=tuple(N.degrees(i)
+            for i in pca.angular_errors()[::-1]),
         linear_error=error_ellipse(r),
         aligned=plot_aligned(pca),
         pca_ellipse=ellipse)
