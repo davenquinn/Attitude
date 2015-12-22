@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as P
 from mplstereonet.stereonet_math import line, pole
 import numpy as N
