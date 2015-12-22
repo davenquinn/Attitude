@@ -8,7 +8,7 @@ data = JSON.parse d
 el.attr 'data-curves', ''
 
 console.log data
-stereonet = new Stereonet el
+stereonet = new Stereonet el.node()
 
 addItem = (d, opts)->
   for level in [1,2]

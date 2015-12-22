@@ -30,7 +30,7 @@ class Stereonet
 
     graticule = d3.geo.graticule()
 
-    @svg = d3.select el[0][0]
+    @svg = d3.select el
       .append "svg"
         .attr "viewBox", "0,0,500,500"
         .attr "width", @width
