@@ -6,9 +6,8 @@ obj = process.argv[2]
 
 data = JSON.parse(obj)
 
-val = math.planeErrors(
-  data.singularValues, data.axes,
-  n: data.n, sheet: data.sheet)
+val = data.map (d)->
+  math.planeErrors(d.singularValues, d.axes, d)
 
-process.stdout.write JSON.stringify(data: val)
+process.stdout.write JSON.stringify(val)
 

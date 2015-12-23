@@ -65,22 +65,24 @@ def test_javascript_plane():
     in javascript
     """
 
-    for i,sheet in cases():
-        p = N.array(random_plane()[0]).T
-        obj = Orientation(p)
-        err = obj.plane_errors(sheet=sheet, n=100)
+    def input_data():
+        for i, sheet in cases():
+            p = N.array(random_plane()[0]).T
+            obj = Orientation(p)
+            obj.sheet = sheet
+            yield obj
 
-        # Send file to javascript
-        d = dict(
+    data = list(input_data())
+    d = [dict(
             singularValues=N.diagonal(
                 obj.covariance_matrix).tolist(),
             axes=obj.axes.tolist(),
-            sheet=sheet,
-            n=n)
-        cmd = ('coffee', script, dumps(d))
-        output = check_output(cmd)
-        d1 = loads(output)
-        arr = N.array(d1['data'])
-
+            sheet=obj.sheet,
+            n=n) for obj in data]
+    cmd = ('coffee', script, dumps(d))
+    output = loads(check_output(cmd))
+    for obj,arr in zip(data,output):
+        arr = N.array(arr)
+        err = obj.plane_errors(sheet=obj.sheet, n=100)
         assert N.allclose(err,arr)
 
