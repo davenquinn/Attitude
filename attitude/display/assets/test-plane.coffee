@@ -4,14 +4,10 @@ d3 = require 'd3'
 transpose = (array, length=null) ->
   unless length?
     length = array[0].length
-  newArray = [0..array.length].map -> []
-  i = 0
-  while i < array.length
-    j = 0
-    while j < length
+  newArray = [0...length].map -> []
+  for i in [0...array.length]
+    for j in [0...length]
       newArray[j].push array[i][j]
-      j++
-    i++
   newArray
 
 testData = ->
