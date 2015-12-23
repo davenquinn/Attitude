@@ -21,36 +21,27 @@ angles = (i*step for i in [0...n])
 
 s = data.singularValues.map Math.sqrt
 axes = transpose(data.axes)
-#console.log cov
-
-cov2 = [0,0,s[2]]
 
 sdot = (a,b)->
   zipped = (a[i]*b[i] for i in [0..a.length])
   d3.sum zipped
 
-sheets =
-  upper: (d,i)->d+cov2[i]
-  lower: (d,i)->d-cov2[i]
-
 stepFunc = (angle)->
-  a = [Math.cos(angle),Math.sin(angle)]
-  e = a.map (d,i)->d*s[i]
+  e = [Math.cos(angle)*s[0],
+       Math.sin(angle)*s[1]]
 
-  func = sheets[data.sheet]
-  if func?
-    e = e.map func
+  if data.sheet == 'upper'
+    e[2] = s[2]
+  else if data.sheet == 'lower'
+    e[2] = -s[2]
 
   d = (sdot(e,i) for i in axes)
 
-  x = -d[2]
-  y = d[0]
-  z = d[1]
-  sq = (a)->Math.pow(a,2)
-  r = Math.sqrt(sq(x)+sq(y)+sq(z))
-  lat = Math.asin(z/r)
-  lon = Math.atan2(y,x)
-  return [lon,lat]
+  sq = (a)->a*a
+  r = Math.sqrt d3.sum d.map(sq)
+  return [
+    Math.atan2(d[0],-d[2]),
+    Math.asin d[1]/r]
 
 val = angles.map(stepFunc)
 
