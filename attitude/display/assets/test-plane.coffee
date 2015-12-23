@@ -2,7 +2,8 @@ d3 = require 'd3'
 math = require './math'
 
 # Test implementations of plane functions in javascript
-obj = process.argv[2]
+mode = process.argv[2]
+obj = process.argv[3]
 
 data = JSON.parse(obj)
 

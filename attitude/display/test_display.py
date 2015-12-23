@@ -59,30 +59,38 @@ def test_simple_plane():
         arr = do_simple_plane(obj, sheet)
         assert N.allclose(err,arr)
 
-def test_javascript_plane():
-    """
-    Test plane functions implemented
-    in javascript
-    """
-
-    def input_data():
-        for i, sheet in cases():
-            p = N.array(random_plane()[0]).T
-            obj = Orientation(p)
-            obj.sheet = sheet
-            yield obj
-
-    data = list(input_data())
+def get_coffeescript(data, mode='individual'):
     d = [dict(
             singularValues=N.diagonal(
                 obj.covariance_matrix).tolist(),
             axes=obj.axes.tolist(),
             sheet=obj.sheet,
             n=n) for obj in data]
-    cmd = ('coffee', script, dumps(d))
-    output = loads(check_output(cmd))
+
+    cmd = ('coffee',script,mode,dumps(d))
+    return loads(check_output(cmd))
+
+def input_data():
+    for i, sheet in cases():
+        p = N.array(random_plane()[0]).T
+        obj = Orientation(p)
+        obj.sheet = sheet
+        yield obj
+
+def test_javascript_plane():
+    """
+    Test plane functions implemented
+    in javascript
+    """
+
+    data = list(input_data())
+    output = get_coffeescript(data,'individual')
     for obj,arr in zip(data,output):
         arr = N.array(arr)
         err = obj.plane_errors(sheet=obj.sheet, n=100)
         assert N.allclose(err,arr)
+
+def test_grouped_plane():
+    data = list(input_data())
+    return True
 
