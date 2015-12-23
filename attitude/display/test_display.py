@@ -5,6 +5,7 @@ from subprocess import check_output
 from json import dumps, loads
 from os import path
 from mplstereonet.stereonet_math import cart2sph
+from itertools import product
 
 from ..test import random_plane
 from .. import Orientation
@@ -15,16 +16,29 @@ script = path.join(here,'assets','test-plane.coffee')
 
 n = 100
 u = N.linspace(0, 2*N.pi, n)
+sheets = ('upper','lower','nominal')
+
+cases = product(range(10),sheets)
 
 def test_simple_plane():
-    for i in range(10):
+    for i in cases:
         p = N.array(random_plane()[0]).T
         obj = Orientation(p)
         err = obj.plane_errors(sheet='upper', n=100)
 
         cov = N.sqrt(obj.covariance_matrix)
 
-        def step_func(e):
+        def step_func(a):
+
+            a = N.array([N.cos(a),N.sin(a)])
+            b = cov[:2].T
+            e0 = dot(a,cov[:2])
+            #1x2 2x3 -> 1x3
+            e = N.array([
+                a[0]*b[0,0]+a[1]*b[0,1],
+                a[0]*b[1,0]+a[1]*b[1,1],
+                a[0]*b[2,0]+a[1]*b[2,1]])
+
             e += cov[2]
             d = dot(e,obj.axes)
             x,y,z = -d[2],d[0],d[1]
@@ -35,11 +49,8 @@ def test_simple_plane():
 
         # Get a bundle of vectors defining
         # a full rotation around the unit circle
-        angles = N.array([N.cos(u),N.sin(u)]).T
-        ell = dot(angles,cov[:2])
-
         arr = N.array([step_func(i)
-            for i in ell])
+            for i in u])
 
         assert N.allclose(err,arr)
 
@@ -52,7 +63,7 @@ def test_javascript_plane():
 
     assert True
     return
-    for i in range(10):
+    for i in cases:
         p = N.array(random_plane()[0]).T
         obj = Orientation(p)
         err = obj.plane_errors(sheet='upper', n=100)
