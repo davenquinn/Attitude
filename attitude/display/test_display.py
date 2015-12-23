@@ -28,19 +28,19 @@ def test_simple_plane():
 
         cov = N.sqrt(obj.covariance_matrix)
 
+        def sdot(a,b):
+            return sum([i*j for i,j in zip(a,b)])
+
         def step_func(a):
 
-            a = N.array([N.cos(a),N.sin(a)])
+            a = [N.cos(a),N.sin(a)]
             b = cov[:2].T
-            e0 = dot(a,cov[:2])
             #1x2 2x3 -> 1x3
-            e = N.array([
-                a[0]*b[0,0]+a[1]*b[0,1],
-                a[0]*b[1,0]+a[1]*b[1,1],
-                a[0]*b[2,0]+a[1]*b[2,1]])
+            e = N.array([sdot(a,i) for i in b])
 
             e += cov[2]
-            d = dot(e,obj.axes)
+            d = [sdot(e,i)
+                for i in obj.axes.T]
             x,y,z = -d[2],d[0],d[1]
             r = N.sqrt(x**2 + y**2 + z**2)
             lat = N.arcsin(z/r)
