@@ -21,10 +21,10 @@ sheets = ('upper','lower','nominal')
 cases = product(range(10),sheets)
 
 def test_simple_plane():
-    for i in cases:
+    for i,sheet in cases:
         p = N.array(random_plane()[0]).T
         obj = Orientation(p)
-        err = obj.plane_errors(sheet='upper', n=100)
+        err = obj.plane_errors(sheet=sheet, n=100)
 
         cov = N.sqrt(obj.covariance_matrix)
 
@@ -32,13 +32,13 @@ def test_simple_plane():
             return sum([i*j for i,j in zip(a,b)])
 
         def step_func(a):
-
             a = [N.cos(a),N.sin(a)]
             b = cov[:2].T
-            #1x2 2x3 -> 1x3
             e = N.array([sdot(a,i) for i in b])
-
-            e += cov[2]
+            if sheet == 'upper':
+                e += cov[2]
+            elif sheet == 'lower':
+                e -= cov[2]
             d = [sdot(e,i)
                 for i in obj.axes.T]
             x,y,z = -d[2],d[0],d[1]
@@ -61,8 +61,6 @@ def test_javascript_plane():
     in javascript
     """
 
-    assert True
-    return
     for i in cases:
         p = N.array(random_plane()[0]).T
         obj = Orientation(p)
