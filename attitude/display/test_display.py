@@ -21,6 +21,10 @@ sheets = ('upper','lower','nominal')
 cases = lambda: product(range(10),sheets)
 
 def do_simple_plane(obj, sheet='upper'):
+    """
+    An iterative version of `pca.plane_errors`,
+    which computes an error surface for a plane.
+    """
     cov = N.sqrt(obj.covariance_matrix)
 
     def sdot(a,b):
@@ -47,17 +51,13 @@ def do_simple_plane(obj, sheet='upper'):
     return N.array([step_func(i)
         for i in u])
 
-
 def test_simple_plane():
     for i,sheet in cases():
         p = N.array(random_plane()[0]).T
         obj = Orientation(p)
         err = obj.plane_errors(sheet=sheet, n=n)
-
         arr = do_simple_plane(obj, sheet)
-
         assert N.allclose(err,arr)
-
 
 def test_javascript_plane():
     """

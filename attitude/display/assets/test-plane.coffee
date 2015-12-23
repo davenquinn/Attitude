@@ -10,11 +10,8 @@ transpose = (array, length=null) ->
       newArray[j].push array[i][j]
   newArray
 
-testData = ->
-  fs.readFileSync "#{__dirname}/test-plane-data.json"
-
 # Test implementations of plane functions in javascript
-obj = process.argv[2] or testData()
+obj = process.argv[2]
 
 data = JSON.parse(obj)
 
