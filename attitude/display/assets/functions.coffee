@@ -1,11 +1,25 @@
 d3 = require 'd3'
 rewind = require 'geojson-rewind'
+math = require './math'
+
+planeErrors = math.planeErrors
 
 createErrorSurface = (d)->
   # Function that turns orientation
   # objects into error surface
-  e = d.properties.error_coords
-  coords = [e.upper, e.lower]
+  p = d.properties
+
+  # Switch hemispheres if PCA is upside-down
+  u = 'upper'
+  l = 'lower'
+  if p.singularValues[2] < 0
+      v = [l,u]
+  else
+      v = [u,l]
+
+  coords = v.map (i)->
+    planeErrors p.singularValues, p.axes,
+      sheet:i, degrees: true
   data =
     type: 'Feature'
     id: d.id
@@ -15,13 +29,15 @@ createErrorSurface = (d)->
   return rewind(data)
 
 createNominalPlane = (d)->
-  e = d.properties.error_coords
+  p = d.properties
+  coords = planeErrors p.singularValues, p.axes,
+    sheet: 'nominal', degrees: true
   data =
     type: 'Feature'
     id: d.id
     geometry:
       type: 'LineString'
-      coordinates: e.nominal
+      coordinates: coords
   return data
 
 createGroupedPlane = (color)->

@@ -11,9 +11,10 @@ transpose = (array, length=null) ->
 
  identity = [[1,0,0],[0,1,0],[0,0,1]]
 
-planeErrors = (singularValues, axes, opts)->
+planeErrors = (singularValues, axes, opts={})->
   n = opts.n or 100
   sheet = opts.sheet or 'nominal'
+  degrees = opts.degrees or false
   axes = identity unless axes?
 
   step = 2*Math.PI/(n-1)
@@ -25,6 +26,8 @@ planeErrors = (singularValues, axes, opts)->
   sdot = (a,b)->
     zipped = (a[i]*b[i] for i in [0..a.length])
     d3.sum zipped
+
+  c = if degrees then 180/Math.PI else 1
 
   stepFunc = (angle)->
     e = [Math.cos(angle)*s[0],
@@ -40,8 +43,8 @@ planeErrors = (singularValues, axes, opts)->
     sq = (a)->a*a
     r = Math.sqrt d3.sum d.map(sq)
     return [
-      Math.atan2(d[0],-d[2]),
-      Math.asin d[1]/r]
+      c*Math.atan2(d[0],-d[2]),
+      c*Math.asin d[1]/r]
 
   return angles.map(stepFunc)
 
