@@ -25,15 +25,15 @@ def do_simple_plane(obj, sheet='upper'):
     An iterative version of `pca.plane_errors`,
     which computes an error surface for a plane.
     """
-    cov = N.sqrt(obj.covariance_matrix)
+    cov = N.sqrt(N.diagonal(obj.covariance_matrix))
 
     def sdot(a,b):
         return sum([i*j for i,j in zip(a,b)])
 
     def step_func(a):
         a = [N.cos(a),N.sin(a)]
-        b = cov[:2].T
-        e = N.array([sdot(a,i) for i in b])
+        b = cov[:2]
+        e = N.array([i*j for i,j in zip(a,b)])
         if sheet == 'upper':
             e += cov[2]
         elif sheet == 'lower':
@@ -72,7 +72,8 @@ def test_javascript_plane():
 
         # Send file to javascript
         d = dict(
-            covariance=N.sqrt(obj.covariance_matrix).tolist(),
+            singularValues=N.diagonal(
+                obj.covariance_matrix).tolist(),
             axes=obj.axes.tolist(),
             sheet=sheet,
             n=n)

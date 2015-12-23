@@ -19,22 +19,23 @@ n = data.n
 step = 2*Math.PI/(n-1)
 angles = (i*step for i in [0...n])
 
-cov = data.covariance
-cT = transpose(cov.slice(0,2))
+s = data.singularValues.map Math.sqrt
 axes = transpose(data.axes)
 #console.log cov
+
+cov2 = [0,0,s[2]]
 
 sdot = (a,b)->
   zipped = (a[i]*b[i] for i in [0..a.length])
   d3.sum zipped
 
 sheets =
-  upper: (d,i)->d+cov[2][i]
-  lower: (d,i)->d-cov[2][i]
+  upper: (d,i)->d+cov2[i]
+  lower: (d,i)->d-cov2[i]
 
 stepFunc = (angle)->
   a = [Math.cos(angle),Math.sin(angle)]
-  e = (sdot(a,i) for i in cT)
+  e = a.map (d,i)->d*s[i]
 
   func = sheets[data.sheet]
   if func?
