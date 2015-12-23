@@ -1,7 +1,6 @@
 import numpy as N
 from scipy.integrate import quad
 
-
 def test_solid_angle():
     """
     Test that integration to a range of girdle
