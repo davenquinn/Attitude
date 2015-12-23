@@ -58,7 +58,7 @@ class Stereonet
         class: 'dataFrame'
         'clip-path': 'url(#clip)'
 
-    @dframe = @frame.append 'g'
+    @dataArea = @frame.append 'g'
 
     @svg.append 'use'
       .attr
@@ -105,7 +105,7 @@ class Stereonet
       geometry:
         type: 'Polygon'
         coordinates: coords
-    @dframe.append 'path'
+    @dataArea.append 'path'
       .datum rewind(data)
       .attr
         class: "errors #{opts.class}"
@@ -119,7 +119,7 @@ class Stereonet
       geometry:
         type: 'LineString'
         coordinates: d
-    @dframe.append 'path'
+    @dataArea.append 'path'
       .datum data
       .attr
         class: "nominal #{opts.class}"
