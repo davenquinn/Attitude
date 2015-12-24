@@ -92,5 +92,9 @@ def test_javascript_plane():
 
 def test_grouped_plane():
     data = list(input_data())
-    return True
+    output = get_coffeescript(data,'grouped')
+    for obj,arr in zip(data,output):
+        err = obj.error_coords(n=100)
+        for i in ['nominal','upper','lower']:
+            assert N.allclose(err[i],N.array(arr[i]))
 

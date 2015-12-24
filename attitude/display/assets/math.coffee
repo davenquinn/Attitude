@@ -33,9 +33,9 @@ planeErrors = (singularValues, axes, opts={})->
     e = [Math.cos(angle)*s[0],
          Math.sin(angle)*s[1]]
 
-    if sheet
+    if sheet == 'upper'
       e[2] = s[2]
-    else if sheet
+    else if sheet == 'lower'
       e[2] = -s[2]
 
     d = (sdot(e,i) for i in axes)
@@ -48,7 +48,19 @@ planeErrors = (singularValues, axes, opts={})->
 
   return angles.map(stepFunc)
 
+combinedErrors = (sv, ax, opts={})->
+  func = (type)->
+    opts.sheet = type
+    opts.degrees = true
+    planeErrors sv, ax, opts
+
+  out =
+    nominal: func('nominal')
+    upper: func('upper')
+    lower: func('lower')
+
 module.exports =
   planeErrors: planeErrors
+  combinedErrors: combinedErrors
   transpose: transpose
 
