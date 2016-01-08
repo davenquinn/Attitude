@@ -1,6 +1,5 @@
 from . import Orientation
 import numpy as N
-import nose
 import functools
 from ..test import random_plane, scattered_plane
 
@@ -28,11 +27,8 @@ edge_cases = [
 
 def check_orientation(a):
     coords, sol, name = a
-    print name
     sol = tuple(sol)
     res = Orientation(coords).strike_dip()
-    print res, sol
-    print ""
     assert res[0] == sol[0] and res[1] == sol[1]
 
 def test_directions():

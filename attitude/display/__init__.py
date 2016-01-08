@@ -1,10 +1,15 @@
 from os import path
 from io import BytesIO
-from urllib import quote
 from base64 import b64encode
 from jinja2 import FileSystemLoader, Environment
 import numpy as N
 import json
+
+# For python 3 compatibility
+try:
+    from urllib.parse import quote
+except ImportError:
+    from urllib import quote
 
 from .plot import setup_figure, strike_dip, normal,\
         trend_plunge, error_ellipse, plot_aligned,\

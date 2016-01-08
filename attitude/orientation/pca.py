@@ -352,7 +352,7 @@ class PCAOrientation(BaseOrientation):
 
         _ = dot(ell,self.axes).T
         lon,lat = cart2sph(-_[2],_[0],_[1])
-        return N.array(zip(lon,lat))
+        return N.array(list(zip(lon,lat)))
 
     def error_coords(self, **kwargs):
 

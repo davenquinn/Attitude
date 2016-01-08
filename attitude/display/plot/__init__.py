@@ -28,7 +28,8 @@ def trend_plunge(orientation, *args, **kwargs):
         a = [a]*len(levels)
 
     for i,level in enumerate(levels):
-        el = map(N.degrees,orientation.error_ellipse(vector=True, level=level))
+        el = [N.degrees(i) for i in
+            orientation.error_ellipse(vector=True, level=level)]
         lat,lon = line(el[1], el[0])
 
         e = Polygon(zip(lat,lon), alpha=a[i], **kwargs)
@@ -46,7 +47,7 @@ def normal(orientation, *args, **kwargs):
 
     for i,level in enumerate(levels):
         _ = orientation.error_ellipse(vector=True, level=level)
-        el = map(N.degrees,_)
+        el = [N.degrees(i) for i in _]
         lat,lon = line(el[1], el[0])
         e = Polygon(zip(lat,lon), alpha=a[i], **kwargs)
         ax.add_patch(e)
@@ -61,8 +62,8 @@ def plane_confidence(orientation, *args, **kwargs):
 
     for i, level in enumerate(levels):
         a,b = orientation.plane_errors()
-        el = map(N.degrees,a)
-        el2 = map(N.degrees,b)
+        el = [N.degrees(i) for i in a]
+        el2 = [N.degrees(i) for i in b]
         print(el)
         ax.plot(el[0],el[1], '.')
         #ax.fill(el,el2[::-1])
@@ -81,10 +82,10 @@ def strike_dip(orientation, *args, **kwargs):
         a = [a]*len(levels)
 
     for i,level in enumerate(levels):
-        el = map(N.degrees,orientation.error_ellipse(
-            level=level,
-            spherical=spherical
-            ))
+        el = [N.degrees(i) for i in
+                orientation.error_ellipse(
+                    level=level,
+                    spherical=spherical)]
 
         if spherical:
             lat,lon = line(el[0], el[1])
@@ -92,7 +93,7 @@ def strike_dip(orientation, *args, **kwargs):
             lat = el[0]
             lon = 90-el[1]
 
-        e = Polygon(zip(lat,lon), alpha=a[i], **kwargs)
+        e = Polygon(list(zip(lat,lon)), alpha=a[i], **kwargs)
         ax.add_patch(e)
 
 def strike_dip_montecarlo(orientation, n=10000, ax=None, level=1):

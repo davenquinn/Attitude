@@ -19,7 +19,10 @@ watch: $(ASSETS)
 $(SCRIPT): $(ASSETS)/index.coffee
 	$(BIN)/browserify -t coffeeify $^ > $@
 
-$(BUILD)/style.css: $(ASSETS)/style.scss
+$(BUILD):
+	mkdir -p $@
+
+$(BUILD)/style.css: $(ASSETS)/style.scss | $(BUILD)
 	rm -f $@
 	cat $^ | $(BIN)/node-sass > $@
 

@@ -1,6 +1,6 @@
 from __future__ import division, print_function
 import numpy as N
-
+from ..geom.util import dot
 from ..error.ellipse import ellipse
 
 def rotation(angle):
@@ -41,7 +41,7 @@ class BaseOrientation(object):
     @property
     def rotated_covariance(self):
         r = rotation(self.azimuth)
-        return reduce(N.dot,[r.T,self.covariance_matrix,r])
+        return dot(r.T,self.covariance_matrix,r)
 
     def standard_errors(self):
         return N.sqrt(N.diagonal(self.rotated_covariance))

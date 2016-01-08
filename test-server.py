@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 
 from flask import Flask
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 test = Flask(__name__)
 
 from collections import namedtuple
-from syrtis.core import app, db
-from syrtis.models import Attitude, AttitudeGroup
+from elevation import app, db
+from elevation.models import Attitude, AttitudeGroup
 from attitude.display import env, report
 from attitude.orientation.tests import test_cases
 

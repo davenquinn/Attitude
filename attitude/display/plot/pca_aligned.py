@@ -93,7 +93,7 @@ def plot_aligned(pca):
             transform=ax.transAxes)
         ax.autoscale(tight=True)
         ax.yaxis.set_ticks([])
-        for spine in ax.spines.itervalues():
+        for spine in ax.spines.values():
             spine.set_visible(False)
 
     ax.text(0.99,0.99,"Residuals: {:.1f} m".format(lengths[2]),
