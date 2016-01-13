@@ -7,7 +7,7 @@ combinedErrors = math.combinedErrors
 createErrorSurface = (d)->
   # Function that turns orientation
   # objects into error surface
-  coords = [d.upper,d.lower]
+  coords = [d.lower,d.upper]
   data =
     type: 'Feature'
     geometry:
