@@ -29,14 +29,16 @@ planeErrors = (singularValues, axes, opts={})->
 
   c = if degrees then 180/Math.PI else 1
 
+  c1 = if axes[2][2] > 0 then 1 else -1
+
   stepFunc = (angle)->
     e = [Math.cos(angle)*s[0],
          Math.sin(angle)*s[1]]
 
     if sheet == 'upper'
-      e[2] = s[2]
+      e[2] = s[2]*c1
     else if sheet == 'lower'
-      e[2] = -s[2]
+      e[2] = -s[2]*c1
 
     d = (sdot(e,i) for i in axes)
 

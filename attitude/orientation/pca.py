@@ -345,6 +345,10 @@ class PCAOrientation(BaseOrientation):
         ell = ellipse(d[:2], **kwargs)
         res = d[2]*level
 
+        # Switch hemispheres if PCA is upside-down
+        if self.normal[2] < 0:
+            res *= -1
+
         if sheet == 'upper':
             ell += res
         elif sheet == 'lower':
@@ -361,11 +365,8 @@ class PCAOrientation(BaseOrientation):
         # to sigma).
         levels = kwargs.pop('levels',None)
 
-        # Switch hemispheres if PCA is upside-down
         u = 'upper'
         l = 'lower'
-        if self.normal[2] < 0:
-            l,u = u,l
 
         def _(half, level=1):
             lonlat = self.plane_errors(half,
