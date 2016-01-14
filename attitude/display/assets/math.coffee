@@ -32,8 +32,8 @@ planeErrors = (singularValues, axes, opts={})->
   c1 = if axes[2][2] > 0 then 1 else -1
 
   stepFunc = (angle)->
-    e = [Math.cos(angle)*s[0],
-         Math.sin(angle)*s[1]]
+    e = [Math.sin(angle)*s[0],
+         Math.cos(angle)*s[1]]
 
     if sheet == 'upper'
       e[2] = s[2]*c1
