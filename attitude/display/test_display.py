@@ -6,6 +6,7 @@ from json import dumps, loads
 from os import path
 from mplstereonet.stereonet_math import cart2sph
 from itertools import product
+from codecs import getreader
 
 from ..test import random_plane
 from .. import Orientation
@@ -68,7 +69,7 @@ def get_coffeescript(data, mode='individual'):
             n=n) for obj in data]
 
     cmd = ('coffee',script,mode,dumps(d))
-    return loads(check_output(cmd))
+    return loads(check_output(cmd).decode('utf-8'))
 
 def input_data():
     for i, sheet in cases():
