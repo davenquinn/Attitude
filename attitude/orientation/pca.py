@@ -115,6 +115,15 @@ class PCAOrientation(BaseOrientation):
     """ Gets the axis-aligned principle components
         of the dataset.
     """
+    @classmethod
+    def from_axes(axes):
+        """
+        Recovers a principal component dataset from
+        a set of axes (singular values*principal axes)
+        of the dataset.
+        """
+        pass
+
     def __init__(self, arr):
         """ Requires an object implementing the
             Attitude interface

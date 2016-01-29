@@ -1,5 +1,7 @@
 import numpy as N
 from scipy.integrate import quad
+from ..test import random_plane
+from .pca import PCAOrientation
 
 def test_solid_angle():
     """
@@ -14,3 +16,13 @@ def test_solid_angle():
         # cover for all slices of hyperbola
         assert True
         #assert N.allclose(8*i, solid_angle)
+
+def test_recovery_from_axes():
+    """
+    Tests the recovery of a Principal Component
+    dataset from a set of precomputed axes.
+    """
+    for i in range(10):
+        arr, coeffs = random_plane()
+        pca = PCAOrientation(arr)
+        assert True
