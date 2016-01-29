@@ -115,7 +115,16 @@ class PCAOrientation(BaseOrientation):
     """ Gets the axis-aligned principle components
         of the dataset.
     """
-    def __init__(self, arr):
+    @classmethod
+    def from_axes(axes):
+        """
+        Recovers a principal component dataset from
+        a set of axes (singular values*principal axes)
+        of the dataset.
+        """
+        pass
+
+    def __init__(self, arr, axes=None):
         """ Requires an object implementing the
             Attitude interface
         """
@@ -135,15 +144,21 @@ class PCAOrientation(BaseOrientation):
 
         self.n = len(self.arr)
 
-        #ratio = self.n/1e4
-        #if ratio > 2:
-        #    r = N.floor(ratio)
-        #    self.n /= r
-        #    self.arr = self.arr[::r,:]
-        res = N.linalg.svd(self.arr,
-            full_matrices=False)
+        if axes is not None:
+            ## Get from axes if these are defined
+            # In this case, axes must be equivalent
+            # to self.axes*self.singular_values
+            s = N.linalg.norm(axes,axis=0)
+            V = axes/s
+            # Don't compute U unless we have to
+            self._U = None
 
-        self.U, s, V = res
+        else:
+            # Get singular values
+            res = N.linalg.svd(self.arr,
+                full_matrices=False)
+            self._U, s, V = res
+
         self.singular_values = s
         self.axes = V
 
@@ -164,6 +179,13 @@ class PCAOrientation(BaseOrientation):
         self.hyp = self.as_hyperbola(rotated=False)
         d = N.abs(N.diagonal(self.hyp)[:-1])
         self.hyp_axes = N.sqrt(1/d)
+
+    @property
+    def U(self):
+        if self._U is None:
+            sinv = N.diag(1/self.singular_values)
+            self._U = dot(self.arr,self.V.T,sinv)
+        return self._U
 
     def solid_angle(self):
         """
@@ -195,7 +217,7 @@ class PCAOrientation(BaseOrientation):
         it is aligned with the princpal
         axes of the dataset.
         """
-        return N.dot(self.U,self.sigma)
+        return N.dot(self.arr,self.V.T)
 
     def residuals(self):
         """
