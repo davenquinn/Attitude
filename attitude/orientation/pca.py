@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
 import numpy as N
+import logging
 from scipy.sparse import bsr_matrix
 from scipy.linalg import lu
 from scipy.sparse.linalg import svds
@@ -13,6 +14,8 @@ from ..error.ellipse import ellipse
 from ..geom.util import dot
 from ..geom.vector import vector
 from ..geom.conics import conic
+
+log = logging.getLogger('attitude')
 
 def augment(matrix):
     size = matrix.shape
@@ -145,6 +148,7 @@ class PCAOrientation(BaseOrientation):
         self.n = len(self.arr)
 
         if axes is not None:
+            log.info("Loaded PCA from saved axes")
             ## Get from axes if these are defined
             # In this case, axes must be equivalent
             # to self.axes*self.singular_values
@@ -155,6 +159,7 @@ class PCAOrientation(BaseOrientation):
 
         else:
             # Get singular values
+            log.info("Running singular value decomposition")
             res = N.linalg.svd(self.arr,
                 full_matrices=False)
             self._U, s, V = res

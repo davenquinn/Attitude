@@ -13,14 +13,17 @@ install:
 clean:
 	rm -f $(SCRIPT)
 
+$(BUILD):
+	mkdir -p $@
+
+$(ASSETS):
+	mkdir -p $@
+
 watch: $(ASSETS)
 	$(BIN)/watchify -t coffeeify $^/index.coffee -o $(SCRIPT)
 
-$(SCRIPT): $(ASSETS)/index.coffee
+$(SCRIPT): $(ASSETS)/index.coffee | $(ASSETS) $(BUILD)
 	$(BIN)/browserify -t coffeeify $^ > $@
-
-$(BUILD):
-	mkdir -p $@
 
 $(BUILD)/style.css: $(ASSETS)/style.scss | $(BUILD)
 	rm -f $@

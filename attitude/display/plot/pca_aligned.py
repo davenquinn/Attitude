@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
-import matplotlib.pyplot as P
 from mplstereonet.stereonet_math import line, pole
+import logging
 import numpy as N
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
@@ -12,13 +12,23 @@ import seaborn
 
 from ...geom.vector import vector,plane
 
-def plot_aligned(pca):
+log = logging.getLogger(__name__)
+
+def plot_aligned(pca, sparse=True):
     """ Plots the residuals of a principal component
         analysis of attiude data.
     """
     A = pca.rotated()
     minmax = [(A[:,i].min(),A[:,i].max()) for i in range(3)]
     lengths = [j-i for i,j in minmax]
+
+    if sparse:
+        l = len(A)
+        if l > 10000:
+            i = N.ceil(l/10000)
+            A = A[::i]
+
+    log.info("Plotting with {} points".format(len(A)))
 
     w = 8
     ratio = (lengths[2]*2+lengths[1])/lengths[0]*1.5
@@ -44,7 +54,6 @@ def plot_aligned(pca):
     axes = list(setup_axes())
 
     fig.subplots_adjust(hspace=0, wspace=0.1)
-    kw = dict(c="#555555", s=40, alpha=0.5, zorder=5)
 
     #lengths = attitude.pca.singular_values[::-1]
 
@@ -85,7 +94,10 @@ def plot_aligned(pca):
             ax.plot(x_,vals, color='#aaaaaa',alpha=0.5)
             ax.plot(x_,-vals, color='#aaaaaa',alpha=0.5)
 
-        ax.scatter(A[:,a], A[:,b], **kw)
+        ax.plot(A[:,a], A[:,b],
+            c="#555555", marker='.',
+            linestyle='None',
+            alpha=0.5, zorder=5)
         ax.set_aspect("equal")
 
         ax.text(0.01,.99,title,
