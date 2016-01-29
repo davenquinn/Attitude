@@ -2,12 +2,15 @@ from __future__ import division
 
 import numpy as N
 from scipy.integrate import quad
-from ..test import random_plane
+from ..test import random_plane, scattered_plane
 from .pca import PCAOrientation, centered
 from ..geom.util import dot
 
-def random_pca():
-    arr, coeffs = random_plane()
+def random_pca(scattered=True):
+    if scattered:
+        arr,coeffs = scattered_plane()
+    else:
+        arr, coeffs = random_plane()
     arr = N.array(arr).transpose()
     return PCAOrientation(arr)
 
@@ -48,7 +51,7 @@ def test_recovery_from_axes():
         an = dot(pca.sigma,pca.V)
 
         inv = N.linalg.inv(an)
-        a3 =  dot(pca.arr,inv)
+        a3 =  dot(pca.arr,pca.V.T,sinv)
         try:
             assert N.allclose(a3,pca.U)
         except AssertionError as err:
@@ -63,4 +66,18 @@ def test_recovery_from_axes():
                 pca.U[:,2]*sv,
                 atol=1e-10)
 
+def test_builtin_recovery():
+    """
+    Test recovery functions that are built into
+    basic API
+    """
+    for i in range(10):
+        pca = random_pca()
 
+        arr = pca.arr
+
+        ax = pca.singular_values*pca.axes
+        pca2 = PCAOrientation(arr,axes=ax)
+
+        assert N.allclose(pca.V,pca2.V)
+        assert N.allclose(pca.U,pca2.U)

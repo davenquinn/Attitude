@@ -144,18 +144,20 @@ class PCAOrientation(BaseOrientation):
 
         self.n = len(self.arr)
 
-        ## Get from axes if these are defined
-        # In this case, axes must be equivalent
-        # to self.axes*self.singular_values
         if axes is not None:
+            ## Get from axes if these are defined
+            # In this case, axes must be equivalent
+            # to self.axes*self.singular_values
             s = N.linalg.norm(axes,axis=0)
             V = axes/s
+            # Don't compute U unless we have to
+            self._U = None
+
         else:
             # Get singular values
             res = N.linalg.svd(self.arr,
                 full_matrices=False)
-
-            self.U, s, V = res
+            self._U, s, V = res
 
         self.singular_values = s
         self.axes = V
@@ -177,6 +179,13 @@ class PCAOrientation(BaseOrientation):
         self.hyp = self.as_hyperbola(rotated=False)
         d = N.abs(N.diagonal(self.hyp)[:-1])
         self.hyp_axes = N.sqrt(1/d)
+
+    @property
+    def U(self):
+        if self._U is None:
+            sinv = N.diag(1/self.singular_values)
+            self._U = dot(self.arr,self.V.T,sinv)
+        return self._U
 
     def solid_angle(self):
         """
@@ -208,7 +217,7 @@ class PCAOrientation(BaseOrientation):
         it is aligned with the princpal
         axes of the dataset.
         """
-        return N.dot(self.U,self.sigma)
+        return N.dot(self.arr,self.V.T)
 
     def residuals(self):
         """
