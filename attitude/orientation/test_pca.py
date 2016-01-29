@@ -73,11 +73,8 @@ def test_builtin_recovery():
     """
     for i in range(10):
         pca = random_pca()
-
-        arr = pca.arr
-
-        ax = pca.singular_values*pca.axes
-        pca2 = PCAOrientation(arr,axes=ax)
+        pca2 = PCAOrientation(pca.arr,
+            axes=pca.principal_axes)
 
         assert N.allclose(pca.V,pca2.V)
         assert N.allclose(pca.U,pca2.U)
