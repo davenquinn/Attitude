@@ -1,7 +1,15 @@
+from __future__ import division
+
 import numpy as N
 from scipy.integrate import quad
 from ..test import random_plane
-from .pca import PCAOrientation
+from .pca import PCAOrientation, centered
+from ..geom.util import dot
+
+def random_pca():
+    arr, coeffs = random_plane()
+    arr = N.array(arr).transpose()
+    return PCAOrientation(arr)
 
 def test_solid_angle():
     """
@@ -23,6 +31,36 @@ def test_recovery_from_axes():
     dataset from a set of precomputed axes.
     """
     for i in range(10):
-        arr, coeffs = random_plane()
-        pca = PCAOrientation(arr)
-        assert True
+        pca = random_pca()
+        axes = pca.axes*pca.singular_values
+
+        lengths = N.linalg.norm(axes,axis=0)
+        assert N.allclose(lengths, pca.singular_values)
+
+        assert N.allclose(pca.arr, dot(pca.U,pca.sigma,pca.V))
+        a2 = dot(pca.arr,pca.V.T)
+        assert N.allclose(a2,
+            dot(pca.U,pca.sigma))
+
+        sinv = N.diag(1/pca.singular_values)
+        assert N.allclose(N.identity(3),dot(pca.sigma,sinv))
+
+        an = dot(pca.sigma,pca.V)
+
+        inv = N.linalg.inv(an)
+        a3 =  dot(pca.arr,inv)
+        try:
+            assert N.allclose(a3,pca.U)
+        except AssertionError as err:
+            # For exceedingly small PCA axes,
+            # recovered values of U are sometimes
+            # quite different, but this is insignificant
+            # in absolute terms.
+            assert N.allclose(a3[:,:2],pca.U[:,:2])
+            sv = pca.singular_values[2]
+            assert N.allclose(
+                a3[:,2]*sv,
+                pca.U[:,2]*sv,
+                atol=1e-10)
+
+

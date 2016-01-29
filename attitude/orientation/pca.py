@@ -124,7 +124,7 @@ class PCAOrientation(BaseOrientation):
         """
         pass
 
-    def __init__(self, arr):
+    def __init__(self, arr, axes=None):
         """ Requires an object implementing the
             Attitude interface
         """
@@ -144,15 +144,19 @@ class PCAOrientation(BaseOrientation):
 
         self.n = len(self.arr)
 
-        #ratio = self.n/1e4
-        #if ratio > 2:
-        #    r = N.floor(ratio)
-        #    self.n /= r
-        #    self.arr = self.arr[::r,:]
-        res = N.linalg.svd(self.arr,
-            full_matrices=False)
+        ## Get from axes if these are defined
+        # In this case, axes must be equivalent
+        # to self.axes*self.singular_values
+        if axes is not None:
+            s = N.linalg.norm(axes,axis=0)
+            V = axes/s
+        else:
+            # Get singular values
+            res = N.linalg.svd(self.arr,
+                full_matrices=False)
 
-        self.U, s, V = res
+            self.U, s, V = res
+
         self.singular_values = s
         self.axes = V
 
