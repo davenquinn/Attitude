@@ -148,7 +148,7 @@ class PCAOrientation(BaseOrientation):
         self.n = len(self.arr)
 
         if axes is not None:
-            log.info("Loaded PCA from saved axes")
+            log.debug("Loaded PCA from saved axes")
             ## Get from axes if these are defined
             # In this case, axes must be equivalent
             # to self.axes*self.singular_values
@@ -159,7 +159,7 @@ class PCAOrientation(BaseOrientation):
 
         else:
             # Get singular values
-            log.info("Running singular value decomposition")
+            log.debug("Running singular value decomposition")
             res = N.linalg.svd(self.arr,
                 full_matrices=False)
             self._U, s, V = res
