@@ -13,6 +13,7 @@ transpose = (array, length=null) ->
 
 planeErrors = (singularValues, axes, opts={})->
   n = opts.n or 100
+  upperHemisphere = opts.upper or true
   sheet = opts.sheet or 'nominal'
   degrees = opts.degrees or false
   axes = identity unless axes?
@@ -40,12 +41,19 @@ planeErrors = (singularValues, axes, opts={})->
     else if sheet == 'lower'
       e[2] = -s[2]*c1
 
+    if upperHemisphere
+      e[2] *= -1
+
     d = (sdot(e,i) for i in axes)
 
     sq = (a)->a*a
     r = Math.sqrt d3.sum d.map(sq)
+    z = d[2]
+    if not upperHemisphere
+      z *= -1
+
     return [
-      c*Math.atan2(d[0],-d[2]),
+      c*Math.atan2(d[0],z),
       c*Math.asin d[1]/r]
 
   return angles.map(stepFunc)
