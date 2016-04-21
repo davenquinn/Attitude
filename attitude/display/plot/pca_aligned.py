@@ -8,7 +8,6 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.patches import Polygon
 from matplotlib.gridspec import GridSpec
 from matplotlib.ticker import FuncFormatter
-import seaborn
 
 from ...geom.vector import vector,plane
 

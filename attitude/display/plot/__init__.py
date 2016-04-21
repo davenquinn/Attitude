@@ -1,21 +1,23 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
 import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as P
 from mplstereonet.stereonet_math import line, pole
 import numpy as N
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.patches import Polygon
 from matplotlib.gridspec import GridSpec
-from matplotlib.ticker import FuncFormatter
+from matplotlib.ticker import FuncFormatter, MaxNLocator
 
 from ...geom.vector import vector,plane
 from .pca_aligned import plot_aligned
 
+def get_axes():
+    import matplotlib.pyplot as P
+    return P.gca()
+
 def trend_plunge(orientation, *args, **kwargs):
-    ax = kwargs.pop("ax",P.gca())
+    ax = kwargs.pop("ax",current_axes())
     levels = kwargs.pop("levels",[1])
     #kwargs["linewidth"] = 0
     defaults = dict(
@@ -36,7 +38,7 @@ def trend_plunge(orientation, *args, **kwargs):
         ax.add_patch(e)
 
 def normal(orientation, *args, **kwargs):
-    ax = kwargs.pop("ax",P.gca())
+    ax = kwargs.pop("ax",current_axes())
     levels = kwargs.pop("levels",[1])
     normal = kwargs.pop("normal",False)
     kwargs["linewidth"] = 0
@@ -53,7 +55,7 @@ def normal(orientation, *args, **kwargs):
         ax.add_patch(e)
 
 def plane_confidence(orientation, *args, **kwargs):
-    ax = kwargs.pop('ax',P.gca())
+    ax = kwargs.pop('ax',current_axes())
     levels = kwargs.pop("levels",[1])
 
     a = kwargs.pop("alpha",[0.7])
@@ -72,7 +74,7 @@ def plane_confidence(orientation, *args, **kwargs):
         #ax.add_patch(e)
 
 def strike_dip(orientation, *args, **kwargs):
-    ax = kwargs.pop("ax",P.gca())
+    ax = kwargs.pop("ax",current_axes())
     levels = kwargs.pop("levels",[1])
     spherical = kwargs.pop("spherical", False)
     kwargs["linewidth"] = 0
@@ -112,14 +114,15 @@ def strike_dip_montecarlo(orientation, n=10000, ax=None, level=1):
 
 def setup_figure(*args, **kwargs):
     projection = kwargs.pop("projection","stereonet")
-    fig = P.figure(*args, **kwargs)
+    fig = Figure(*args, **kwargs)
+    fig.canvas = FigureCanvas(fig)
     ax = fig.add_subplot(111, projection=projection)
     return fig,ax
 
 def error_ellipse(fit):
 
-    yloc = P.MaxNLocator(4)
-    xloc = P.MaxNLocator(5)
+    yloc = MaxNLocator(4)
+    xloc = MaxNLocator(5)
 
     def func(val, pos):
         return u"{0}\u00b0".format(val)
@@ -150,7 +153,7 @@ def error_asymptotes(pca,**kwargs):
     Plots asymptotic error bounds for
     hyperbola on a stereonet.
     """
-    ax = kwargs.pop("ax",P.gca())
+    ax = kwargs.pop("ax",current_axes())
 
     lon,lat = pca.plane_errors('upper', n=1000)
     ax.plot(lon,lat,'-')
