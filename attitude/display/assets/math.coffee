@@ -13,7 +13,7 @@ transpose = (array, length=null) ->
 
 planeErrors = (singularValues, axes, opts={})->
   n = opts.n or 100
-  upperHemisphere = opts.upper or true
+  upperHemisphere = opts.upperHemisphere or true
   sheet = opts.sheet or 'nominal'
   degrees = opts.degrees or false
   axes = identity unless axes?
