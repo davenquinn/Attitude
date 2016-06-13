@@ -21,8 +21,8 @@ def bhattacharyya_distance(pca1,pca2):
     sigma = (s1+s2)/2
 
 
-    _ = 1/8*dot((u1+u2).T, N.linalg.inv(sigma),u1-u2)
-    _ += 1/2*N.ln(N.linalg.det(sigma)/(N.linalg.det(s1)*N.linalg.det(s2)))
+    _ = 1/8*dot((u1-u2).T, N.linalg.inv(sigma),u1-u2)
+    _ += 1/2*N.log(N.linalg.det(sigma)/(N.linalg.det(s1)*N.linalg.det(s2)))
     return _
 
 def test_bhattacharyya_distance():
