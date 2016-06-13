@@ -202,7 +202,7 @@ class PCAOrientation(BaseOrientation):
         def func(theta):
             th = N.array([N.cos(theta),N.sin(theta)])
             r = N.linalg.norm(dot(d,th))
-            return self.__angular_error(r)
+            return self.angular_error(r)
         i = quad(func, 0, N.pi/2)[0]
         # cover for all slices of hyperbola
         return 8*i
@@ -236,7 +236,7 @@ class PCAOrientation(BaseOrientation):
         _ = N.dot(_,self.axes)
         return self.arr - _
 
-    def __angular_error(self, axis_length):
+    def angular_error(self, axis_length):
         """
         The angular error for an in-plane axis of
         given length (either a PCA major axis or
@@ -250,7 +250,7 @@ class PCAOrientation(BaseOrientation):
         corresponding to 1st and 2nd axes
         of PCA distribution.
         """
-        return tuple(self.__angular_error(i)
+        return tuple(self.angular_error(i)
                 for i in self.hyp_axes[:-1])
     @property
     def covariance_matrix(self):
