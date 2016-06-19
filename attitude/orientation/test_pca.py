@@ -1,6 +1,7 @@
 from __future__ import division
 
 import numpy as N
+import pytest
 from scipy.integrate import quad
 from ..test import random_plane, scattered_plane, load_test_plane
 from .pca import PCAOrientation, centered
@@ -85,6 +86,7 @@ def __do_component_planes(fit,component):
     rotated_axes = dot(component.axes,ax.T)
     assert False
 
+@pytest.mark.skip(reason="Not fully implemented")
 def test_component_planes():
     components = [centered(a) for a in
               load_test_plane('grouped-plane')]
