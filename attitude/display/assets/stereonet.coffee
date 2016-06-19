@@ -12,11 +12,15 @@ centerPoints = [
 ]
 
 class Stereonet
-  constructor: (el)->
-    @width = 500
-    @height = @width
+  defaults:
+    width: 500
+    height: 500
+    margin: 0
+    projCenter: [0,0]
+  constructor: (el, options={})->
+    for k,v of @defaults
+      @[k] = options[k] or @defaults[k]
     @center = [@width/2, @height/2]
-
     @setupProjection()
 
     @drag = d3.behavior.drag()
@@ -44,7 +48,6 @@ class Stereonet
 
     @svg = d3.select el
       .append "svg"
-        .attr "viewBox", "0,0,500,500"
         .attr "width", @width
         .attr "height", @height
         .call @drag
@@ -58,7 +61,10 @@ class Stereonet
 
     @svg.append "path"
       .datum graticule
-      .attr class:"graticule", d:@path
+      .attr
+        class:"graticule",
+        d:@path,
+        fill: 'none'
 
     defs = @svg.append "defs"
     defs.append "path"
@@ -112,9 +118,10 @@ class Stereonet
     @projectionType = type
     @projection = projections[type]()
       .clipAngle 90-1e-3
-      .scale 150
+      .scale @width/3
       .translate @center
       .precision .1
+      #.center @projCenter
 
     @path = d3.geo.path()
       .projection @projection
