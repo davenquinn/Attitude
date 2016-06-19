@@ -5,6 +5,12 @@ projections =
   wulff: d3.geo.azimuthalEqualArea
   schmidt: d3.geo.azimuthalEquidistant
 
+selectedRotation = 1
+centerPoints = [
+  [[0,0],'North']
+  [[0,90],'Vertical']
+]
+
 class Stereonet
   defaults:
     width: 500
@@ -21,9 +27,7 @@ class Stereonet
       .origin =>
         r = @projection.rotate()
         {x: r[0], y: -r[1]}
-      .on 'drag', =>
-        @projection.rotate [d3.event.x, -d3.event.y]
-        @svg.selectAll('path').attr d: @path
+      .on 'drag', => @reflowProjection [d3.event.x, -d3.event.y]
       .on 'dragstart', (d) ->
         d3.event.sourceEvent.stopPropagation()
         d3.select @
@@ -34,11 +38,26 @@ class Stereonet
 
     graticule = d3.geo.graticule()
 
+
+    @setCenter = =>
+      selectedRotation = if selectedRotation == 1 then 0 else 1
+      loc = centerPoints[selectedRotation]
+      @reflowProjection loc[0]
+      @topLabel.text loc[1]
+
+
     @svg = d3.select el
       .append "svg"
         .attr "width", @width
         .attr "height", @height
         .call @drag
+        .on 'click', @setCenter
+
+    @topLabel = @svg.append 'text'
+      .attr
+        x: 250
+        y: 10
+        'text-align': 'center'
 
     @svg.append "path"
       .datum graticule
@@ -88,6 +107,12 @@ class Stereonet
         'stroke-width': 2
         'stroke-dasharray': '2 4'
         fill: 'none'
+
+    @setCenter()
+
+  reflowProjection: (loc)=>
+    @projection.rotate loc
+    @svg.selectAll('path').attr d: @path
 
   setupProjection: (type='wulff')->
     @projectionType = type

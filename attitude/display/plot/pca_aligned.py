@@ -14,11 +14,16 @@ from ...geom.vector import vector,plane
 
 log = logging.getLogger(__name__)
 
-def plot_aligned(pca, sparse=True):
+def plot_aligned(pca, sparse=True, **kwargs):
     """ Plots the residuals of a principal component
         analysis of attiude data.
     """
+    colormap = kwargs.pop('colormap',None)
+
     A = pca.rotated()
+    # Flip the result if upside down
+    if pca.normal[2] < 0:
+        A[:,-1] *= -1
     minmax = [(A[:,i].min(),A[:,i].max()) for i in range(3)]
     lengths = [j-i for i,j in minmax]
 
@@ -76,11 +81,11 @@ def plot_aligned(pca, sparse=True):
     for title,ax,(a,b),ylabel in zip(titles,axes,
             [(0,1),(0,2),(1,2)],ylabels):
 
-        kwargs = dict(linewidth=2, alpha=0.5)
+        kw = dict(linewidth=2, alpha=0.5)
         bounds = minmax[a]
-        ax.plot(bounds,(0,0), c=colors[a], **kwargs)
+        ax.plot(bounds,(0,0), c=colors[a], **kw)
         if b != 2:
-            ax.plot((0,0),minmax[b], c=colors[b], **kwargs)
+            ax.plot((0,0),minmax[b], c=colors[b], **kw)
         else:
             title += ": {:.0f} m".format(lengths[a])
 
@@ -94,10 +99,14 @@ def plot_aligned(pca, sparse=True):
             ax.plot(x_,vals, color='#aaaaaa',alpha=0.5)
             ax.plot(x_,-vals, color='#aaaaaa',alpha=0.5)
 
-        ax.plot(A[:,a], A[:,b],
-            c="#555555", marker='.',
-            linestyle='None',
-            alpha=0.5, zorder=5)
+        x,y = A[:,a], A[:,b]
+        kw = dict(alpha=0.5, zorder=5)
+
+        if colormap is None:
+            ax.plot(x,y,c="#555555", linestyle='None', marker='.',**kw)
+        else:
+            ax.scatter(x,y,c=A[:,-1], cmap=colormap, **kw)
+
         ax.set_aspect("equal")
 
         ax.text(0.01,.99,title,
