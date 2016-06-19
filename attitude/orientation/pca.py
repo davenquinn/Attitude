@@ -174,7 +174,7 @@ class PCAOrientation(BaseOrientation):
         self.normal = self.axes[2]
         if self.normal[2] < 0:
             # Could create a special case for inverted bedding
-            self.normal *= -1
+            self.normal = -self.normal
 
         self._vertical = N.array([0,0,1])
         self.strike = N.cross(self.normal,self._vertical)
