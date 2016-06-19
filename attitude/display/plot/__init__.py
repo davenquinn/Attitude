@@ -84,7 +84,7 @@ def strike_dip(orientation, *args, **kwargs):
         a = [a]*len(levels)
 
     for i,level in enumerate(levels):
-        el = [N.degrees(i) for i in
+        el = [N.degrees(ell) for ell in
                 orientation.error_ellipse(
                     level=level,
                     spherical=spherical)]

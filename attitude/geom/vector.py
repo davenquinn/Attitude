@@ -12,6 +12,10 @@ def vector(*args):
     """
     return N.array(args)
 
+def unit_vector(*args):
+    v = vector(*args)
+    return v/norm(v)
+
 def augment(vec):
     """
     Augment a vector in any orthonormal basis

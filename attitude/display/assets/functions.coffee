@@ -24,8 +24,7 @@ createNominalPlane = (d)->
   return data
 
 createGroupedPlane = (color)->
-  (d)->
-    p = d.properties
+  (p)->
     e = combinedErrors p.singularValues, p.axes
     el = d3.select @
     el.append "path"

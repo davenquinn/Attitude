@@ -7,7 +7,7 @@
 <ul>
   <li>Number of points: {{ pca.n }}</li>
   <li>Strike and dip: {{ pca.strike_dip() }}</li>
-  <li>Axes: {{ pca.singular_values}}
+  <li>Axes: {{ pca.singular_values}}</li>
   <li>Errors: {{ pca.errors() }}</li>
   <li>Solid angle: {{ pca.solid_angle() }}</li>
   <li>Explained variance: {{ pca.explained_variance }}</li>
@@ -37,4 +37,3 @@
 {% block scripts %}
 <script>{% include "build/stereonet.js" %}</script>
 {% endblock scripts %}
-
