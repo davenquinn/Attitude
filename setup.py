@@ -6,7 +6,8 @@ install_requires = [
     'numpy',
     'scipy',
     'matplotlib',
-    'mplstereonet'
+    'mplstereonet',
+    'jinja2'
     ]
 
 setup(

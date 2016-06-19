@@ -1,10 +1,12 @@
 from __future__ import division
 
 import numpy as N
+import pytest
 from scipy.integrate import quad
-from ..test import random_plane, scattered_plane
+from ..test import random_plane, scattered_plane, load_test_plane
 from .pca import PCAOrientation, centered
 from ..geom.util import dot
+from mplstereonet.stereonet_math import sph2cart
 
 def random_pca(scattered=True):
     if scattered:
@@ -78,3 +80,22 @@ def test_builtin_recovery():
 
         assert N.allclose(pca.V,pca2.V)
         assert N.allclose(pca.U,pca2.U)
+
+def __do_component_planes(fit,component):
+    ax = fit.axes
+    rotated_axes = dot(component.axes,ax.T)
+    assert False
+
+@pytest.mark.skip(reason="Not fully implemented")
+def test_component_planes():
+    components = [centered(a) for a in
+              load_test_plane('grouped-plane')]
+    arr = N.vstack(components)
+    assert arr.shape[1] == 3
+
+    components = [PCAOrientation(c) for c in components]
+    main_fit = PCAOrientation(arr)
+
+    for c in components:
+        __do_component_planes(main_fit,c)
+

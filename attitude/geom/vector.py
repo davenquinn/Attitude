@@ -24,6 +24,12 @@ def augment(vec):
     """
     return N.append(vec,[1])
 
+def unit_vector(vec):
+    """
+    Return a normalized version of the vector
+    """
+    return vec/N.linalg.norm(vec)
+
 def column(vec):
     """
     Return a vector with a new trailing axis

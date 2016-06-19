@@ -5,7 +5,10 @@ from __future__ import print_function
 
 from os import path
 import numpy as N
-from cStringIO import StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 __dirname__ = path.dirname(__file__)
 
