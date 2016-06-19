@@ -13,6 +13,7 @@ from ..error.ellipse import ellipse
 
 from ..geom.util import dot
 from ..geom.vector import vector
+from ..geom.vector import angle as vector_angle
 from ..geom.conics import conic
 
 log = logging.getLogger('attitude')
@@ -40,10 +41,6 @@ def compose_affine(*transforms):
 
 def normalize(v):
     return v/N.linalg.norm(v)
-
-def vector_angle(v1,v2):
-    _ = N.dot(normalize(v1),normalize(v2).T)
-    return N.arccos(_)
 
 def ellipse(axes, n=1000):
     """
@@ -175,6 +172,9 @@ class PCAOrientation(BaseOrientation):
         self.offset = N.cross(self.sigma[0],self.sigma[1])
 
         self.normal = self.axes[2]
+        if self.normal[2] < 0:
+            # Could create a special case for inverted bedding
+            self.normal *= -1
 
         self._vertical = N.array([0,0,1])
         self.strike = N.cross(self.normal,self._vertical)
