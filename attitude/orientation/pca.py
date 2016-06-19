@@ -310,6 +310,10 @@ class PCAOrientation(BaseOrientation):
             dip = 180 - dip
             strike += 180
 
+        # Proper azimuth notation
+        if strike < 0:
+            strike += 360
+
         return strike, dip
 
     def as_conic(self, level=1):
