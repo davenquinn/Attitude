@@ -16,6 +16,7 @@ from .plot import setup_figure, strike_dip, normal,\
         strike_dip_montecarlo,\
         plane_confidence, error_asymptotes
 from ..orientation import PCAOrientation, LinearOrientation
+from ..geom.vector import unit_vector
 
 def encode(fig):
     b = BytesIO()
@@ -36,6 +37,25 @@ env = Environment(loader=loader)
 env.filters['figure'] = encode
 env.filters['json'] = to_json
 
+def distance_from_group(components, pca):
+    for fit in components:
+        vec = N.dot(fit.axes[2], pca.axes[2])
+        mean = N.arccos(N.abs(vec))
+
+        # In-plane vector aligned with axis of variation, for both planes
+        inplane = N.cross(fit.axes[2], pca.axes[2])
+        fv = N.cross(inplane,fit.axes[2])
+        v1 = unit_vector(fv)
+        l = N.dot(v1, fit.axes[0])*fit.singular_values[0]
+        e1 = fit.angular_error(l)
+
+        mainv = N.cross(inplane,pca.axes[2])
+        v = unit_vector(mainv)
+        l = N.dot(v, pca.axes[0])*pca.singular_values[0]
+        e2 = pca.angular_error(l)
+        std = e1+e2
+        yield N.degrees(mean), N.degrees(std), mean/std
+
 def report(*arrays, **kwargs):
     """
     Outputs a standalone HTML 'report card' for a
@@ -55,6 +75,8 @@ def report(*arrays, **kwargs):
 
     r = LinearOrientation(arr)
     pca = PCAOrientation(arr)
+
+    distances = list(distance_from_group(components,pca))
 
     kwargs = dict(
             levels=[1,2,3],
@@ -80,4 +102,5 @@ def report(*arrays, **kwargs):
             for i in pca.angular_errors()[::-1]),
         linear_error=error_ellipse(r),
         aligned=plot_aligned(pca),
-        pca_ellipse=ellipse)
+        pca_ellipse=ellipse,
+        distances=distances)

@@ -13,6 +13,7 @@ from ..error.ellipse import ellipse
 
 from ..geom.util import dot
 from ..geom.vector import vector
+from ..geom.vector import angle as vector_angle
 from ..geom.conics import conic
 
 log = logging.getLogger('attitude')
@@ -40,10 +41,6 @@ def compose_affine(*transforms):
 
 def normalize(v):
     return v/N.linalg.norm(v)
-
-def vector_angle(v1,v2):
-    _ = N.dot(normalize(v1),normalize(v2).T)
-    return N.arccos(_)
 
 def ellipse(axes, n=1000):
     """
@@ -175,6 +172,9 @@ class PCAOrientation(BaseOrientation):
         self.offset = N.cross(self.sigma[0],self.sigma[1])
 
         self.normal = self.axes[2]
+        if self.normal[2] < 0:
+            # Could create a special case for inverted bedding
+            self.normal *= -1
 
         self._vertical = N.array([0,0,1])
         self.strike = N.cross(self.normal,self._vertical)
@@ -202,7 +202,7 @@ class PCAOrientation(BaseOrientation):
         def func(theta):
             th = N.array([N.cos(theta),N.sin(theta)])
             r = N.linalg.norm(dot(d,th))
-            return self.__angular_error(r)
+            return self.angular_error(r)
         i = quad(func, 0, N.pi/2)[0]
         # cover for all slices of hyperbola
         return 8*i
@@ -236,7 +236,7 @@ class PCAOrientation(BaseOrientation):
         _ = N.dot(_,self.axes)
         return self.arr - _
 
-    def __angular_error(self, axis_length):
+    def angular_error(self, axis_length):
         """
         The angular error for an in-plane axis of
         given length (either a PCA major axis or
@@ -250,7 +250,7 @@ class PCAOrientation(BaseOrientation):
         corresponding to 1st and 2nd axes
         of PCA distribution.
         """
-        return tuple(self.__angular_error(i)
+        return tuple(self.angular_error(i)
                 for i in self.hyp_axes[:-1])
     @property
     def covariance_matrix(self):
