@@ -10,7 +10,7 @@ from itertools import chain
 from ..coordinates import centered
 from .base import BaseOrientation, rotation
 from ..error.ellipse import ellipse
-from ..stereonet import error_coords
+from ..stereonet import plane_errors, error_coords
 
 from ..geom.util import dot
 from ..geom.vector import vector
@@ -358,6 +358,9 @@ class PCAOrientation(BaseOrientation):
         angles = N.array([N.cos(u),N.sin(u)]).T
         # Turn into vectors
         return dot(angles,axs),center
+
+    def plane_errors(self, **kwargs):
+        return plane_errors(self.axes,self.covariance_matrix, **kwargs)
 
     def error_coords(self, **kwargs):
         return error_coords(self.axes,self.covariance_matrix, **kwargs)

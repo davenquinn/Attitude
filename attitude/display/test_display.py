@@ -89,7 +89,7 @@ def test_javascript_plane():
     output = get_coffeescript(data,'individual')
     for obj,arr in zip(data,output):
         arr = N.array(arr)
-        err = obj.plane_errors(sheet=obj.sheet, n=100)
+        err = obj.plane_errors(sheet=obj.sheet, n=100, traditional_layout=True)
         assert N.allclose(err,arr)
 
 @pytest.mark.xfail
@@ -97,7 +97,7 @@ def test_grouped_plane():
     data = list(input_data())
     output = get_coffeescript(data,'grouped')
     for obj,arr in zip(data,output):
-        err = obj.error_coords(n=100)
+        err = obj.error_coords(n=100, traditional_layout=True)
         for i in ['nominal','upper','lower']:
             assert N.allclose(err[i],N.array(arr[i]))
 

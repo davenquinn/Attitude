@@ -12,7 +12,7 @@ install:
 	npm install
 clean:
 	rm -f $(SCRIPT)
-assets: $(SCRIPT) $(BUILD)/style.css | install
+assets: $(SCRIPT) $(BUILD)/style.css
 
 $(BUILD):
 	mkdir -p $@

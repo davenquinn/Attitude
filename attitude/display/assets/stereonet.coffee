@@ -93,11 +93,16 @@ class Stereonet
         'stroke-width': 2
 
     # Create horizontal
+    traditional = false
+    if traditional
+      coords = [[90,0],[0,90],[-90,0],[0,-90],[90,0]]
+    else
+      coords = [[0,0],[90,0],[180,0],[-90,0],[0,0]]
     data =
       type: 'Feature'
       geometry:
         type: 'LineString'
-        coordinates: [[90,0],[0,90],[-90,0],[0,-90],[90,0]]
+        coordinates: coords
 
     @frame.append 'path'
       .datum data
