@@ -381,7 +381,8 @@ class PCAOrientation(BaseOrientation):
         res = d[2]*level
 
         # Switch hemispheres if PCA is upside-down
-        if self.normal[2] < 0:
+        # Normal vector is always correctly fit
+        if self.axes[2,2] < 0:
             res *= -1
 
         if sheet == 'upper':

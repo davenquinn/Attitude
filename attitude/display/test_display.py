@@ -79,7 +79,6 @@ def input_data():
         obj.sheet = sheet
         yield obj
 
-@pytest.mark.xfail
 def test_javascript_plane():
     """
     Test plane functions implemented
