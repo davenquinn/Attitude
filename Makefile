@@ -5,13 +5,14 @@ BUILD := $(BASE)/templates/build
 
 SCRIPT := $(BUILD)/stereonet.js
 
-all: $(SCRIPT) $(BUILD)/style.css
+all: assets
 
-.PHONY: install clean
+.PHONY: install clean assets
 install:
 	npm install
 clean:
 	rm -f $(SCRIPT)
+assets: $(SCRIPT) $(BUILD)/style.css | install
 
 $(BUILD):
 	mkdir -p $@
