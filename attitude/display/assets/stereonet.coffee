@@ -17,6 +17,7 @@ class Stereonet
     height: 500
     margin: 0
     projCenter: [0,0]
+    traditional: false
   constructor: (el, options={})->
     for k,v of @defaults
       @[k] = options[k] or @defaults[k]
@@ -42,7 +43,11 @@ class Stereonet
     @setCenter = =>
       selectedRotation = if selectedRotation == 1 then 0 else 1
       loc = centerPoints[selectedRotation]
-      @reflowProjection loc[0]
+      # Duplicate array
+      coords = loc[0].slice()
+      coords[1] *= -1 unless @traditional
+
+      @reflowProjection coords
       @topLabel.text loc[1]
 
 

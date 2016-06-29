@@ -20,11 +20,13 @@ $(BUILD):
 $(ASSETS):
 	mkdir -p $@
 
-watch: $(ASSETS)
-	$(BIN)/watchify -t coffeeify $^/index.coffee -o $(SCRIPT)
+coffee = $(ASSETS) $(wildcard $(ASSETS)/*.coffee)
 
-$(SCRIPT): $(ASSETS)/index.coffee | $(ASSETS) $(BUILD)
-	$(BIN)/browserify -t coffeeify $^ > $@
+watch: $(coffee) | $(BUILD)
+	$(BIN)/watchify -t coffeeify $</index.coffee -o $(SCRIPT)
+
+$(SCRIPT): $(coffee) | $(BUILD)
+	$(BIN)/browserify -t coffeeify $</index.coffee > $@
 
 $(BUILD)/style.css: $(ASSETS)/style.scss | $(BUILD)
 	rm -f $@
