@@ -14,6 +14,7 @@ addItem = (d, opts)->
   for level in [1,2]
     opts.level = level
     stereonet.addGirdle d[level],opts
+    stereonet.addEllipse d[level].ellipse, opts
   stereonet.addPath d.nominal, opts
 
 if data.components.length > 0

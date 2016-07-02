@@ -1,7 +1,9 @@
 import numpy as N
+from mplstereonet.stereonet_math import cart2sph
+
 from .geom.util import dot
 
-def ellipse(axes, n=1000):
+def ellipse(n=1000):
     """
     Get a parameterized set of vectors defining
     ellipse for a major and minor axis length.
@@ -11,8 +13,7 @@ def ellipse(axes, n=1000):
     u = N.linspace(0,2*N.pi,n)
     # Get a bundle of vectors defining
     # a full rotation around the unit circle
-    angles = N.array([N.cos(u),N.sin(u)]).T
-    return dot(angles,axes)
+    return N.array([N.cos(u),N.sin(u)]).T
 
 def plane_errors(axes, covariance_matrix, sheet='upper',**kwargs):
     """
@@ -28,10 +29,10 @@ def plane_errors(axes, covariance_matrix, sheet='upper',**kwargs):
     level = kwargs.pop('level',1)
     traditional_layout = kwargs.pop('traditional_layout',False)
 
-    from mplstereonet.stereonet_math import cart2sph
     d = N.sqrt(covariance_matrix)
 
-    ell = ellipse(d[:2], **kwargs)
+    ell = ellipse(**kwargs)
+    bundle = dot(ell, d[:2])
     res = d[2]*level
 
     # Switch hemispheres if PCA is upside-down
@@ -41,18 +42,43 @@ def plane_errors(axes, covariance_matrix, sheet='upper',**kwargs):
         res *= -1
 
     if sheet == 'upper':
-        ell += res
+        bundle += res
     elif sheet == 'lower':
-        ell -= res
+        bundle -= res
 
-    _ = dot(ell,axes).T
+    _ = dot(bundle,axes).T
 
     if traditional_layout:
         lon,lat = cart2sph(_[2],_[0],_[1])
     else:
         lon,lat = cart2sph(-_[1],_[0],_[2])
 
-    return N.array(list(zip(lon,lat)))
+    return list(zip(lon,lat))
+
+def error_ellipse(axes, covariance_matrix, **kwargs):
+    level = kwargs.pop('level',1)
+    traditional_layout = kwargs.pop('traditional_layout',False)
+
+    d = N.sqrt(covariance_matrix)
+
+    ell = ellipse(**kwargs)
+    bundle = N.cross(ell, d[2])
+    res = d[2]*level
+
+    # Switch hemispheres if PCA is upside-down
+    # Normal vector is always correctly fit
+    #if traditional_layout:
+    if axes[2,2] > 0:
+        res *= -1
+
+    _ = dot(bundle,axes).T
+
+    if traditional_layout:
+        lon,lat = cart2sph(_[2],_[0],_[1])
+    else:
+        lon,lat = cart2sph(-_[1],_[0],_[2])
+
+    return list(zip(lon,lat))
 
 def error_coords(axes, covariance_matrix, **kwargs):
 
@@ -60,6 +86,7 @@ def error_coords(axes, covariance_matrix, **kwargs):
     # (not sure if this directly corresponds
     # to sigma).
     levels = kwargs.pop('levels',None)
+    do_ellipse = kwargs.pop('ellipse',True)
 
     u = 'upper'
     l = 'lower'
@@ -70,9 +97,14 @@ def error_coords(axes, covariance_matrix, **kwargs):
         return N.degrees(lonlat).tolist()
 
     def __(level):
-        return dict(
+        data = dict(
             upper=_(u, level),
             lower=_(l, level))
+        if do_ellipse:
+            data['ellipse'] = error_ellipse(
+                axes, covariance_matrix,
+                level=level, **kwargs)
+        return data
 
     out = dict(nominal=_('nominal'))
     if levels is None:
