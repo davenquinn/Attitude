@@ -154,17 +154,17 @@ class Stereonet
         'fill-opacity': Math.pow(1/(level*2),1.5)
 
   addEllipse: (d,opts)=>
+    console.log "Adding ellipse"
     if not opts.class
       opts.class = 'main'
     level = opts.level or 1
-    d.push d[0]
     data =
       type: 'Feature'
       geometry:
         type: 'Polygon'
-        coordinates: d
+        coordinates: [d]
     @dataArea.append 'path'
-      .datum data
+      .datum rewind(data)
       .attr
         class: "errors #{opts.class}"
         'fill-opacity': Math.pow(1/(level*2),1.5)

@@ -90,7 +90,6 @@ def report(*arrays, **kwargs):
         main=pca.error_coords(**kwargs),
         components=[i.error_coords(**kwargs)
             for i in components])
-
     t = env.get_template("report.html")
 
     return t.render(

@@ -1,6 +1,7 @@
 import numpy as N
 from mplstereonet.stereonet_math import cart2sph
 
+from .geom.vector import vector
 from .geom.util import dot
 
 def ellipse(n=1000):
@@ -62,7 +63,8 @@ def error_ellipse(axes, covariance_matrix, **kwargs):
     d = N.sqrt(covariance_matrix)
 
     ell = ellipse(**kwargs)
-    bundle = N.cross(ell, d[2])
+    # Bundle of vectors surrounding nominal values
+    bundle = dot(ell, d[:2])
     res = d[2]*level
 
     # Switch hemispheres if PCA is upside-down
@@ -71,7 +73,13 @@ def error_ellipse(axes, covariance_matrix, **kwargs):
     if axes[2,2] > 0:
         res *= -1
 
-    _ = dot(bundle,axes).T
+    bundle += res
+    normal = vector(0,0,1)
+    # In-plane vector 90deg from hyperbola value
+    v2 = N.cross(bundle, normal)
+    v3 = N.cross(v2,bundle)
+
+    _ = dot(v3,axes).T
 
     if traditional_layout:
         lon,lat = cart2sph(_[2],_[0],_[1])
@@ -101,9 +109,10 @@ def error_coords(axes, covariance_matrix, **kwargs):
             upper=_(u, level),
             lower=_(l, level))
         if do_ellipse:
-            data['ellipse'] = error_ellipse(
+            ell = error_ellipse(
                 axes, covariance_matrix,
                 level=level, **kwargs)
+            data['ellipse'] = N.degrees(ell).tolist()
         return data
 
     out = dict(nominal=_('nominal'))
