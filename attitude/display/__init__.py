@@ -56,6 +56,7 @@ def distance_from_group(components, pca):
         std = e1+e2
         yield N.degrees(mean), N.degrees(std), mean/std
 
+
 def report(*arrays, **kwargs):
     """
     Outputs a standalone HTML 'report card' for a
@@ -90,6 +91,7 @@ def report(*arrays, **kwargs):
         main=pca.error_coords(**kwargs),
         components=[i.error_coords(**kwargs)
             for i in components])
+
     t = env.get_template("report.html")
 
     return t.render(

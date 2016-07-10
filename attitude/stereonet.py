@@ -4,6 +4,12 @@ from mplstereonet.stereonet_math import cart2sph
 from .geom.vector import vector
 from .geom.util import dot
 
+def quaternion(vector, angle):
+    """
+    Unit quaternion for a vector and an angle
+    """
+    return N.cos(angle/2)+vector*N.sin(angle/2)
+
 def ellipse(n=1000):
     """
     Get a parameterized set of vectors defining
@@ -73,13 +79,9 @@ def error_ellipse(axes, covariance_matrix, **kwargs):
     if axes[2,2] > 0:
         res *= -1
 
-    bundle += res
     normal = vector(0,0,1)
-    # In-plane vector 90deg from hyperbola value
-    v2 = N.cross(bundle, normal)
-    v3 = N.cross(v2,bundle)
 
-    _ = dot(v3,axes).T
+    _ = normal + bundle
 
     if traditional_layout:
         lon,lat = cart2sph(_[2],_[0],_[1])
