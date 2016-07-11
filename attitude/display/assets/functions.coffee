@@ -23,7 +23,9 @@ createNominalPlane = (d)->
       coordinates: d.nominal
   return data
 
-createGroupedPlane = (color)->
+createGroupedPlane = (opts)->
+  color = opts.color or 'red'
+  opacity = opts.opacity or 0.5
   (p)->
     e = combinedErrors p.singularValues, p.axes
     el = d3.select @
@@ -32,7 +34,7 @@ createGroupedPlane = (color)->
       .attr
         class: 'error'
         fill: color
-        'fill-opacity':0.5
+        'fill-opacity': opacity
 
     el.append "path"
       .datum createNominalPlane(e)
