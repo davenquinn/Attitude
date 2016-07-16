@@ -91,7 +91,6 @@ def test_javascript_plane():
         err = obj.plane_errors(sheet=obj.sheet, n=100, traditional_layout=True)
         assert N.allclose(err,arr)
 
-@pytest.mark.xfail
 def test_grouped_plane():
     data = list(input_data())
     output = get_coffeescript(data,'grouped')
