@@ -86,7 +86,7 @@ def __do_component_planes(fit,component):
     rotated_axes = dot(component.axes,ax.T)
     assert False
 
-@pytest.mark.skip(reason="Not fully implemented")
+@pytest.mark.xfail(reason="Not fully implemented")
 def test_component_planes():
     components = [centered(a) for a in
               load_test_plane('grouped-plane')]
