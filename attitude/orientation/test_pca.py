@@ -68,6 +68,21 @@ def test_recovery_from_axes():
                 pca.U[:,2]*sv,
                 atol=1e-10)
 
+def test_pca_recovery():
+    for i in range(10):
+        pca = random_pca()
+        ax = pca.principal_axes
+
+        # Test that PCA is same as if computed
+        # by matrix multiplication
+        v = dot(pca.axes,N.diag(pca.singular_values))
+        assert N.allclose(ax,v)
+
+        sv = N.linalg.norm(ax,axis=0)
+        assert N.allclose(pca.singular_values, sv)
+        ax /= sv
+        assert N.allclose(ax,pca.axes)
+
 def test_builtin_recovery():
     """
     Test recovery functions that are built into
