@@ -31,30 +31,30 @@ planeErrors = (singularValues, axes, opts={})->
   c = if degrees then 180/Math.PI else 1
 
   c1 = if axes[2][2] > 0 then 1 else -1
+  if sheet == 'upper'
+    c1 *= -1
+  if upperHemisphere
+    c1 *= -1
 
   stepFunc = (angle)->
-    e = [Math.sin(angle)*s[0],
-         Math.cos(angle)*s[1]]
 
-    if sheet == 'upper'
-      e[2] = s[2]*c1
-    else if sheet == 'lower'
-      e[2] = -s[2]*c1
-
-    if upperHemisphere
-      e[2] *= -1
+    e = [Math.cos(angle)*s[0],
+         Math.sin(angle)*s[1],
+         s[2]*c1]
 
     d = (sdot(e,i) for i in axes)
 
     sq = (a)->a*a
     r = Math.sqrt d3.sum d.map(sq)
-    z = d[2]
+
+    [y,z,x] = d
+
     if not upperHemisphere
       z *= -1
 
     return [
-      c*Math.atan2(d[0],z),
-      c*Math.asin d[1]/r]
+      c*Math.atan2(y,x),
+      c*Math.asin z/r]
 
   return angles.map(stepFunc)
 

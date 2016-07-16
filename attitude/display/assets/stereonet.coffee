@@ -17,6 +17,7 @@ class Stereonet
     height: 500
     margin: 0
     projCenter: [0,0]
+    traditional: false
   constructor: (el, options={})->
     for k,v of @defaults
       @[k] = options[k] or @defaults[k]
@@ -42,7 +43,11 @@ class Stereonet
     @setCenter = =>
       selectedRotation = if selectedRotation == 1 then 0 else 1
       loc = centerPoints[selectedRotation]
-      @reflowProjection loc[0]
+      # Duplicate array
+      coords = loc[0].slice()
+      coords[1] *= -1 unless @traditional
+
+      @reflowProjection coords
       @topLabel.text loc[1]
 
 
@@ -93,11 +98,16 @@ class Stereonet
         'stroke-width': 2
 
     # Create horizontal
+    traditional = false
+    if traditional
+      coords = [[90,0],[0,90],[-90,0],[0,-90],[90,0]]
+    else
+      coords = [[0,0],[90,0],[180,0],[-90,0],[0,0]]
     data =
       type: 'Feature'
       geometry:
         type: 'LineString'
-        coordinates: [[90,0],[0,90],[-90,0],[0,-90],[90,0]]
+        coordinates: coords
 
     @frame.append 'path'
       .datum data
@@ -137,6 +147,22 @@ class Stereonet
       geometry:
         type: 'Polygon'
         coordinates: coords
+    @dataArea.append 'path'
+      .datum rewind(data)
+      .attr
+        class: "errors #{opts.class}"
+        'fill-opacity': Math.pow(1/(level*2),1.5)
+
+  addEllipse: (d,opts)=>
+    console.log "Adding ellipse"
+    if not opts.class
+      opts.class = 'main'
+    level = opts.level or 1
+    data =
+      type: 'Feature'
+      geometry:
+        type: 'Polygon'
+        coordinates: [d]
     @dataArea.append 'path'
       .datum rewind(data)
       .attr

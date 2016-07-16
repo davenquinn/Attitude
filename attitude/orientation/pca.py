@@ -10,6 +10,7 @@ from itertools import chain
 from ..coordinates import centered
 from .base import BaseOrientation, rotation
 from ..error.ellipse import ellipse
+from ..stereonet import plane_errors, error_coords
 
 from ..geom.util import dot
 from ..geom.vector import vector
@@ -41,19 +42,6 @@ def compose_affine(*transforms):
 
 def normalize(v):
     return v/N.linalg.norm(v)
-
-def ellipse(axes, n=1000):
-    """
-    Get a parameterized set of vectors defining
-    ellipse for a major and minor axis length.
-    Resulting vector bundle has major axes
-    along axes given.
-    """
-    u = N.linspace(0,2*N.pi,n)
-    # Get a bundle of vectors defining
-    # a full rotation around the unit circle
-    angles = N.array([N.cos(u),N.sin(u)]).T
-    return dot(angles,axes)
 
 ## magnitude of vector (by row)
 norm = lambda x: N.linalg.norm(x,2,1)
@@ -371,55 +359,11 @@ class PCAOrientation(BaseOrientation):
         # Turn into vectors
         return dot(angles,axs),center
 
-    def plane_errors(self, sheet='upper',**kwargs):
-        level = kwargs.pop('level',1)
-
-        from mplstereonet.stereonet_math import cart2sph
-        d = N.sqrt(self.covariance_matrix)
-
-        ell = ellipse(d[:2], **kwargs)
-        res = d[2]*level
-
-        # Switch hemispheres if PCA is upside-down
-        if self.normal[2] < 0:
-            res *= -1
-
-        if sheet == 'upper':
-            ell += res
-        elif sheet == 'lower':
-            ell -= res
-
-        _ = dot(ell,self.axes).T
-        lon,lat = cart2sph(-_[2],_[0],_[1])
-        return N.array(list(zip(lon,lat)))
+    def plane_errors(self, **kwargs):
+        return plane_errors(self.axes,self.covariance_matrix, **kwargs)
 
     def error_coords(self, **kwargs):
-
-        # Support for multiple levels of errors
-        # (not sure if this directly corresponds
-        # to sigma).
-        levels = kwargs.pop('levels',None)
-
-        u = 'upper'
-        l = 'lower'
-
-        def _(half, level=1):
-            lonlat = self.plane_errors(half,
-                    level=level, **kwargs)
-            return N.degrees(lonlat).tolist()
-
-        def __(level):
-            return dict(
-                upper=_(u, level),
-                lower=_(l, level))
-
-        out = dict(nominal=_('nominal'))
-        if levels is None:
-            i = __(1)
-        else:
-            i = {l:__(l) for l in levels}
-        out.update(i)
-        return out
+        return error_coords(self.axes,self.covariance_matrix, **kwargs)
 
     @property
     def slope(self):

@@ -56,6 +56,7 @@ def distance_from_group(components, pca):
         std = e1+e2
         yield N.degrees(mean), N.degrees(std), mean/std
 
+
 def report(*arrays, **kwargs):
     """
     Outputs a standalone HTML 'report card' for a
@@ -85,7 +86,7 @@ def report(*arrays, **kwargs):
 
     ellipse=error_ellipse(pca)
 
-    kwargs = dict(n=500,levels=[1,2])
+    kwargs = dict(n=500,levels=[1,2], ellipse=True)
     stereonet_data = dict(
         main=pca.error_coords(**kwargs),
         components=[i.error_coords(**kwargs)

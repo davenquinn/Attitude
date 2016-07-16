@@ -42,7 +42,7 @@ def do_simple_plane(obj, sheet='upper'):
             e -= cov[2]
         d = [sdot(e,i)
             for i in obj.axes.T]
-        x,y,z = -d[2],d[0],d[1]
+        x,y,z = d[2],d[0],d[1]
         r = N.sqrt(x**2 + y**2 + z**2)
         lat = N.arcsin(z/r)
         lon = N.arctan2(y, x)
@@ -57,9 +57,9 @@ def test_simple_plane():
     for i,sheet in cases():
         p = N.array(random_plane()[0]).T
         obj = Orientation(p)
-        err = obj.plane_errors(sheet=sheet, n=n)
+        err = obj.plane_errors(sheet=sheet, n=n, traditional_layout=True)
         arr = do_simple_plane(obj, sheet)
-        assert N.allclose(err,arr)
+        assert N.allclose(N.array(err),N.array(arr))
 
 def get_coffeescript(data, mode='individual'):
     d = [dict(
@@ -79,26 +79,23 @@ def input_data():
         obj.sheet = sheet
         yield obj
 
-@pytest.mark.xfail
 def test_javascript_plane():
     """
     Test plane functions implemented
     in javascript
     """
-
     data = list(input_data())
     output = get_coffeescript(data,'individual')
     for obj,arr in zip(data,output):
         arr = N.array(arr)
-        err = obj.plane_errors(sheet=obj.sheet, n=100)
+        err = obj.plane_errors(sheet=obj.sheet, n=100, traditional_layout=True)
         assert N.allclose(err,arr)
 
-@pytest.mark.xfail
 def test_grouped_plane():
     data = list(input_data())
     output = get_coffeescript(data,'grouped')
     for obj,arr in zip(data,output):
-        err = obj.error_coords(n=100)
+        err = obj.error_coords(n=100, traditional_layout=True)
         for i in ['nominal','upper','lower']:
             assert N.allclose(err[i],N.array(arr[i]))
 

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
 import matplotlib
+matplotlib.use('Agg')
 from mplstereonet.stereonet_math import line, pole
 import numpy as N
 from matplotlib.figure import Figure
@@ -12,7 +13,7 @@ from matplotlib.ticker import FuncFormatter, MaxNLocator
 from ...geom.vector import vector,plane
 from .pca_aligned import plot_aligned
 
-def get_axes():
+def current_axes():
     import matplotlib.pyplot as P
     return P.gca()
 
