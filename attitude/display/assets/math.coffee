@@ -12,6 +12,8 @@ transpose = (array, length=null) ->
  identity = [[1,0,0],[0,1,0],[0,0,1]]
 
 planeErrors = (singularValues, axes, opts={})->
+  # Get a single level of planar errors (or the
+  # plane's nominal value) as a girdle
   n = opts.n or 100
   upperHemisphere = opts.upperHemisphere or true
   sheet = opts.sheet or 'nominal'

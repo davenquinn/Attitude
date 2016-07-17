@@ -13,6 +13,9 @@ modeFunctions =
     math.planeErrors d.singularValues, d.axes, d
   grouped: (d)->
     math.combinedErrors d.singularValues, d.axes, d
+  #deconvolve_axes: (d)->
+    ## Test javascript deconvolution of axes
+    #sv, ax = math.deconvolveAxes(d)
 
 fn = modeFunctions[mode]
 val = data.map fn

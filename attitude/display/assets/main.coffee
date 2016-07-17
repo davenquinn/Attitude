@@ -3,3 +3,4 @@
 module.exports =
   Stereonet: require './stereonet'
   functions: require './functions'
+  math: require './math'

@@ -62,6 +62,42 @@ def plane_errors(axes, covariance_matrix, sheet='upper',**kwargs):
 
     return list(zip(lon,lat))
 
+def iterative_plane_errors(axes,covariance_matrix, **kwargs):
+    """
+    An iterative version of `pca.plane_errors`,
+    which computes an error surface for a plane.
+    """
+    sheet = kwargs.pop('sheet','upper')
+    level = kwargs.pop('level',1)
+    n = kwargs.pop('n',100)
+
+    cov = N.sqrt(N.diagonal(covariance_matrix))
+    u = N.linspace(0, 2*N.pi, n)
+
+    def sdot(a,b):
+        return sum([i*j for i,j in zip(a,b)])
+
+    def step_func(a):
+        a = [N.cos(a),N.sin(a)]
+        b = cov[:2]
+        e = N.array([i*j for i,j in zip(a,b)])
+        if sheet == 'upper':
+            e += cov[2]
+        elif sheet == 'lower':
+            e -= cov[2]
+        d = [sdot(e,i)
+            for i in axes.T]
+        x,y,z = d[2],d[0],d[1]
+        r = N.sqrt(x**2 + y**2 + z**2)
+        lat = N.arcsin(z/r)
+        lon = N.arctan2(y, x)
+        return lon,lat
+
+    # Get a bundle of vectors defining
+    # a full rotation around the unit circle
+    return N.array([step_func(i)
+        for i in u])
+
 def error_ellipse(axes, covariance_matrix, **kwargs):
     level = kwargs.pop('level',1)
     traditional_layout = kwargs.pop('traditional_layout',False)
