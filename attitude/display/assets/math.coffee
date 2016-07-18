@@ -81,8 +81,12 @@ combinedErrors = (sv, ax, opts={})->
     upper: func('upper')
     lower: func('lower')
 
+deconvolveAxes = (sv)->
+  [sv,[]]
+
 module.exports =
   planeErrors: planeErrors
   combinedErrors: combinedErrors
   transpose: transpose
+  deconvolveAxes: deconvolveAxes
 

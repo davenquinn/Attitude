@@ -32,7 +32,15 @@ def test_simple_plane():
         arr = iterative_plane_errors(*args,**kwargs)
         assert N.allclose(err,arr)
 
-def get_coffeescript(data, mode='individual'):
+def get_coffeescript(fn, d):
+    """
+    Get a function response from the coffeescript
+    testing suite
+    """
+    cmd = ('coffee',script,fn,dumps(d))
+    return loads(check_output(cmd).decode('utf-8'))
+
+def __coffeescript_plane(data, function='individual'):
     d = [dict(
             singularValues=N.diagonal(
                 obj.covariance_matrix).tolist(),
@@ -40,8 +48,7 @@ def get_coffeescript(data, mode='individual'):
             sheet=obj.sheet,
             n=n) for obj in data]
 
-    cmd = ('coffee',script,mode,dumps(d))
-    return loads(check_output(cmd).decode('utf-8'))
+    return get_coffeescript(function, d)
 
 def input_data():
     for i, sheet in cases():
@@ -55,7 +62,7 @@ def test_javascript_plane():
     in javascript
     """
     data = list(input_data())
-    output = get_coffeescript(data,'individual')
+    output = __coffeescript_plane(data,'individual')
     for obj,arr in zip(data,output):
         arr = N.array(arr)
         err = plane_errors(
@@ -66,9 +73,18 @@ def test_javascript_plane():
 
 def test_grouped_plane():
     data = list(input_data())
-    output = get_coffeescript(data,'grouped')
+    output = __coffeescript_plane(data,'grouped')
     for obj,arr in zip(data,output):
         err = obj.error_coords(n=100)
         for i in ['nominal','upper','lower']:
             assert N.allclose(err[i],N.array(arr[i]))
+
+def test_axis_deconvolution():
+    """
+    Test that we can recover PCA axes from
+    premultiplied representation in javascript
+    """
+    pca = random_pca()
+    sv,ax = get_coffeescript('deconvolveAxes',pca.singular_values.tolist())
+    assert N.allclose(sv,pca.singular_values)
 

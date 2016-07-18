@@ -7,18 +7,21 @@ obj = process.argv[3]
 
 data = JSON.parse(obj)
 
+mappable = (fn)->
+  (data)->data.map(fn)
+
 # Run different function depending on mode
 modeFunctions =
-  individual: (d)->
-    math.planeErrors d.singularValues, d.axes, d
-  grouped: (d)->
-    math.combinedErrors d.singularValues, d.axes, d
-  #deconvolve_axes: (d)->
-    ## Test javascript deconvolution of axes
-    #sv, ax = math.deconvolveAxes(d)
+  individual: mappable (d)->
+      math.planeErrors d.singularValues, d.axes, d
+  grouped: mappable (d)->
+      math.combinedErrors d.singularValues, d.axes, d
+  deconvolveAxes: (d)->
+    # Test javascript deconvolution of axes
+    math.deconvolveAxes(d)
 
 fn = modeFunctions[mode]
-val = data.map fn
+val = fn(data)
 
 process.stdout.write JSON.stringify(val)
 
