@@ -27,8 +27,8 @@ def test_simple_plane():
     for i,sheet in cases():
         obj = random_pca()
         args = (obj.axes,obj.covariance_matrix)
-        kwargs = dict(sheet=sheet, n=n)
-        err = plane_errors(*args,**kwargs)
+        kwargs = dict(sheet=sheet, n=n, traditional_layout=True)
+        err = N.array(plane_errors(*args,**kwargs))
         arr = iterative_plane_errors(*args,**kwargs)
         assert N.allclose(err,arr)
 

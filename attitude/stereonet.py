@@ -74,17 +74,20 @@ def iterative_plane_errors(axes,covariance_matrix, **kwargs):
     cov = N.sqrt(N.diagonal(covariance_matrix))
     u = N.linspace(0, 2*N.pi, n)
 
+    # We assume upper hemisphere
+    scales = dict(upper=1,lower=-1,nominal=0)
+    c1 = scales[sheet]
+    if axes[2,2] > 0:
+        c1 *= -1
+
     def sdot(a,b):
         return sum([i*j for i,j in zip(a,b)])
 
     def step_func(a):
-        a = [N.cos(a),N.sin(a)]
-        b = cov[:2]
-        e = N.array([i*j for i,j in zip(a,b)])
-        if sheet == 'upper':
-            e += cov[2]
-        elif sheet == 'lower':
-            e -= cov[2]
+        e = [
+            N.cos(a)*cov[0],
+            N.sin(a)*cov[1],
+            c1*cov[2]]
         d = [sdot(e,i)
             for i in axes.T]
         x,y,z = d[2],d[0],d[1]
