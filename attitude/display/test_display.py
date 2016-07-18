@@ -61,14 +61,14 @@ def test_javascript_plane():
         err = plane_errors(
             obj.axes,
             obj.covariance_matrix,
-            sheet=obj.sheet, n=100, traditional_layout=True)
+            sheet=obj.sheet, n=100)
         assert N.allclose(err,arr)
 
 def test_grouped_plane():
     data = list(input_data())
     output = get_coffeescript(data,'grouped')
     for obj,arr in zip(data,output):
-        err = obj.error_coords(n=100, traditional_layout=True)
+        err = obj.error_coords(n=100)
         for i in ['nominal','upper','lower']:
             assert N.allclose(err[i],N.array(arr[i]))
 

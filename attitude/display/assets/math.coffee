@@ -19,6 +19,7 @@ planeErrors = (singularValues, axes, opts={})->
   sheet = opts.sheet or 'nominal'
   degrees = opts.degrees or false
   axes = identity unless axes?
+  opts.traditionalLayout ?= false
 
   step = 2*Math.PI/(n-1)
   angles = (i*step for i in [0...n])
@@ -54,7 +55,11 @@ planeErrors = (singularValues, axes, opts={})->
     sq = (a)->a*a
     r = Math.sqrt d3.sum d.map(sq)
 
-    [y,z,x] = d
+    if opts.traditionalLayout
+      [y,z,x] = d
+    else
+      [y,x,z] = d
+      x *= -1
 
     if not upperHemisphere
       z *= -1
