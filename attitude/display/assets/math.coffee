@@ -11,6 +11,11 @@ transpose = (array, length=null) ->
 
  identity = [[1,0,0],[0,1,0],[0,0,1]]
 
+norm = (d)->
+  # L2 norm (hypotenuse)
+  _ = d.map (a)->a*a
+  Math.sqrt d3.sum(_)
+
 planeErrors = (singularValues, axes, opts={})->
   # Get a single level of planar errors (or the
   # plane's nominal value) as a girdle
@@ -51,9 +56,7 @@ planeErrors = (singularValues, axes, opts={})->
          s[2]*c1]
 
     d = (sdot(e,i) for i in axes)
-
-    sq = (a)->a*a
-    r = Math.sqrt d3.sum d.map(sq)
+    r = norm(d)
 
     if opts.traditionalLayout
       [y,z,x] = d
@@ -81,8 +84,15 @@ combinedErrors = (sv, ax, opts={})->
     upper: func('upper')
     lower: func('lower')
 
-deconvolveAxes = (sv)->
-  [sv,[]]
+deconvolveAxes = (axes)->
+  # Deconvolve unit-length principal axes and
+  # singular values from premultiplied principal axes
+  ax = transpose(axes)
+  sv = ax.map norm
+  for i in [0...axes.length]
+    for j in [0...axes.length]
+      axes[j][i] /= sv[i]
+  [sv,axes]
 
 module.exports =
   planeErrors: planeErrors

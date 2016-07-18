@@ -85,6 +85,7 @@ def test_axis_deconvolution():
     premultiplied representation in javascript
     """
     pca = random_pca()
-    sv,ax = get_coffeescript('deconvolveAxes',pca.singular_values.tolist())
+    sv,ax = get_coffeescript('deconvolveAxes',pca.principal_axes.tolist())
     assert N.allclose(sv,pca.singular_values)
+    assert N.allclose(ax,pca.axes)
 
