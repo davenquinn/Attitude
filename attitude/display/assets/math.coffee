@@ -38,15 +38,16 @@ planeErrors = (singularValues, axes, opts={})->
 
   c = if degrees then 180/Math.PI else 1
 
-  c1 = if axes[2][2] > 0 then 1 else -1
 
   scales =
     upper: 1
     lower: -1
     nominal: 0
 
-  c1 *= scales[sheet]
+  c1 = scales[sheet]
   if upperHemisphere
+    c1 *= -1
+  if axes[2][2] < 0
     c1 *= -1
 
   stepFunc = (angle)->

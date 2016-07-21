@@ -74,10 +74,10 @@ def iterative_plane_errors(axes,covariance_matrix, **kwargs):
     cov = N.sqrt(N.diagonal(covariance_matrix))
     u = N.linspace(0, 2*N.pi, n)
 
-    # We assume upper hemisphere
     scales = dict(upper=1,lower=-1,nominal=0)
     c1 = scales[sheet]
-    if axes[2,2] > 0:
+    c1 *= -1 # We assume upper hemisphere
+    if axes[2,2] < 0:
         c1 *= -1
 
     def sdot(a,b):
