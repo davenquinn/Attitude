@@ -89,3 +89,14 @@ def test_axis_deconvolution():
     assert N.allclose(sv,pca.singular_values)
     assert N.allclose(ax,pca.axes)
 
+@pytest.mark.xfail(reason="Not fully implemented")
+def test_polygon_winding():
+    """
+    Points on nominal surface should be within
+    error bounds. If not, coordinates are probably flipped
+    """
+    for i in range(10):
+        pca = random_pca()
+        intersects = get_coffeescript(
+            'intersection', pca.principal_axes.tolist())
+        assert intersects

@@ -45,3 +45,5 @@ createGroupedPlane = (opts)->
 
 module.exports =
   plane: createGroupedPlane
+  errorSurface: createErrorSurface
+  nominalPlane: createNominalPlane

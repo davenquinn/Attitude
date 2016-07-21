@@ -1,5 +1,7 @@
 d3 = require 'd3'
+turf = require 'turf'
 math = require './math'
+{errorSurface,nominalPlane} = require './functions'
 
 # Test implementations of plane functions in javascript
 mode = process.argv[2]
@@ -19,6 +21,24 @@ modeFunctions =
   deconvolveAxes: (d)->
     # Test javascript deconvolution of axes
     math.deconvolveAxes(d)
+  intersection: (d)->
+    # Test that nominal plane is within
+    # error bounds
+    axs = math.deconvolveAxes d
+    e = math.combinedErrors.apply null, axs
+    polygon = errorSurface e
+    line = nominalPlane e
+    points = line.geometry.coordinates.map (d)->
+      {
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: d
+        }
+      }
+
+    pt = points[0]
+    turf.inside pt, polygon
 
 fn = modeFunctions[mode]
 val = fn(data)
