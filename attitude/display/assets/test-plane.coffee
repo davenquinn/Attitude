@@ -38,7 +38,8 @@ modeFunctions =
       }
 
     pt = points[0]
-    turf.inside pt, polygon
+    ins = turf.inside pt, polygon
+    return ins if ins
 
 fn = modeFunctions[mode]
 val = fn(data)

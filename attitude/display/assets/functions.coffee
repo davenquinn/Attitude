@@ -4,10 +4,13 @@ math = require './math'
 
 combinedErrors = math.combinedErrors
 
-createErrorSurface = (d)->
+createErrorSurface = (d, reversed=false)->
   # Function that turns orientation
   # objects into error surface
-  coords = [d.upper,d.lower]
+  if reversed
+    coords = [d.lower,d.upper]
+  else
+    coords = [d.upper,d.lower]
   data =
     type: 'Feature'
     geometry:
