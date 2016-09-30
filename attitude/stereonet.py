@@ -47,7 +47,7 @@ def plane_errors(axes, covariance_matrix, sheet='upper',**kwargs):
     #if traditional_layout:
     #if axes[2,2] > 0:
 
-    if N.linalg.norm(-axes[1]) > 0:
+    if axes[2,2] > 0:
         res *= -1
 
     if sheet == 'upper':

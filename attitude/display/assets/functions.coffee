@@ -16,7 +16,7 @@ createErrorSurface = (d, reversed=false)->
     geometry:
       type: 'Polygon'
       coordinates: coords
-  return rewind(data)
+  return rewind(data, true)
 
 createNominalPlane = (d)->
   data =

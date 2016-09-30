@@ -47,7 +47,7 @@ planeErrors = (singularValues, axes, opts={})->
   c1 = scales[sheet]
   if upperHemisphere
     c1 *= -1
-  if axes[2][2] < 0
+  if axes[1][2] < 0
     c1 *= -1
 
   stepFunc = (angle)->
