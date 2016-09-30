@@ -89,6 +89,7 @@ def test_axis_deconvolution():
     assert N.allclose(sv,pca.singular_values)
     assert N.allclose(ax,pca.axes)
 
+@pytest.mark.xfail(reason="Turf.js tests cartesian geometry, not spherical")
 def test_polygon_winding():
     """
     Points on nominal surface should be within
