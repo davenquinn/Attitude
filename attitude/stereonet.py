@@ -25,7 +25,7 @@ def ellipse(n=1000):
 def plane_errors(axes, covariance_matrix, sheet='upper',**kwargs):
     """
     kwargs:
-    traditional_layout  boolean [False]
+    traditional_layout  boolean [True]
         Lay the stereonet out traditionally, with north at the pole of
         the diagram. The default is a more natural and intuitive visualization
         with vertical at the pole and the compass points of strike around the equator.
@@ -34,7 +34,7 @@ def plane_errors(axes, covariance_matrix, sheet='upper',**kwargs):
     """
 
     level = kwargs.pop('level',1)
-    traditional_layout = kwargs.pop('traditional_layout',False)
+    traditional_layout = kwargs.pop('traditional_layout',True)
 
     d = N.sqrt(covariance_matrix)
 
@@ -105,7 +105,7 @@ def iterative_plane_errors(axes,covariance_matrix, **kwargs):
 
 def error_ellipse(axes, covariance_matrix, **kwargs):
     level = kwargs.pop('level',1)
-    traditional_layout = kwargs.pop('traditional_layout',False)
+    traditional_layout = kwargs.pop('traditional_layout',True)
 
     d = N.sqrt(covariance_matrix)
 
@@ -116,7 +116,6 @@ def error_ellipse(axes, covariance_matrix, **kwargs):
 
     # Switch hemispheres if PCA is upside-down
     # Normal vector is always correctly fit
-    #if traditional_layout:
     if axes[2,2] > 0:
         res *= -1
 

@@ -24,7 +24,7 @@ planeErrors = (singularValues, axes, opts={})->
   sheet = opts.sheet or 'nominal'
   degrees = opts.degrees or false
   axes = identity unless axes?
-  opts.traditionalLayout ?= false
+  opts.traditionalLayout ?= true
 
   step = 2*Math.PI/(n-1)
   angles = (i*step for i in [0...n])
@@ -47,6 +47,7 @@ planeErrors = (singularValues, axes, opts={})->
   c1 = scales[sheet]
   if upperHemisphere
     c1 *= -1
+  # Flip upper and lower rings
   if axes[2][2] < 0
     c1 *= -1
 

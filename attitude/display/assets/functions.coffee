@@ -16,7 +16,7 @@ createErrorSurface = (d, reversed=false)->
     geometry:
       type: 'Polygon'
       coordinates: coords
-  return rewind(data, true)
+  return rewind(data)
 
 createNominalPlane = (d)->
   data =
@@ -30,7 +30,7 @@ createGroupedPlane = (opts)->
   color = opts.color or 'red'
   opacity = opts.opacity or 0.5
   (p)->
-    e = combinedErrors p.singularValues, p.axes
+    e = combinedErrors p.singularValues, p.axes, opts
     el = d3.select @
     el.append "path"
       .datum createErrorSurface(e)
