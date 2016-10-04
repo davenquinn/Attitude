@@ -6,6 +6,7 @@ from scipy.integrate import quad
 from ..test import random_plane, scattered_plane, load_test_plane
 from .pca import PCAOrientation, centered
 from ..geom.util import dot
+from ..geom.vector import vector, angle
 from mplstereonet.stereonet_math import sph2cart
 
 def random_pca(scattered=True):
@@ -16,6 +17,25 @@ def random_pca(scattered=True):
     arr = N.array(arr).transpose()
     return PCAOrientation(arr)
 
+def test_error_angles():
+    """
+    Test simplistic formulation of error angle
+    measurement
+    """
+    o = random_pca()
+    err = o.angular_errors()
+
+    mat = N.sqrt(o.covariance_matrix)
+
+    def __vec_angle(i):
+        vec = vector(mat[2,2],mat[i,i])
+        vec1 = vector(0,1)
+        return angle(vec,vec1)
+
+    angles = [__vec_angle(i) for i in range(2)]
+    assert N.allclose(err,angles)
+
+@pytest.mark.xfail(reason="Not fully implemented")
 def test_solid_angle():
     """
     Test that integration to a range of girdle
@@ -27,8 +47,7 @@ def test_solid_angle():
             return angle
         i = quad(func, 0, N.pi/2)[0]
         # cover for all slices of hyperbola
-        assert True
-        #assert N.allclose(8*i, solid_angle)
+        assert N.allclose(8*i, solid_angle)
 
 def test_recovery_from_axes():
     """
