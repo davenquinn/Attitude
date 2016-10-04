@@ -27,7 +27,7 @@ createGroupedPlane = (opts)->
   color = opts.color or 'red'
   opacity = opts.opacity or 0.5
   (p)->
-    e = combinedErrors p.singularValues, p.axes, opts
+    e = combinedErrors p.covariance, p.axes, opts
     el = d3.select @
     el.append "path"
       .datum createErrorSurface(e)
@@ -47,7 +47,7 @@ createErrorEllipse = (opts)->
   ##
   #Function generator to create error ellipse
   (p)->
-    e = math.normalErrors p.singularValues, p.axes, opts
+    e = math.normalErrors p.covariance, p.axes, opts
     f = createFeature("Polygon", [e])
     rewind(f)
 

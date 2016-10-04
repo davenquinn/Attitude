@@ -16,7 +16,7 @@ norm = (d)->
   _ = d.map (a)->a*a
   Math.sqrt d3.sum(_)
 
-planeErrors = (singularValues, axes, opts={})->
+planeErrors = (axesCovariance, axes, opts={})->
   # Get a single level of planar errors (or the
   # plane's nominal value) as a girdle
   n = opts.n or 100
@@ -29,7 +29,7 @@ planeErrors = (singularValues, axes, opts={})->
   step = 2*Math.PI/(n-1)
   angles = (i*step for i in [0...n])
 
-  s = singularValues.map Math.sqrt
+  s = axesCovariance.map Math.sqrt
   axes = transpose(axes)
 
   sdot = (a,b)->
@@ -75,7 +75,7 @@ planeErrors = (singularValues, axes, opts={})->
 
   return angles.map(stepFunc)
 
-normalErrors = (singularValues, axes, opts={})->
+normalErrors = (axesCovariance, axes, opts={})->
   # Get a single level of planar errors (or the
   # plane's nominal value) as a girdle
   n = opts.n or 100
@@ -88,7 +88,7 @@ normalErrors = (singularValues, axes, opts={})->
   step = 2*Math.PI/(n-1)
   angles = (i*step for i in [0...n])
 
-  v = singularValues.map Math.sqrt
+  v = axesCovariance.map Math.sqrt
   s = (v[2]/i for i in v)
   axes = transpose(axes)
 
