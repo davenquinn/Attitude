@@ -75,6 +75,59 @@ planeErrors = (singularValues, axes, opts={})->
 
   return angles.map(stepFunc)
 
+normalErrors = (singularValues, axes, opts={})->
+  # Get a single level of planar errors (or the
+  # plane's nominal value) as a girdle
+  n = opts.n or 100
+  sheet = opts.sheet or 'nominal'
+  degrees = opts.degrees or false
+  axes = identity unless axes?
+  opts.traditionalLayout ?= true
+
+  step = 2*Math.PI/(n-1)
+  angles = (i*step for i in [0...n])
+
+  v = singularValues.map Math.sqrt
+  s = v[2]/v
+  axes = transpose(axes)
+
+  sdot = (a,b)->
+    zipped = (a[i]*b[i] for i in [0..a.length])
+    d3.sum zipped
+
+  c = if degrees then 180/Math.PI else 1
+
+  c1 = 1
+  if upperHemisphere
+    c1 *= -1
+  # Flip upper and lower rings
+  if axes[2][2] < 0
+    c1 *= -1
+
+  stepFunc = (angle)->
+
+    e = [Math.cos(angle)*s[0],
+         Math.sin(angle)*s[1],
+         s[2]*c1]
+
+    d = (sdot(e,i) for i in axes)
+    r = norm(d)
+
+    if opts.traditionalLayout
+      [y,z,x] = d
+    else
+      [y,x,z] = d
+      x *= -1
+
+    if not upperHemisphere
+      z *= -1
+
+    return [
+      c*Math.atan2(y,x),
+      c*Math.asin z/r]
+
+  return angles.map(stepFunc)
+
 combinedErrors = (sv, ax, opts={})->
   func = (type)->
     opts.sheet = type
@@ -98,6 +151,7 @@ deconvolveAxes = (axes)->
 
 module.exports =
   planeErrors: planeErrors
+  normalErrors: normalErrors
   combinedErrors: combinedErrors
   transpose: transpose
   deconvolveAxes: deconvolveAxes

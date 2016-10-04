@@ -22,6 +22,53 @@ def ellipse(n=1000):
     # a full rotation around the unit circle
     return N.array([N.cos(u),N.sin(u)]).T
 
+def normal_errors(axes, covariance_matrix, **kwargs):
+    level = kwargs.pop('level',1)
+    traditional_layout = kwargs.pop('traditional_layout',True)
+    d = N.sqrt(covariance_matrix)
+
+    ell = ellipse(**kwargs)
+
+    v = N.diagonal(d)
+    mat = v[2]/v*N.eye(3)
+    mat[:,2] = 1
+    bundle = dot(ell, mat[:2])
+
+    _ = dot(bundle,axes).T
+    lon,lat = cart2sph(_[2],_[0],_[1])
+    return list(zip(lon,lat))
+
+def iterative_normal_errors(axes, covariance_matrix, **kwargs):
+    level = kwargs.pop('level',1)
+    n = kwargs.pop('n',100)
+    traditional_layout = kwargs.pop('traditional_layout',True)
+    _ = N.sqrt(covariance_matrix)
+    v = N.diagonal(_)
+
+    cov = v[2]/v
+
+    u = N.linspace(0, 2*N.pi, n)
+
+    def sdot(a,b):
+        return sum([i*j for i,j in zip(a,b)])
+
+    def step_func(a):
+        e = [
+            N.cos(a)*cov[0],
+            N.sin(a)*cov[1],
+            1]
+        d = [sdot(e,i)
+            for i in axes.T]
+        x,y,z = d[2],d[0],d[1]
+        r = N.sqrt(x**2 + y**2 + z**2)
+        lat = N.arcsin(z/r)
+        lon = N.arctan2(y, x)
+        return lon,lat
+
+    # Get a bundle of vectors defining
+    # a full rotation around the unit circle
+    return [step_func(i) for i in u]
+
 def plane_errors(axes, covariance_matrix, sheet='upper',**kwargs):
     """
     kwargs:

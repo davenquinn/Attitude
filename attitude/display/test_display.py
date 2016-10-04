@@ -12,7 +12,8 @@ from codecs import getreader
 from ..test import random_plane
 from .. import Orientation
 from ..orientation.test_pca import random_pca
-from ..stereonet import plane_errors, iterative_plane_errors
+from ..stereonet import (plane_errors, iterative_plane_errors,
+        normal_errors, iterative_normal_errors)
 from ..geom.util import dot
 
 here = path.dirname(__file__)
@@ -31,6 +32,15 @@ def test_simple_plane():
         err = N.array(plane_errors(*args,**kwargs))
         arr = iterative_plane_errors(*args,**kwargs)
         assert N.allclose(err,arr)
+
+def test_simple_ellipse():
+    for i in range(10):
+        obj = random_pca()
+        args = (obj.axes, obj.covariance_matrix)
+        kwargs = dict(n=n, traditional_layout=True)
+        v1 = normal_errors(*args, **kwargs)
+        v2 = iterative_normal_errors(*args, **kwargs)
+        assert N.allclose(v1,v2)
 
 def get_coffeescript(fn, d):
     """
