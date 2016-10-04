@@ -127,9 +127,7 @@ normalErrors = (singularValues, axes, opts={})->
       c*Math.atan2(y,x),
       c*Math.asin z/r]
 
-  out = angles.map(stepFunc)
-  console.log out
-  out
+  angles.map(stepFunc)
 
 combinedErrors = (sv, ax, opts={})->
   func = (type)->
