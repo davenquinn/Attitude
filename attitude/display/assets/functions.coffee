@@ -51,7 +51,7 @@ createErrorEllipse = (opts)->
     f = createFeature("Polygon", [e.reverse()])
     el = d3.select @
     el.append "path"
-      .datum rewind(f, true)
+      .datum rewind(f)
       .attr
         class: 'error'
         fill: color
