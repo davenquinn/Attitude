@@ -102,14 +102,15 @@ normalErrors = (singularValues, axes, opts={})->
   #if upperHemisphere
     #c1 *= -1
   # Flip upper and lower rings
-  if axes[2][2] < 0
-    c1 *= -1
+  #if axes[2][2] < 0
+  #  angles = angles.reverse()
 
   stepFunc = (angle)->
 
+    #console.log Math.sin(angle), Math.cos(angle)
     e = [Math.cos(angle)*s[0],
          Math.sin(angle)*s[1],
-         s[2]*c1]
+         (Math.sin(angle)+Math.cos(angle))*s[2]*c1]
 
     d = (sdot(e,i) for i in axes)
     r = norm(d)

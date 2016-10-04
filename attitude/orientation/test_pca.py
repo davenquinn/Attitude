@@ -35,6 +35,15 @@ def test_error_angles():
     angles = [__vec_angle(i) for i in range(2)]
     assert N.allclose(err,angles)
 
+    # Second method
+    vert = vector(0,0,1)
+    cov = N.diagonal(mat)
+    vec = cov[2]/cov*N.eye(3)
+    vec[:,2] = 1
+    angles = [angle(vert,vec[i]) for i in range(2)]
+    assert N.allclose(err,angles)
+
+
 @pytest.mark.xfail(reason="Not fully implemented")
 def test_solid_angle():
     """

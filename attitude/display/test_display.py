@@ -82,6 +82,18 @@ def test_javascript_plane():
             sheet=obj.sheet, n=100)
         assert N.allclose(err,arr)
 
+def test_javascript_ellipse():
+    data = list(input_data())
+    output = __coffeescript_plane(data,'ellipse')
+    for obj,arr in zip(data,output):
+        arr = N.array(arr)
+        err = normal_errors(
+            obj.axes,
+            obj.covariance_matrix,
+            n=100)
+        assert N.allclose(err,arr)
+
+
 def test_grouped_plane():
     data = list(input_data())
     output = __coffeescript_plane(data,'grouped')

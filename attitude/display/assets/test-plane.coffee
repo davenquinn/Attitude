@@ -18,6 +18,8 @@ modeFunctions =
       math.planeErrors d.singularValues, d.axes, d
   grouped: mappable (d)->
       math.combinedErrors d.singularValues, d.axes, d
+  ellipse: mappable (d)->
+      math.normalErrors d.singularValues, d.axes, d
   deconvolveAxes: (d)->
     # Test javascript deconvolution of axes
     math.deconvolveAxes(d)

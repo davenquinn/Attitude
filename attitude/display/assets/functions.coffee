@@ -44,19 +44,12 @@ createGroupedPlane = (opts)->
         stroke: color
 
 createErrorEllipse = (opts)->
-  color = opts.color or 'purple'
-  opacity = opts.opacity or 0.5
+  ##
+  #Function generator to create error ellipse
   (p)->
     e = math.normalErrors p.singularValues, p.axes, opts
-    f = createFeature("Polygon", [e.reverse()])
-    el = d3.select @
-    el.append "path"
-      .datum rewind(f)
-      .attr
-        class: 'error'
-        fill: color
-        'fill-opacity': opacity
-
+    f = createFeature("Polygon", [e])
+    rewind(f)
 
 module.exports =
   plane: createGroupedPlane

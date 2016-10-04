@@ -31,8 +31,8 @@ def normal_errors(axes, covariance_matrix, **kwargs):
 
     v = N.diagonal(d)
     mat = v[2]/v*N.eye(3)
+    mat[:,2] = 1
     bundle = dot(ell, mat[:2])
-    bundle[:,2] = 1
 
     _ = dot(bundle,axes).T
     lon,lat = cart2sph(_[2],_[0],_[1])
@@ -58,7 +58,7 @@ def iterative_normal_errors(axes, covariance_matrix, **kwargs):
         e = [
             N.cos(a)*cov[0],
             N.sin(a)*cov[1],
-            1]
+            N.cos(a)+N.sin(a)]
         d = [sdot(e,i)
             for i in axes.T]
         x,y,z = d[2],d[0],d[1]
