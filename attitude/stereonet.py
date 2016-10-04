@@ -1,7 +1,7 @@
 import numpy as N
 from mplstereonet.stereonet_math import cart2sph
 
-from .geom.vector import vector
+from .geom.vector import vector, unit_vector
 from .geom.util import dot
 
 def quaternion(vector, angle):
@@ -31,8 +31,8 @@ def normal_errors(axes, covariance_matrix, **kwargs):
 
     v = N.diagonal(d)
     mat = v[2]/v*N.eye(3)
-    mat[:,2] = 1
     bundle = dot(ell, mat[:2])
+    bundle[:,2] = 1
 
     _ = dot(bundle,axes).T
     lon,lat = cart2sph(_[2],_[0],_[1])
@@ -44,6 +44,8 @@ def iterative_normal_errors(axes, covariance_matrix, **kwargs):
     traditional_layout = kwargs.pop('traditional_layout',True)
     _ = N.sqrt(covariance_matrix)
     v = N.diagonal(_)
+
+    c1 = 1
 
     cov = v[2]/v
 
@@ -67,7 +69,7 @@ def iterative_normal_errors(axes, covariance_matrix, **kwargs):
 
     # Get a bundle of vectors defining
     # a full rotation around the unit circle
-    return [step_func(i) efor i in u]
+    return [step_func(i) for i in u]
 
 def plane_errors(axes, covariance_matrix, sheet='upper',**kwargs):
     """

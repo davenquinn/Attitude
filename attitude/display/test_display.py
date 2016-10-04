@@ -40,6 +40,7 @@ def test_simple_ellipse():
         kwargs = dict(n=n, traditional_layout=True)
         v1 = normal_errors(*args, **kwargs)
         v2 = iterative_normal_errors(*args, **kwargs)
+        assert len(v1) == len(v2)
         assert N.allclose(v1,v2)
 
 def get_coffeescript(fn, d):
