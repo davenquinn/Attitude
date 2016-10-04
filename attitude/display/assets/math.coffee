@@ -83,12 +83,13 @@ normalErrors = (singularValues, axes, opts={})->
   degrees = opts.degrees or false
   axes = identity unless axes?
   opts.traditionalLayout ?= true
+  upperHemisphere = opts.upperHemisphere or true
 
   step = 2*Math.PI/(n-1)
   angles = (i*step for i in [0...n])
 
   v = singularValues.map Math.sqrt
-  s = v[2]/v
+  s = (v[2]/i for i in v)
   axes = transpose(axes)
 
   sdot = (a,b)->
@@ -126,7 +127,9 @@ normalErrors = (singularValues, axes, opts={})->
       c*Math.atan2(y,x),
       c*Math.asin z/r]
 
-  return angles.map(stepFunc)
+  out = angles.map(stepFunc)
+  console.log out
+  out
 
 combinedErrors = (sv, ax, opts={})->
   func = (type)->
