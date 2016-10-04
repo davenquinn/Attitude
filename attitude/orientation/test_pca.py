@@ -96,6 +96,22 @@ def test_recovery_from_axes():
                 pca.U[:,2]*sv,
                 atol=1e-10)
 
+def test_hyperbola_axes():
+    """
+    Test that the hyperbolic axes are the same as the
+    squared covariance matrices
+    """
+    for i in range(10):
+        pca = random_pca()
+        hyp = pca.as_hyperbola(rotated=False)
+
+        v1 = 1/N.diagonal(pca.covariance_matrix)
+        v1[-1] *= -1
+
+        v2 = N.diagonal(hyp)[:-1]
+
+        assert N.allclose(v1,v2, atol=0.0001)
+
 def test_pca_recovery():
     for i in range(10):
         pca = random_pca()
