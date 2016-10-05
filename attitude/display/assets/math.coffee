@@ -79,17 +79,16 @@ normalErrors = (axesCovariance, axes, opts={})->
   # Get a single level of planar errors (or the
   # plane's nominal value) as a girdle
   n = opts.n or 100
+  upperHemisphere = opts.upperHemisphere or true
   sheet = opts.sheet or 'nominal'
   degrees = opts.degrees or false
   axes = identity unless axes?
   opts.traditionalLayout ?= true
-  upperHemisphere = opts.upperHemisphere or true
 
   step = 2*Math.PI/(n-1)
   angles = (i*step for i in [0...n])
 
-  v = axesCovariance.map Math.sqrt
-  s = (v[2]/i for i in v)
+  s = axesCovariance.map Math.sqrt
   axes = transpose(axes)
 
   sdot = (a,b)->
@@ -99,18 +98,20 @@ normalErrors = (axesCovariance, axes, opts={})->
   c = if degrees then 180/Math.PI else 1
 
   c1 = 1
-  #if upperHemisphere
-    #c1 *= -1
-  # Flip upper and lower rings
-  #if axes[2][2] < 0
-  #  angles = angles.reverse()
+  if upperHemisphere
+    c1 *= -1
 
   stepFunc = (angle)->
 
-    #console.log Math.sin(angle), Math.cos(angle)
-    e = [Math.cos(angle)*s[0],
+    f = [Math.cos(angle)*s[0],
          Math.sin(angle)*s[1],
-         (Math.sin(angle)+Math.cos(angle))*s[2]*c1]
+         c1*s[2]]
+
+    e = [
+      -f[2]*Math.cos(angle)
+      -f[2]*Math.sin(angle)
+      norm([f[0],f[1]])
+    ]
 
     d = (sdot(e,i) for i in axes)
     r = norm(d)
@@ -128,7 +129,7 @@ normalErrors = (axesCovariance, axes, opts={})->
       c*Math.atan2(y,x),
       c*Math.asin z/r]
 
-  angles.map(stepFunc)
+  return angles.map(stepFunc)
 
 combinedErrors = (sv, ax, opts={})->
   func = (type)->
