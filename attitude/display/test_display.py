@@ -87,7 +87,7 @@ def test_javascript_ellipse():
     output = __coffeescript_plane(data,'ellipse')
     for obj,arr in zip(data,output):
         arr = N.array(arr)
-        err = normal_errors(
+        err = iterative_normal_errors(
             obj.axes,
             obj.covariance_matrix,
             n=100)

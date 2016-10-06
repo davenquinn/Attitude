@@ -23,18 +23,25 @@ def ellipse(n=1000):
     return N.array([N.cos(u),N.sin(u)]).T
 
 def normal_errors(axes, covariance_matrix, **kwargs):
+    """
+    Currently assumes upper hemisphere of stereonet
+    """
     level = kwargs.pop('level',1)
     traditional_layout = kwargs.pop('traditional_layout',True)
     d = N.sqrt(covariance_matrix)
 
     ell = ellipse(**kwargs)
 
-    v = N.diagonal(d)
-    mat = v[2]/v*N.eye(3)
-    mat[:,2] = 1
-    bundle = dot(ell, mat[:2])
+    if axes[2,2] < 0:
+        axes *= -1
 
-    _ = dot(bundle,axes).T
+    ell_ = N.hstack((ell,-N.ones((len(ell),1))))
+    f = dot(ell_, d)
+    e0 = ell.T*N.vstack([-f[:,2],-f[:,2]])
+    e = N.vstack((e0,N.linalg.norm(f[:,:2],axis=1)))
+
+    _ = dot(e.T,axes).T
+
     lon,lat = cart2sph(_[2],_[0],_[1])
     return list(zip(lon,lat))
 
@@ -45,26 +52,32 @@ def iterative_normal_errors(axes, covariance_matrix, **kwargs):
     _ = N.sqrt(covariance_matrix)
     v = N.diagonal(_)
 
-    c1 = 1
-
-    cov = v[2]/v
+    c1 = -1
+    cov = v
 
     u = N.linspace(0, 2*N.pi, n)
+
+    if axes[2,2] < 0:
+        axes *= -1
 
     def sdot(a,b):
         return sum([i*j for i,j in zip(a,b)])
 
     def step_func(a):
-        e = [
+        f = [
             N.cos(a)*cov[0],
             N.sin(a)*cov[1],
-            N.cos(a)+N.sin(a)]
+            c1*cov[2]]
+        e = [
+            -f[2]*N.cos(a),
+            -f[2]*N.sin(a),
+            N.linalg.norm(f[:-1])]
         d = [sdot(e,i)
             for i in axes.T]
         x,y,z = d[2],d[0],d[1]
         r = N.sqrt(x**2 + y**2 + z**2)
-        lat = N.arcsin(z/r)
         lon = N.arctan2(y, x)
+        lat = N.arcsin(z/r)
         return lon,lat
 
     # Get a bundle of vectors defining

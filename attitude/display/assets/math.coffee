@@ -78,7 +78,10 @@ planeErrors = (axesCovariance, axes, opts={})->
 normalErrors = (axesCovariance, axes, opts={})->
   # Get a single level of planar errors (or the
   # plane's nominal value) as a girdle
-  n = opts.n or 100
+
+  # Should use adaptive resampling
+  # https://bl.ocks.org/mbostock/5699934
+  n = opts.n or 1000
   upperHemisphere = opts.upperHemisphere or true
   sheet = opts.sheet or 'nominal'
   degrees = opts.degrees or false
@@ -100,6 +103,11 @@ normalErrors = (axesCovariance, axes, opts={})->
   c1 = 1
   if upperHemisphere
     c1 *= -1
+
+  if axes[2][2] < 0
+    for i in [0..2]
+      axes[i] = axes[i].map (d)->d*-1
+    #c1 *= -1
 
   stepFunc = (angle)->
 
