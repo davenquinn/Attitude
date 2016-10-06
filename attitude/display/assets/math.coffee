@@ -9,7 +9,7 @@ transpose = (array, length=null) ->
       newArray[j].push array[i][j]
   newArray
 
- identity = [[1,0,0],[0,1,0],[0,0,1]]
+identity = [[1,0,0],[0,1,0],[0,0,1]]
 
 norm = (d)->
   # L2 norm (hypotenuse)
@@ -28,6 +28,14 @@ ellipse = (n)->
   angles = (i*step for i in [0...n])
   ([Math.cos(a),Math.sin(a)] for a in angles)
 
+cart2sph = (opts)->
+  opts.degrees ?= true
+  c = if opts.degrees then 180/Math.PI else 1
+  (d)->
+    r = norm(d)
+    [x,y,z] = d
+    # Converts xyz to lat lon
+    [c*Math.atan2(y,x),c*Math.asin z/r]
 
 planeErrors = (axesCovariance, axes, opts={})->
   # Get a single level of planar errors (or the
@@ -43,8 +51,6 @@ planeErrors = (axesCovariance, axes, opts={})->
 
   s = axesCovariance.map Math.sqrt
   axes = transpose(axes)
-
-  c = if degrees then 180/Math.PI else 1
 
   scales =
     upper: 1
@@ -66,7 +72,6 @@ planeErrors = (axesCovariance, axes, opts={})->
          s[2]*c1]
 
     d = (sdot(e,i) for i in axes)
-    r = norm(d)
 
     if opts.traditionalLayout
       [y,z,x] = d
@@ -77,11 +82,15 @@ planeErrors = (axesCovariance, axes, opts={})->
     if not upperHemisphere
       z *= -1
 
+    c = if degrees then 180/Math.PI else 1
+    d = [x,y,z]
+    r = norm(d)
     return [
       c*Math.atan2(y,x),
       c*Math.asin z/r]
 
-  return ell.map(stepFunc)
+  return ell
+    .map stepFunc
 
 normalErrors = (axesCovariance, axes, opts={})->
   # Get a single level of planar errors (or the
@@ -101,8 +110,6 @@ normalErrors = (axesCovariance, axes, opts={})->
   s = axesCovariance.map Math.sqrt
   axes = transpose(axes)
 
-  c = if degrees then 180/Math.PI else 1
-
   c1 = 1
   if upperHemisphere
     c1 *= -1
@@ -120,7 +127,6 @@ normalErrors = (axesCovariance, axes, opts={})->
     e.push norm(f)
 
     d = (sdot(e,i) for i in axes)
-    r = norm(d)
 
     if opts.traditionalLayout
       [y,z,x] = d
@@ -131,11 +137,15 @@ normalErrors = (axesCovariance, axes, opts={})->
     if not upperHemisphere
       z *= -1
 
+    c = if degrees then 180/Math.PI else 1
+    d = [x,y,z]
+    r = norm(d)
     return [
       c*Math.atan2(y,x),
       c*Math.asin z/r]
 
-  return ell.map(stepFunc)
+  return ell
+    .map stepFunc
 
 combinedErrors = (sv, ax, opts={})->
   func = (type)->
