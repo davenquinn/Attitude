@@ -110,16 +110,12 @@ normalErrors = (axesCovariance, axes, opts={})->
     #c1 *= -1
 
   stepFunc = (angle)->
+    ell = [Math.cos(angle), Math.sin(angle)]
 
-    f = [Math.cos(angle)*s[0],
-         Math.sin(angle)*s[1],
-         c1*s[2]]
-
-    e = [
-      -f[2]*Math.cos(angle)
-      -f[2]*Math.sin(angle)
-      norm([f[0],f[1]])
-    ]
+    f = ell.map (d,i)->d*s[i]
+    e = ell.map (i)->
+      -i*c1*s[2]
+    e.push norm(f)
 
     d = (sdot(e,i) for i in axes)
     r = norm(d)
