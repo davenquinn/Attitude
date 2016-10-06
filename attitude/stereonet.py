@@ -28,7 +28,7 @@ def normal_errors(axes, covariance_matrix, **kwargs):
     """
     level = kwargs.pop('level',1)
     traditional_layout = kwargs.pop('traditional_layout',True)
-    d = N.sqrt(covariance_matrix)
+    d = N.sqrt(N.diagonal(covariance_matrix))
 
     ell = ellipse(**kwargs)
 
@@ -36,12 +36,11 @@ def normal_errors(axes, covariance_matrix, **kwargs):
         axes *= -1
 
     c1 = -1
-    c1_ = N.ones(len(ell))*c1
 
-    ell_ = N.hstack((ell,c1_[:,N.newaxis]))
-    f = dot(ell_, d)
-    e0 = -ell.T*f[:,2]
-    e = N.vstack((e0,N.linalg.norm(f[:,:2],axis=1)))
+    f = N.linalg.norm(
+        ell*d[:2],axis=1)
+    e0 = -ell.T*d[2]*c1
+    e = N.vstack((e0,f))
 
     _ = dot(e.T,axes).T
 
@@ -69,12 +68,11 @@ def iterative_normal_errors(axes, covariance_matrix, **kwargs):
     def step_func(a):
         f = [
             N.cos(a)*cov[0],
-            N.sin(a)*cov[1],
-            c1*cov[2]]
+            N.sin(a)*cov[1]]
         e = [
-            -f[2]*N.cos(a),
-            -f[2]*N.sin(a),
-            N.linalg.norm(f[:-1])]
+            -c1*cov[2]*N.cos(a),
+            -c1*cov[2]*N.sin(a),
+            N.linalg.norm(f)]
         d = [sdot(e,i)
             for i in axes.T]
         x,y,z = d[2],d[0],d[1]
