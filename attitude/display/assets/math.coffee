@@ -16,28 +16,35 @@ norm = (d)->
   _ = d.map (a)->a*a
   Math.sqrt d3.sum(_)
 
+sdot = (a,b)->
+  zipped = (a[i]*b[i] for i in [0..a.length])
+  d3.sum zipped
+
+ellipse = (n)->
+  # Basic function to create an array
+  # of cosines and sines for error-ellipse
+  # generation
+  step = 2*Math.PI/(n-1)
+  angles = (i*step for i in [0...n])
+  ([Math.cos(a),Math.sin(a)] for a in angles)
+
+
 planeErrors = (axesCovariance, axes, opts={})->
   # Get a single level of planar errors (or the
   # plane's nominal value) as a girdle
-  n = opts.n or 100
+  opts.n ?= 100
   upperHemisphere = opts.upperHemisphere or true
   sheet = opts.sheet or 'nominal'
   degrees = opts.degrees or false
   axes = identity unless axes?
   opts.traditionalLayout ?= true
 
-  step = 2*Math.PI/(n-1)
-  angles = (i*step for i in [0...n])
+  ell = ellipse(opts.n)
 
   s = axesCovariance.map Math.sqrt
   axes = transpose(axes)
 
-  sdot = (a,b)->
-    zipped = (a[i]*b[i] for i in [0..a.length])
-    d3.sum zipped
-
   c = if degrees then 180/Math.PI else 1
-
 
   scales =
     upper: 1
@@ -51,10 +58,11 @@ planeErrors = (axesCovariance, axes, opts={})->
   if axes[2][2] < 0
     c1 *= -1
 
-  stepFunc = (angle)->
+  stepFunc = (a)->
+    # Takes an array of [cos(a),sin(a)]
 
-    e = [Math.cos(angle)*s[0],
-         Math.sin(angle)*s[1],
+    e = [a[0]*s[0],
+         a[1]*s[1],
          s[2]*c1]
 
     d = (sdot(e,i) for i in axes)
@@ -73,7 +81,7 @@ planeErrors = (axesCovariance, axes, opts={})->
       c*Math.atan2(y,x),
       c*Math.asin z/r]
 
-  return angles.map(stepFunc)
+  return ell.map(stepFunc)
 
 normalErrors = (axesCovariance, axes, opts={})->
   # Get a single level of planar errors (or the
@@ -81,22 +89,17 @@ normalErrors = (axesCovariance, axes, opts={})->
 
   # Should use adaptive resampling
   # https://bl.ocks.org/mbostock/5699934
-  n = opts.n or 1000
+  opts.n ?= 1000
   upperHemisphere = opts.upperHemisphere or true
   sheet = opts.sheet or 'nominal'
   degrees = opts.degrees or false
   axes = identity unless axes?
   opts.traditionalLayout ?= true
 
-  step = 2*Math.PI/(n-1)
-  angles = (i*step for i in [0...n])
+  ell = ellipse(opts.n)
 
   s = axesCovariance.map Math.sqrt
   axes = transpose(axes)
-
-  sdot = (a,b)->
-    zipped = (a[i]*b[i] for i in [0..a.length])
-    d3.sum zipped
 
   c = if degrees then 180/Math.PI else 1
 
@@ -109,11 +112,10 @@ normalErrors = (axesCovariance, axes, opts={})->
       axes[i] = axes[i].map (d)->d*-1
     #c1 *= -1
 
-  stepFunc = (angle)->
-    ell = [Math.cos(angle), Math.sin(angle)]
+  stepFunc = (es)->
 
-    f = ell.map (d,i)->d*s[i]
-    e = ell.map (i)->
+    f = es.map (d,i)->d*s[i]
+    e = es.map (i)->
       -i*c1*s[2]
     e.push norm(f)
 
@@ -133,7 +135,7 @@ normalErrors = (axesCovariance, axes, opts={})->
       c*Math.atan2(y,x),
       c*Math.asin z/r]
 
-  return angles.map(stepFunc)
+  return ell.map(stepFunc)
 
 combinedErrors = (sv, ax, opts={})->
   func = (type)->
