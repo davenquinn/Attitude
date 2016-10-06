@@ -35,9 +35,12 @@ def normal_errors(axes, covariance_matrix, **kwargs):
     if axes[2,2] < 0:
         axes *= -1
 
-    ell_ = N.hstack((ell,-N.ones((len(ell),1))))
+    c1 = -1
+    c1_ = N.ones(len(ell))*c1
+
+    ell_ = N.hstack((ell,c1_[:,N.newaxis]))
     f = dot(ell_, d)
-    e0 = ell.T*N.vstack([-f[:,2],-f[:,2]])
+    e0 = -ell.T*f[:,2]
     e = N.vstack((e0,N.linalg.norm(f[:,:2],axis=1)))
 
     _ = dot(e.T,axes).T
