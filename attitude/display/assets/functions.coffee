@@ -61,9 +61,11 @@ createErrorEllipse = (opts)->
       a = d3.geoArea(f)
       if a > 2*Math.PI
         f = createFeature("Polygon",[e.reverse()])
+        a = d3.geoArea(f)
       f.properties ?= {}
       f.properties.area = a
       f
+
     v = ['upper','lower'].map f_
     coords = v.map (d)->d.geometry.coordinates
     f = createFeature "MultiPolygon", coords
