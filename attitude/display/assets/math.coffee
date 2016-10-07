@@ -20,13 +20,42 @@ sdot = (a,b)->
   zipped = (a[i]*b[i] for i in [0..a.length])
   d3.sum zipped
 
-ellipse = (n)->
+ellipse = (opts)->
   # Basic function to create an array
   # of cosines and sines for error-ellipse
   # generation
-  step = 2*Math.PI/(n-1)
-  angles = (i*step for i in [0...n])
-  ([Math.cos(a),Math.sin(a)] for a in angles)
+  opts.n ?= 50
+  opts.adaptive ?= true
+
+  ell = (a,b)->
+    # Takes major, minor axis lengths
+    if opts.adaptive
+      angles = []
+
+      i_ = 1
+      v = opts.n/2
+      step = 2/v
+      # Make a linearly varying space on the
+      # interval [1,-1]
+      angles.push Math.PI-Math.asin i_
+      for i in [0...v]
+        i_ -= step
+        angles.push Math.PI-Math.asin(i_)
+
+      for i in [0...v]
+        i_ += step
+        v = Math.asin(i_)
+        if v < 0
+          v += 2*Math.PI
+        angles.push v
+
+    else
+      step = 2*Math.PI/(opts.n-1)
+      angles = (i*step for i in [0...opts.n])
+
+    ([b*Math.cos(i),a*Math.sin(i)] for i in angles)
+
+  return ell
 
 cart2sph = (opts)->
   opts.degrees ?= false
@@ -54,8 +83,6 @@ planeErrors = (axesCovariance, axes, opts={})->
   axes = identity unless axes?
   opts.traditionalLayout ?= true
 
-  ell = ellipse(opts.n)
-
   s = axesCovariance.map Math.sqrt
   axes = transpose(axes)
 
@@ -73,12 +100,13 @@ planeErrors = (axesCovariance, axes, opts={})->
 
   stepFunc = (a)->
     # Takes an array of [cos(a),sin(a)]
-    e = [a[0]*s[0],
-         a[1]*s[1],
+    e = [a[0],
+         a[1],
          s[2]*c1]
     (sdot(e,i) for i in axes)
 
-  return ell
+  ell = ellipse opts
+  return ell s[0],s[1]
     .map stepFunc
     .map cart2sph(opts)
 
@@ -94,8 +122,6 @@ normalErrors = (axesCovariance, axes, opts={})->
   sheet = opts.sheet or 'nominal'
   axes = identity unless axes?
 
-  ell = ellipse(opts.n)
-
   s = axesCovariance.map Math.sqrt
   axes = transpose(axes)
 
@@ -109,15 +135,14 @@ normalErrors = (axesCovariance, axes, opts={})->
     #c1 *= -1
 
   stepFunc = (es)->
-
-    f = es.map (d,i)->d*s[i]
-    e = es.map (i)->
-      -i*c1*s[2]
-    e.push norm(f)
+    e = es.map (d,i)->
+      -d*c1*s[2]/s[i]
+    e.push norm(es)
 
     (sdot(e,i) for i in axes)
 
-   ell
+  ell = ellipse(opts)
+  ell s[0],s[1]
     .map stepFunc
     .map cart2sph(opts)
 

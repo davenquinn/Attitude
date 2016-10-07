@@ -10,7 +10,7 @@ def quaternion(vector, angle):
     """
     return N.cos(angle/2)+vector*N.sin(angle/2)
 
-def ellipse(n=1000):
+def ellipse(n=1000, adaptive=False):
     """
     Get a parameterized set of vectors defining
     ellipse for a major and minor axis length.
