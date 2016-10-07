@@ -83,7 +83,8 @@ def iterative_normal_errors(axes, covariance_matrix, **kwargs):
 
     # Get a bundle of vectors defining
     # a full rotation around the unit circle
-    return [step_func(i) for i in u]
+    vals = [step_func(i) for i in u]
+    return vals
 
 def plane_errors(axes, covariance_matrix, sheet='upper',**kwargs):
     """

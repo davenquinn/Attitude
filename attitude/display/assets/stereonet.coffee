@@ -2,8 +2,8 @@ d3 = require 'd3'
 rewind = require 'geojson-rewind'
 
 projections =
-  wulff: d3.geo.azimuthalEqualArea
-  schmidt: d3.geo.azimuthalEquidistant
+  wulff: d3.geoAzimuthalEqualArea
+  schmidt: d3.geoAzimuthalEquidistant
 
 selectedRotation = 1
 centerPoints = [
@@ -24,7 +24,7 @@ class Stereonet
     @center = [@width/2, @height/2]
     @setupProjection()
 
-    @drag = d3.behavior.drag()
+    @drag = d3.drag()
       .origin =>
         r = @projection.rotate()
         {x: r[0], y: -r[1]}
@@ -66,7 +66,7 @@ class Stereonet
 
     @svg.append "path"
       .datum graticule
-      .attr
+      .attrs
         class:"graticule",
         d:@path,
         fill: 'none'
@@ -74,7 +74,7 @@ class Stereonet
     defs = @svg.append "defs"
     defs.append "path"
       .datum {type: "Sphere"}
-      .attr
+      .attrs
         id:"sphere",
         d:@path
 
@@ -84,14 +84,14 @@ class Stereonet
         .attr 'xlink:href': '#sphere'
 
     @frame = @svg.append 'g'
-      .attr
+      .attrs
         class: 'dataFrame'
         'clip-path': 'url(#clip)'
 
     @dataArea = @frame.append 'g'
 
     @svg.append 'use'
-      .attr
+      .attrs
         'xlink:href': '#sphere'
         fill: 'none'
         stroke: 'black'
@@ -111,7 +111,7 @@ class Stereonet
 
     @frame.append 'path'
       .datum data
-      .attr
+      .attrs
         class: 'horizontal'
         stroke: 'black'
         'stroke-width': 2
@@ -133,7 +133,7 @@ class Stereonet
       .precision .1
       #.center @projCenter
 
-    @path = d3.geo.path()
+    @path = d3.geoPath()
       .projection @projection
 
   addGirdle: (d, opts)=>

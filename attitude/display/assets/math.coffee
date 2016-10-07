@@ -72,11 +72,7 @@ planeErrors = (axesCovariance, axes, opts={})->
 
     d = (sdot(e,i) for i in axes)
 
-    if opts.traditionalLayout
-      [y,z,x] = d
-    else
-      [y,x,z] = d
-      x *= -1
+    [y,z,x] = d
 
     if not upperHemisphere
       z *= -1
@@ -95,9 +91,9 @@ normalErrors = (axesCovariance, axes, opts={})->
   # https://bl.ocks.org/mbostock/5699934
   opts.n ?= 1000
   upperHemisphere = opts.upperHemisphere or true
+  opts.traditionalLayout ?= true
   sheet = opts.sheet or 'nominal'
   axes = identity unless axes?
-  opts.traditionalLayout ?= true
 
   ell = ellipse(opts.n)
 
@@ -133,7 +129,7 @@ normalErrors = (axesCovariance, axes, opts={})->
 
     return [x,y,z]
 
-  return ell
+   ell
     .map stepFunc
     .map cart2sph(opts)
 

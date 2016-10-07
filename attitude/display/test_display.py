@@ -33,15 +33,18 @@ def test_simple_plane():
         arr = iterative_plane_errors(*args,**kwargs)
         assert N.allclose(err,arr)
 
-def test_simple_ellipse():
+def __simple_ellipse(**kwargs):
     for i in range(10):
         obj = random_pca()
         args = (obj.axes, obj.covariance_matrix)
-        kwargs = dict(n=n, traditional_layout=True)
         v1 = normal_errors(*args, **kwargs)
         v2 = iterative_normal_errors(*args, **kwargs)
         assert len(v1) == len(v2)
         assert N.allclose(v1,v2)
+
+def test_simple_ellipse():
+    __simple_ellipse(n=n, traditional_layout=True)
+    __simple_ellipse(n=n, traditional_layout=False)
 
 def get_coffeescript(fn, d):
     """

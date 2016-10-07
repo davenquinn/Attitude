@@ -1,4 +1,5 @@
 d3 = require 'd3'
+require 'd3-selection-multi'
 rewind = require 'geojson-rewind'
 math = require './math'
 
@@ -31,14 +32,14 @@ createGroupedPlane = (opts)->
     el = d3.select @
     el.append "path"
       .datum createErrorSurface(e)
-      .attr
+      .attrs
         class: 'error'
         fill: color
         'fill-opacity': opacity
 
     el.append "path"
       .datum createNominalPlane(e)
-      .attr
+      .attrs
         class: 'nominal'
         fill: 'none'
         stroke: color
@@ -49,7 +50,10 @@ createErrorEllipse = (opts)->
   (p)->
     e = math.normalErrors p.covariance, p.axes, opts
     f = createFeature("Polygon", [e])
-    rewind(f)
+    a = d3.geoArea(f)
+    if a > 2*Math.PI
+      f = createFeature("Polygon",[e.reverse()])
+    f
 
 module.exports =
   plane: createGroupedPlane
