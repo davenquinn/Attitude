@@ -33,7 +33,15 @@ cart2sph = (opts)->
   c = if opts.degrees then 180/Math.PI else 1
   (d)->
     r = norm(d)
-    [x,y,z] = d
+
+    if opts.traditionalLayout
+      [y,z,x] = d
+    else
+      [y,x,z] = d
+      x *= -1
+    if not opts.upperHemisphere
+      z *= -1
+
     # Converts xyz to lat lon
     [c*Math.atan2(y,x),c*Math.asin(z/r)]
 
@@ -41,7 +49,7 @@ planeErrors = (axesCovariance, axes, opts={})->
   # Get a single level of planar errors (or the
   # plane's nominal value) as a girdle
   opts.n ?= 100
-  upperHemisphere = opts.upperHemisphere or true
+  opts.upperHemisphere ?= true
   sheet = opts.sheet or 'nominal'
   axes = identity unless axes?
   opts.traditionalLayout ?= true
@@ -57,7 +65,7 @@ planeErrors = (axesCovariance, axes, opts={})->
     nominal: 0
 
   c1 = scales[sheet]
-  if upperHemisphere
+  if opts.upperHemisphere
     c1 *= -1
   # Flip upper and lower rings
   if axes[2][2] < 0
@@ -65,19 +73,10 @@ planeErrors = (axesCovariance, axes, opts={})->
 
   stepFunc = (a)->
     # Takes an array of [cos(a),sin(a)]
-
     e = [a[0]*s[0],
          a[1]*s[1],
          s[2]*c1]
-
-    d = (sdot(e,i) for i in axes)
-
-    [y,z,x] = d
-
-    if not upperHemisphere
-      z *= -1
-
-    [x,y,z]
+    (sdot(e,i) for i in axes)
 
   return ell
     .map stepFunc
@@ -90,7 +89,7 @@ normalErrors = (axesCovariance, axes, opts={})->
   # Should use adaptive resampling
   # https://bl.ocks.org/mbostock/5699934
   opts.n ?= 1000
-  upperHemisphere = opts.upperHemisphere or true
+  opts.upperHemisphere ?= true
   opts.traditionalLayout ?= true
   sheet = opts.sheet or 'nominal'
   axes = identity unless axes?
@@ -101,7 +100,7 @@ normalErrors = (axesCovariance, axes, opts={})->
   axes = transpose(axes)
 
   c1 = 1
-  if upperHemisphere
+  if opts.upperHemisphere
     c1 *= -1
 
   if axes[2][2] < 0
@@ -116,18 +115,7 @@ normalErrors = (axesCovariance, axes, opts={})->
       -i*c1*s[2]
     e.push norm(f)
 
-    d = (sdot(e,i) for i in axes)
-
-    if opts.traditionalLayout
-      [y,z,x] = d
-    else
-      [y,x,z] = d
-      x *= -1
-
-    if not upperHemisphere
-      z *= -1
-
-    return [x,y,z]
+    (sdot(e,i) for i in axes)
 
    ell
     .map stepFunc

@@ -11,15 +11,18 @@ createFeature = (type, coordinates)->
     type: type
     coordinates: coordinates
 
-createErrorSurface = (d, reversed=false)->
+createErrorSurface = (d)->
   # Function that turns orientation
   # objects into error surface
-  if reversed
-    coords = [d.lower,d.upper]
-  else
-    coords = [d.upper,d.lower]
-  data = createFeature "Polygon", coords
-  return rewind(data)
+  e = [d.lower,d.upper.reverse()]
+
+  f = createFeature "Polygon", e
+  a = d3.geoArea(f)
+  if a > 2*Math.PI
+    f = createFeature("Polygon",e.map (d)->d.reverse())
+  f.properties ?= {}
+  f.properties.area = a
+  f
 
 createNominalPlane = (d)->
   createFeature 'LineString', d.nominal
