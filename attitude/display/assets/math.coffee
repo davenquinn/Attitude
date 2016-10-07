@@ -29,13 +29,13 @@ ellipse = (n)->
   ([Math.cos(a),Math.sin(a)] for a in angles)
 
 cart2sph = (opts)->
-  opts.degrees ?= true
+  opts.degrees ?= false
   c = if opts.degrees then 180/Math.PI else 1
   (d)->
     r = norm(d)
     [x,y,z] = d
     # Converts xyz to lat lon
-    [c*Math.atan2(y,x),c*Math.asin z/r]
+    [c*Math.atan2(y,x),c*Math.asin(z/r)]
 
 planeErrors = (axesCovariance, axes, opts={})->
   # Get a single level of planar errors (or the
@@ -43,7 +43,6 @@ planeErrors = (axesCovariance, axes, opts={})->
   opts.n ?= 100
   upperHemisphere = opts.upperHemisphere or true
   sheet = opts.sheet or 'nominal'
-  degrees = opts.degrees or false
   axes = identity unless axes?
   opts.traditionalLayout ?= true
 
@@ -82,15 +81,11 @@ planeErrors = (axesCovariance, axes, opts={})->
     if not upperHemisphere
       z *= -1
 
-    c = if degrees then 180/Math.PI else 1
-    d = [x,y,z]
-    r = norm(d)
-    return [
-      c*Math.atan2(y,x),
-      c*Math.asin z/r]
+    [x,y,z]
 
   return ell
     .map stepFunc
+    .map cart2sph(opts)
 
 normalErrors = (axesCovariance, axes, opts={})->
   # Get a single level of planar errors (or the
@@ -101,7 +96,6 @@ normalErrors = (axesCovariance, axes, opts={})->
   opts.n ?= 1000
   upperHemisphere = opts.upperHemisphere or true
   sheet = opts.sheet or 'nominal'
-  degrees = opts.degrees or false
   axes = identity unless axes?
   opts.traditionalLayout ?= true
 
@@ -137,15 +131,11 @@ normalErrors = (axesCovariance, axes, opts={})->
     if not upperHemisphere
       z *= -1
 
-    c = if degrees then 180/Math.PI else 1
-    d = [x,y,z]
-    r = norm(d)
-    return [
-      c*Math.atan2(y,x),
-      c*Math.asin z/r]
+    return [x,y,z]
 
   return ell
     .map stepFunc
+    .map cart2sph(opts)
 
 combinedErrors = (sv, ax, opts={})->
   func = (type)->
