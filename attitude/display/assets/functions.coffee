@@ -51,16 +51,23 @@ createErrorEllipse = (opts)->
   ##
   #Function generator to create error ellipse
   (p)->
-    e = math.normalErrors p.covariance, p.axes, opts
-    f = createFeature("Polygon", [e])
+    f_ = (sheet)->
+      opts.sheet = sheet
+      e = math.normalErrors p.covariance, p.axes, opts
+      f = createFeature("Polygon", [e])
 
-    # Check winding (note: only an issue with non-traditional
-    # stereonet axes)
-    a = d3.geoArea(f)
-    if a > 2*Math.PI
-      f = createFeature("Polygon",[e.reverse()])
-    f.properties ?= {}
-    f.properties.area = a
+      # Check winding (note: only an issue with non-traditional
+      # stereonet axes)
+      a = d3.geoArea(f)
+      if a > 2*Math.PI
+        f = createFeature("Polygon",[e.reverse()])
+      f.properties ?= {}
+      f.properties.area = a
+      f
+    v = ['upper','lower'].map f_
+    coords = v.map (d)->d.geometry.coordinates
+    f = createFeature "MultiPolygon", coords
+    f.properties = v[0].properties
     f
 
 module.exports =

@@ -119,13 +119,18 @@ normalErrors = (axesCovariance, axes, opts={})->
   opts.n ?= 1000
   opts.upperHemisphere ?= true
   opts.traditionalLayout ?= true
-  sheet = opts.sheet or 'nominal'
+  opts.sheet ?= 'upper'
   axes = identity unless axes?
+
+  scales =
+    upper: 1
+    lower: -1
 
   s = axesCovariance.map Math.sqrt
   axes = transpose(axes)
 
-  c1 = 1
+  v0 = scales[opts.sheet]
+  c1 = 1*v0
   if opts.upperHemisphere
     c1 *= -1
 
@@ -137,7 +142,7 @@ normalErrors = (axesCovariance, axes, opts={})->
   stepFunc = (es)->
     e = es.map (d,i)->
       -d*c1*s[2]/s[i]
-    e.push norm(es)
+    e.push norm(es)*v0
 
     (sdot(e,i) for i in axes)
 
