@@ -50,9 +50,14 @@ createErrorEllipse = (opts)->
   (p)->
     e = math.normalErrors p.covariance, p.axes, opts
     f = createFeature("Polygon", [e])
+
+    # Check winding (note: only an issue with non-traditional
+    # stereonet axes)
     a = d3.geoArea(f)
     if a > 2*Math.PI
       f = createFeature("Polygon",[e.reverse()])
+    f.properties ?= {}
+    f.properties.area = a
     f
 
 module.exports =
