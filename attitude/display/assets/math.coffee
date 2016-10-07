@@ -48,12 +48,12 @@ ellipse = (opts)->
         if v < 0
           v += 2*Math.PI
         angles.push v
+      return ([b*Math.cos(i),a*Math.sin(i)] for i in angles)
 
-    else
-      step = 2*Math.PI/(opts.n-1)
-      angles = (i*step for i in [0...opts.n])
+    step = 2*Math.PI/(opts.n-1)
+    angles = (i*step for i in [0...opts.n])
 
-    ([b*Math.cos(i),a*Math.sin(i)] for i in angles)
+    return ([a*Math.cos(i),b*Math.sin(i)] for i in angles)
 
   return ell
 

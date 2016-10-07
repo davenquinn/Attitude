@@ -28,7 +28,7 @@ def test_simple_plane():
     for i,sheet in cases():
         obj = random_pca()
         args = (obj.axes,obj.covariance_matrix)
-        kwargs = dict(sheet=sheet, n=n, traditional_layout=True)
+        kwargs = dict(sheet=sheet, n=n, traditional_layout=True, adaptive=False)
         err = N.array(plane_errors(*args,**kwargs))
         arr = iterative_plane_errors(*args,**kwargs)
         assert N.allclose(err,arr)
@@ -43,8 +43,8 @@ def __simple_ellipse(**kwargs):
         assert N.allclose(v1,v2)
 
 def test_simple_ellipse():
-    __simple_ellipse(n=n, traditional_layout=True)
-    __simple_ellipse(n=n, traditional_layout=False)
+    __simple_ellipse(n=n, traditional_layout=True, adaptive=False)
+    __simple_ellipse(n=n, traditional_layout=False, adaptive=False)
 
 def get_coffeescript(fn, d):
     """
@@ -60,6 +60,7 @@ def __coffeescript_plane(data, function='individual'):
                 obj.covariance_matrix).tolist(),
             axes=obj.axes.tolist(),
             sheet=obj.sheet,
+            adaptive=False,
             n=n) for obj in data]
 
     return get_coffeescript(function, d)
@@ -82,7 +83,7 @@ def test_javascript_plane():
         err = plane_errors(
             obj.axes,
             obj.covariance_matrix,
-            sheet=obj.sheet, n=100)
+            sheet=obj.sheet, n=100, adaptive=False)
         assert N.allclose(err,arr)
 
 def test_javascript_ellipse():
@@ -93,6 +94,7 @@ def test_javascript_ellipse():
         err = iterative_normal_errors(
             obj.axes,
             obj.covariance_matrix,
+            adaptive=False,
             n=100)
         assert N.allclose(err,arr)
 
