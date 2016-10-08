@@ -28,8 +28,6 @@ createNominalPlane = (d)->
   createFeature 'LineString', d.nominal
 
 createGroupedPlane = (opts)->
-  color = opts.color or 'red'
-  opacity = opts.opacity or 0.5
   (p)->
     e = combinedErrors p.covariance, p.axes, opts
     el = d3.select @
@@ -37,15 +35,12 @@ createGroupedPlane = (opts)->
       .datum createErrorSurface(e)
       .attrs
         class: 'error'
-        fill: color
-        'fill-opacity': opacity
 
     el.append "path"
       .datum createNominalPlane(e)
       .attrs
         class: 'nominal'
-        fill: 'none'
-        stroke: color
+
 
 createErrorEllipse = (opts)->
   ##
