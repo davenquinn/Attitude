@@ -1,4 +1,5 @@
 d3 = require 'd3'
+require 'd3-selection-multi'
 rewind = require 'geojson-rewind'
 
 projections =
@@ -25,19 +26,22 @@ class Stereonet
     @setupProjection()
 
     @drag = d3.drag()
-      .origin =>
-        r = @projection.rotate()
-        {x: r[0], y: -r[1]}
+      .subject (d)=>
+        # This is currently not well-implemented
+        if not d?
+          r = @projection.rotate()
+          {x: r[0], y: -r[1]}
+        d
       .on 'drag', => @reflowProjection [d3.event.x, -d3.event.y]
-      .on 'dragstart', (d) ->
+      .on 'start', (d) ->
         d3.event.sourceEvent.stopPropagation()
         d3.select @
           .classed 'dragging', true
-      .on 'dragend', (d) ->
+      .on 'end', (d) ->
         d3.select @
           .classed 'dragging', false
 
-    graticule = d3.geo.graticule()
+    graticule = d3.geoGraticule()
 
 
     @setCenter = =>
@@ -59,7 +63,7 @@ class Stereonet
         .on 'click', @setCenter
 
     @topLabel = @svg.append 'text'
-      .attr
+      .attrs
         x: 250
         y: 10
         'text-align': 'center'
@@ -79,9 +83,9 @@ class Stereonet
         d:@path
 
     defs.append "svg:clipPath"
-      .attr id: "clip"
+      .attrs id: "clip"
       .append 'use'
-        .attr 'xlink:href': '#sphere'
+        .attrs 'xlink:href': '#sphere'
 
     @frame = @svg.append 'g'
       .attrs
@@ -122,7 +126,7 @@ class Stereonet
 
   reflowProjection: (loc)=>
     @projection.rotate loc
-    @svg.selectAll('path').attr d: @path
+    @svg.selectAll('path').attrs d: @path
 
   setupProjection: (type='wulff')->
     @projectionType = type
@@ -149,7 +153,7 @@ class Stereonet
         coordinates: coords
     @dataArea.append 'path'
       .datum rewind(data)
-      .attr
+      .attrs
         class: "errors #{opts.class}"
         'fill-opacity': Math.pow(1/(level*2),1.5)
 
@@ -165,7 +169,7 @@ class Stereonet
         coordinates: [d]
     @dataArea.append 'path'
       .datum rewind(data)
-      .attr
+      .attrs
         class: "errors #{opts.class}"
         'fill-opacity': Math.pow(1/(level*2),1.5)
 
@@ -179,11 +183,11 @@ class Stereonet
         coordinates: d
     @dataArea.append 'path'
       .datum data
-      .attr
+      .attrs
         class: "nominal #{opts.class}"
 
   draw: =>
     @frame.selectAll 'path'
-      .attr d: @path
+      .attrs d: @path
 
 module.exports = Stereonet
