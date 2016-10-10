@@ -42,10 +42,10 @@ createGroupedPlane = (opts)->
         class: 'nominal'
 
 
-createErrorEllipse = (opts)->
-  ##
+__createErrorEllipse = (opts)->
   #Function generator to create error ellipse
-  (p)->
+  #for a single error level
+  createEllipse = (p)->
     f_ = (sheet)->
       opts.sheet = sheet
       e = math.normalErrors p.covariance, p.axes, opts
@@ -57,8 +57,10 @@ createErrorEllipse = (opts)->
       if a > 2*Math.PI
         f = createFeature("Polygon",[e.reverse()])
         a = d3.geoArea(f)
-      f.properties ?= {}
-      f.properties.area = a
+      f.properties =
+        area: a
+        level: opts.level
+        sheet: sheet
       f
 
     v = ['upper','lower'].map f_
@@ -66,6 +68,24 @@ createErrorEllipse = (opts)->
     f = createFeature "MultiPolygon", coords
     f.properties = v[0].properties
     f
+
+createErrorEllipse = (opts)->
+  # Level can be single or array of error levels
+  opts.level ?= 1
+  levels = opts.level
+
+  __fnAtLevel = (l)->
+    opts.level = l
+    __createErrorEllipse opts
+
+  if Array.isArray levels
+    # Return an array of functions, one for each
+    # level of the ellipse to be generated
+    return levels.map __fnAtLevel
+  else
+    # Return a single function for the specified
+    # level
+    return __fnAtLevel(levels)
 
 module.exports =
   plane: createGroupedPlane
