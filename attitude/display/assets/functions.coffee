@@ -2,6 +2,7 @@ d3 = require 'd3'
 require 'd3-selection-multi'
 rewind = require 'geojson-rewind'
 math = require './math'
+{cloneOptions} = require './util'
 
 combinedErrors = math.combinedErrors
 
@@ -41,7 +42,6 @@ createGroupedPlane = (opts)->
       .attrs
         class: 'nominal'
 
-
 __createErrorEllipse = (opts)->
   #Function generator to create error ellipse
   #for a single error level
@@ -75,8 +75,8 @@ createErrorEllipse = (opts)->
   levels = opts.level
 
   __fnAtLevel = (l)->
-    opts.level = l
-    __createErrorEllipse opts
+    o1 = cloneOptions opts, level: l
+    __createErrorEllipse o1
 
   if Array.isArray levels
     # Return an array of functions, one for each
