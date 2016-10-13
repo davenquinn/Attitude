@@ -51,7 +51,7 @@ ellipse = (opts)->
   ell = (a,b)->
     step = 2*Math.PI/(opts.n-1)
     angles = (i*step for i in [0...opts.n])
-
+    # This reversal of B and A is causing tests to fail
     return ([a*Math.cos(i),b*Math.sin(i)] for i in angles)
 
   return if opts.adaptive then ellAdaptive else ell
