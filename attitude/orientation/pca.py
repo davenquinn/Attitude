@@ -225,7 +225,7 @@ class PCAOrientation(BaseOrientation):
         if type == 'sampling':
             return self.sigma**2/(self.n-1)
         elif type == 'noise':
-            return 4*self.sigma*N.var(self.rotated(),axis=0)
+            return 4*self.sigma*N.var(self.rotated(), axis=0)
 
     @property
     def covariance_matrix(self):
