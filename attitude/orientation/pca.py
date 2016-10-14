@@ -180,30 +180,6 @@ class PCAOrientation(BaseOrientation):
             self._U = dot(self.arr,self.V.T,sinv)
         return self._U
 
-    def solid_angle(self):
-        """
-        Numerical integration method to find the
-        solid angle (in steradians) within the limits
-        of an error hyperbola for the given planar fit.
-        """
-        d = N.diag(N.sqrt(self.covariance_matrix))[:2]
-        def func(theta):
-            th = N.array([N.cos(theta),N.sin(theta)])
-            r = N.linalg.norm(dot(d,th))
-            return self.angular_error(r)
-        i = quad(func, 0, N.pi/2)[0]
-        # cover for all slices of hyperbola
-        return 8*i
-
-    def whitened(self):
-        """
-        Returns a 'whitened' or decorrelated version of
-        the input data, where variances along all axes
-        are rescaled to 1 (i.e. the covariance matrix
-        becomes an identity matrix).
-        """
-        return N.dot(self.U,self.V.T)
-
     def rotated(self):
         """
         Returns a dataset 'despun' so that
@@ -240,13 +216,20 @@ class PCAOrientation(BaseOrientation):
         """
         return tuple(self.angular_error(i)
                 for i in self.hyp_axes[:-1])
-    @property
-    def covariance_matrix(self):
+
+    def _covariance_matrix(self,type='noise'):
         """
         Constructs the covariance matrix from PCA
         residuals
         """
-        return self.sigma**2/(self.n-1)
+        if type == 'sampling':
+            return self.sigma**2/(self.n-1)
+        elif type == 'noise':
+            return 4*self.sigma*N.var(self.rotated(), axis=0)
+
+    @property
+    def covariance_matrix(self):
+        return self._covariance_matrix()
 
     @property
     def explained_variance(self):
@@ -279,11 +262,12 @@ class PCAOrientation(BaseOrientation):
         return N.arccos(_[2]/mag)
 
     def strike_dip(self):
-        """ Computes strike and dip from a normal vector.
-            Results are usually exactly the same as LLSQ
-            in strike (to a few decimal places) and close in dip.
-            Sometimes, dips are greater by as much as 45 degrees,
-            reflecting inclusion of errors in x-y plane.
+        """
+        Computes strike and dip from a normal vector.
+        Results are usually the same as LLSQ
+        in strike (to a few decimal places) and close in dip.
+        Sometimes, dips are greater by as much as 45 degrees,
+        reflecting inclusion of errors in x-y plane.
         """
         n = self.axes[2]
         r = N.linalg.norm(n)

@@ -1,5 +1,6 @@
 import numpy as N
 from mplstereonet.stereonet_math import cart2sph
+from scipy.stats import chi2
 
 from .geom.vector import vector, unit_vector
 from .geom.util import dot
@@ -21,6 +22,15 @@ def ellipse(n=1000, adaptive=False):
     # Get a bundle of vectors defining
     # a full rotation around the unit circle
     return N.array([N.cos(u),N.sin(u)]).T
+
+def scale_errors(cov_axes, confidence_level=0.95):
+    """
+    Returns major axes of error ellipse or
+    hyperbola, rescaled using chi2 test statistic
+    """
+    dof = len(cov_axes)
+    x2t = chi2.ppf(confidence_level,dof)
+    return N.sqrt(x2t*cov_axes)
 
 def normal_errors(axes, covariance_matrix, **kwargs):
     """

@@ -27,35 +27,34 @@ ellipse = (opts)->
   opts.n ?= 50
   opts.adaptive ?= true
 
-  ell = (a,b)->
+  ellAdaptive = (a,b)->
     # Takes major, minor axis lengths
-    if opts.adaptive
-      angles = []
+    i_ = 1
+    v = opts.n/2
+    step = 2/v
+    # Make a linearly varying space on the
+    # interval [1,-1]
+    angles = []
+    angles.push Math.PI-Math.asin i_
+    for i in [0...v]
+      i_ -= step
+      angles.push Math.PI-Math.asin(i_)
 
-      i_ = 1
-      v = opts.n/2
-      step = 2/v
-      # Make a linearly varying space on the
-      # interval [1,-1]
-      angles.push Math.PI-Math.asin i_
-      for i in [0...v]
-        i_ -= step
-        angles.push Math.PI-Math.asin(i_)
+    for i in [0...v]
+      i_ += step
+      v = Math.asin(i_)
+      if v < 0
+        v += 2*Math.PI
+      angles.push v
+    return ([b*Math.cos(i),a*Math.sin(i)] for i in angles)
 
-      for i in [0...v]
-        i_ += step
-        v = Math.asin(i_)
-        if v < 0
-          v += 2*Math.PI
-        angles.push v
-      return ([b*Math.cos(i),a*Math.sin(i)] for i in angles)
-
+  ell = (a,b)->
     step = 2*Math.PI/(opts.n-1)
     angles = (i*step for i in [0...opts.n])
-
+    # This reversal of B and A is causing tests to fail
     return ([a*Math.cos(i),b*Math.sin(i)] for i in angles)
 
-  return ell
+  return if opts.adaptive then ellAdaptive else ell
 
 cart2sph = (opts)->
   opts.degrees ?= false
