@@ -8,6 +8,7 @@ from .pca import PCAOrientation, centered
 from ..geom.util import dot
 from ..geom.vector import vector, angle
 from mplstereonet.stereonet_math import sph2cart
+from scipy.stats import chi2
 
 def random_pca(scattered=True):
     if scattered:
@@ -157,4 +158,25 @@ def test_component_planes():
 
     for c in components:
         __do_component_planes(main_fit,c)
+
+def test_grouped_plane():
+    plane = load_test_plane('grouped-plane')
+    components = [centered(a) for a in plane]
+    arr = N.vstack(components)
+    fit = PCAOrientation(arr)
+
+    deskewed_data = fit.rotated()
+
+    sv = fit.singular_values
+    # naive covariance for each axis, taking into account number of samples
+    sample_covariance = sv**2/(len(arr)-1)
+    assert N.allclose(
+        sample_covariance,
+        N.diagonal(fit._covariance_matrix('sampling')))
+
+    # taking into account measurement noise
+    noise_covariance = 4*sv*N.var(deskewed_data, axis=0)
+    assert N.allclose(
+        noise_covariance,
+        N.diagonal(fit._covariance_matrix('noise')))
 
