@@ -217,7 +217,7 @@ class PCAOrientation(BaseOrientation):
         return tuple(self.angular_error(i)
                 for i in self.hyp_axes[:-1])
 
-    def _covariance_matrix(self,type='noise'):
+    def _covariance_matrix(self, type='noise'):
         """
         Constructs the covariance matrix from PCA
         residuals

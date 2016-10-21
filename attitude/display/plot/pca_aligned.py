@@ -37,7 +37,7 @@ def plot_aligned(pca, sparse=True, **kwargs):
     w = 8
     ratio = (lengths[2]*2+lengths[1])/lengths[0]*1.5
     h = w*ratio
-    if h < 5: h = 5
+    if h < 3: h = 3
 
     r = (lengths[1]+5)/(lengths[2]+5)
     if r > 5:
