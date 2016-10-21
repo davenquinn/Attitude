@@ -239,7 +239,6 @@ class PCAOrientation(BaseOrientation):
         represent the planar fit). Analogous to R^2 of
         linear least squares.
         """
-
         v = N.diagonal(self.covariance_matrix)
         return v[0:2].sum()/v.sum()
 

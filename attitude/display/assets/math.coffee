@@ -120,6 +120,7 @@ normalErrors = (axesCovariance, axes, opts={})->
   opts.traditionalLayout ?= true
   opts.sheet ?= 'upper'
   axes = identity unless axes?
+  opts.level ?= 1
 
   scales =
     upper: 1
@@ -132,6 +133,7 @@ normalErrors = (axesCovariance, axes, opts={})->
   c1 = 1*v0
   if opts.upperHemisphere
     c1 *= -1
+  c1 *= opts.level
 
   if axes[2][2] < 0
     for i in [0..2]
