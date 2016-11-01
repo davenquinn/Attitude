@@ -6,7 +6,7 @@ from ....orientation.pca import PCAOrientation
 from .regressions import hyperbola, bootstrap_noise
 from .misc import augment, ci
 
-def axis_covariance(fit, do_bootstrap=True, **kwargs):
+def axis_covariance(fit, do_bootstrap=False, **kwargs):
     arr = fit.arr
 
     deskewed_data = fit.rotated()
@@ -16,14 +16,14 @@ def axis_covariance(fit, do_bootstrap=True, **kwargs):
     sv = fit.singular_values
     covariance = sv**2/(len(arr)-1) # naive covariance for each axis, taking into account number of samples
     v = N.var(deskewed_data,axis=0)[-1]
-    v =sv[2]/(3*(len(arr)-3))
+    v =sv[2]/(2*(len(arr)-2))
     covariance2 = 4*sv**2*v # taking into account measurement noise
-    #covariance2 /= covariance2.sum()
-    #covariance2 *= v
+    covariance2 /= covariance2.sum()
+    covariance2 *= v
 
     width = kwargs.pop("width", None)
     if width is None:
-        max = deskewed_data.max(axis=0)[:2].max()
+        max = deskewed_data.max(axis=0)[1].max()
         width = 2.2*max
 
     v = width/2
