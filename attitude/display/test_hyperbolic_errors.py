@@ -32,6 +32,17 @@ def simple_hyperbola(cov, xvals, n=1, level=1):
     t = N.array([xvals,y(xvals)])
     return t
 
+def hyperbola_from_axes(cov, xvals, n=1, level=1):
+    # Plot hyperbola
+    cov[-1] = level*N.sqrt(cov[-1]/n)
+
+    def y(x):
+        return cov[-1]*N.sqrt(x**2/cov[1]+1)
+
+    # Top values of error bar only
+    t = N.array([xvals,y(xvals)])
+    return t
+
 def test_sampling_covariance():
     """
     Test the creation of hyperbolic errors
@@ -49,11 +60,11 @@ def test_sampling_covariance():
 
     # use only direction of maximum angular
     # variation
-    cov = cov[1:]
+    cov2d = cov[1:]
 
-    res1 = simple_hyperbola(cov,xvals, n, level)
+    res1 = simple_hyperbola(cov2d,xvals, n, level)
     res2 = hyperbola(
-        cov,
+        cov2d,
         N.identity(2), # rotation
         N.array([0,0]), # mean
         xvals,
@@ -63,4 +74,9 @@ def test_sampling_covariance():
     res2 = (res2[0],res2[-1])
 
     for a,b in zip(res1,res2):
+        assert N.allclose(a,b)
+
+    # from axes
+    res3 = hyperbola_from_axes(cov,xvals, n, level)
+    for a,b in zip(res1,res3):
         assert N.allclose(a,b)
