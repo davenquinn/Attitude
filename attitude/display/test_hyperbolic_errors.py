@@ -56,27 +56,32 @@ def test_sampling_covariance():
     cov = sv**2/(n-1)
 
     xvals = N.linspace(-100,100,100)
-    level = N.sqrt(chi2.ppf(0.95,n-3))
+    level = chi2.ppf(0.95,n-3)
 
     # use only direction of maximum angular
     # variation
     cov2d = cov[1:]
 
-    res1 = simple_hyperbola(cov2d,xvals, n, level)
+    res1 = simple_hyperbola(cov2d,xvals, n, N.sqrt(level))
     res2 = hyperbola(
         cov2d,
         N.identity(2), # rotation
         N.array([0,0]), # mean
         xvals,
         n=n,
-        level=level)
+        level=N.sqrt(level))
     # Get only top values
     res2 = (res2[0],res2[-1])
 
     for a,b in zip(res1,res2):
         assert N.allclose(a,b)
 
-    # from axes
-    res3 = hyperbola_from_axes(cov,xvals, n, level)
+    # Scale axes before sending to plotting function
+    cov[-1] = level*cov[-1]/n
+    res3 = simple_hyperbola(cov[1:],xvals)
     for a,b in zip(res1,res3):
         assert N.allclose(a,b)
+
+def test_noise_covariance():
+    fit = random_pca()
+
