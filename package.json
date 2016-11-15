@@ -12,12 +12,13 @@
   "devDependencies": {
     "browserify": "^12.0.1",
     "coffeeify": "^1.2.0",
+    "mocha": "^3.1.2",
     "node-sass": "^3.4.2",
     "turf": "^3.0.14",
     "watchify": "^3.6.1"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --compilers coffee:coffee-script/register"
   },
   "repository": {
     "type": "git",
