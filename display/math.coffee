@@ -115,7 +115,7 @@ normalErrors = (axesCovariance, axes, opts={})->
 
   # Should use adaptive resampling
   # https://bl.ocks.org/mbostock/5699934
-  opts.n ?= 1000
+  opts.n ?= 100
   opts.upperHemisphere ?= true
   opts.traditionalLayout ?= true
   opts.sheet ?= 'upper'

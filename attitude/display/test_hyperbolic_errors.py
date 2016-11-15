@@ -10,6 +10,28 @@ from .plot.cov_types.regressions import as_hyperbola, hyperbola
 from ..orientation.test_pca import random_pca
 from ..geom import dot
 
+def simple_hyperbola(cov, xvals, n=1, level=1):
+    """
+    Simple hyperbolic error bounds for 2d errors
+    using quadratic formulation.
+
+    Returns tuple of
+        ( distance from center of distribution,
+          width of error bar)
+    in unrotated coordinate space
+    """
+    assert len(cov) == 2
+    a = cov[0]
+    # Plot hyperbola
+    b = N.sqrt(cov[-1])
+
+    def y(x):
+        return level*b*N.sqrt(x**2/(a*n)+1/n)
+
+    # Top values of error bar only
+    t = N.array([xvals,y(xvals)])
+    return t
+
 def test_sampling_covariance():
     """
     Test the creation of hyperbolic errors
@@ -18,32 +40,18 @@ def test_sampling_covariance():
     fit = random_pca()
 
     sv = fit.singular_values
+    n = len(fit.arr)
 
-    covariance = sv**2/(len(fit.arr)-1)
+    cov = sv**2/(n-1)
 
     xvals = N.linspace(-100,100,100)
-    n = len(fit.arr)
     level = N.sqrt(chi2.ppf(0.95,n-3))
 
-    # Pick only direction of maximum angular error
-    cov = covariance[1:]
+    # use only direction of maximum angular
+    # variation
+    cov = cov[1:]
 
-    hyp = as_hyperbola(cov)
-    d = N.abs(N.diagonal(hyp)[:-1])
-    hyp_axes = N.sqrt(1/d)
-
-    # Plot hyperbola
-    b = N.sqrt(cov[-1])
-
-    def y(x):
-        return level*b*N.sqrt(x**2/(cov[0]*n)+1/n)
-
-    # Top
-    t = N.array([xvals,y(xvals)])
-    # Btm
-    b = N.array([xvals,-y(xvals)])
-    res1 = (t[0],b[1],t[1])
-
+    res1 = simple_hyperbola(cov,xvals, n, level)
     res2 = hyperbola(
         cov,
         N.identity(2), # rotation
@@ -51,6 +59,8 @@ def test_sampling_covariance():
         xvals,
         n=n,
         level=level)
+    # Get only top values
+    res2 = (res2[0],res2[-1])
 
     for a,b in zip(res1,res2):
         assert N.allclose(a,b)
