@@ -6,9 +6,30 @@ expressions.
 import numpy as N
 from scipy.stats import chi2
 
-from ..display.plot.cov_types.regressions import as_hyperbola, hyperbola
+from ..display.plot.cov_types.regressions import hyperbola
 from ..orientation.test_pca import random_pca
+from ..orientation.pca import augment as augment_matrix
+from .conics import conic
+from ..error import asymptotes
+from .vector import vector, plane
 from . import dot
+
+def as_hyperbola(covariance, axes=None):
+    """
+    Hyperbolic error bounds for axis covariances
+    """
+    if axes is None:
+        axes = N.identity(2)
+    d = 1/covariance
+    d[-1] *= -1
+
+    arr = N.identity(len(d)+1)*-1
+    idx = N.diag_indices(2)
+    arr[idx] = d
+    hyp = conic(arr)
+    R = augment_matrix(axes)
+    hyp = hyp.transform(R)
+    return hyp
 
 def simple_hyperbola(cov, xvals, n=1, level=1):
     """
@@ -92,8 +113,43 @@ def test_hyperbolic_simple():
 
 def test_hyperbolic_projection():
     """
-    Test fully projective mechanisms to get hyperbolic error
+    Fully projective mechanism to get hyperbolic error
     bounds in a generalized way along any axes associated with
     the plane.
     """
-    pass
+    # Convert covariance into hyperbolic axes
+    # using assumptions of normal vectorization
+    hyp_axes = N.copy(covariance)
+    hyp_axes[-1]*=level**2/n
+
+    d = 1/hyp_axes
+    d[-1] *= -1
+    ndim = len(d)
+    arr = N.identity(ndim+1)*-1
+
+    arr[N.diag_indices(ndim)] = d
+    hyp = conic(arr)
+
+    assert hyp.is_hyperbolic()
+
+    # Get hyperbolic slice on yz plane
+    # (corresponding to maximum angle of variation)
+    normal = vector(1,0,0) # normal to plane (direction from viewer)
+    p = plane(normal) # no offset (goes through origin)
+
+    h1, rotation, offset = hyp.slice(p)
+    assert h1.is_hyperbolic()
+
+    d = N.abs(N.diagonal(h1)[:-1])[::-1]
+    axes = N.sqrt(1/d)
+
+    assert N.allclose(axes**2,hyp_axes[1:])
+
+    u = lambda x: N.arcsinh(x/axes[0])
+    y = lambda x: axes[1]*N.cosh(u(x))
+
+    # Test that this is the same as our simple conception
+    y0 = y(xvals)
+    y1 = simple_hyperbola(hyp_axes[1:],xvals)[1]
+    assert N.allclose(y0,y1)
+

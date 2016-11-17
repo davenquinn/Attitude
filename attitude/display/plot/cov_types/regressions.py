@@ -3,30 +3,9 @@ A temporary module for holding regression functions before merging
 with the main regression functionality of the module
 """
 import numpy as N
-from ....geom import dot, conic
-from ....orientation.pca import augment as augment_matrix
-
-def as_hyperbola(covariance, axes=None):
-    """
-    Hyperbolic error bounds for axis covariances
-    """
-    if axes is None:
-        axes = N.identity(2)
-    d = 1/covariance
-    d[-1] *= -1
-
-    arr = N.identity(len(d)+1)*-1
-    idx = N.diag_indices(2)
-    arr[idx] = d
-    hyp = conic(arr)
-    R = augment_matrix(axes)
-    hyp = hyp.transform(R)
-    return hyp
+from ....geom import dot
 
 def hyperbola(cov, axes, means, xvals, n=1,level=1):
-    hyp = as_hyperbola(cov, axes)
-    d = N.abs(N.diagonal(hyp)[:-1])
-    hyp_axes = N.sqrt(1/d)
 
     cov1 = dot(axes.T,cov,axes)
     # Plot hyperbola
