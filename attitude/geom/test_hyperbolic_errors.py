@@ -79,8 +79,16 @@ def test_hyperbolic_simple():
     Convert to hyperbolic axes before projection into
     plane of maximum angular variability
     """
-    pass
+    # Integrate error level at first
+    hyp_axes = N.copy(covariance)
+    hyp_axes[-1]*=level**2/n
+    hyp_axes = hyp_axes[1:]
+    cov = covariance[1:]
 
+    res1 = simple_hyperbola(cov,xvals, n, level)
+    res2 = simple_hyperbola(hyp_axes,xvals)
+    for a,b in zip(res1,res2):
+        assert N.allclose(a,b)
 
 def test_hyperbolic_projection():
     """
