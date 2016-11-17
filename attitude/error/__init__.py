@@ -25,11 +25,9 @@ def hyperbolic_errors(hyp_axes, view_direction=None):
     hyp = conic(arr).dual()
     p = plane(view_direction) # no offset (goes through origin)
     h1 = hyp.slice(p)[0]
-    ax = h1.hyperbolic_axes()
-    ax = N.sqrt(ax)
-    u = lambda x: N.arcsinh(x/ax[0])
-    y = lambda x: ax[1]*N.cosh(u(x))
-    return y
+    ax = N.sqrt(h1.hyperbolic_axes())
+    return lambda x: ax[1]*N.cosh(
+                N.arcsinh(x/ax[0]))
 
 def asymptotes(hyp, n=1000):
     """
