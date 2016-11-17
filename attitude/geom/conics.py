@@ -13,7 +13,7 @@ class Conic(N.ndarray):
         This can be converted into a hyperbola by getting the dual conic
         """
         ax = list(axes)
-        ax[-1] *= -1
+        #ax[-1] *= -1  # Not sure what is going on here...
         arr = N.diag(ax + [-1])
         return arr.view(cls)
 
