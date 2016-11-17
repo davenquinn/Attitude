@@ -10,7 +10,7 @@ from ..display.plot.cov_types.regressions import hyperbola
 from ..orientation.test_pca import random_pca
 from ..orientation.pca import augment as augment_matrix
 from .conics import Conic, conic
-from ..error import asymptotes
+from ..error import hyperbolic_errors
 from .vector import vector, plane
 from . import dot
 
@@ -123,10 +123,10 @@ def test_hyperbolic_projection():
 
     # Get hyperbolic slice on yz plane
     # (corresponding to maximum angle of variation)
-    normal = vector(1,0,0) # normal to plane (direction from viewer)
+    normal = vector(1,0,0) # normal to plane (view direction)
     p = plane(normal) # no offset (goes through origin)
 
-    h1, rotation, offset = hyp.slice(p)
+    h1 = cd.slice(p)[0]
     #assert h1.is_hyperbolic()
 
     # Not sure why we need to reverse array
@@ -142,5 +142,7 @@ def test_hyperbolic_projection():
     # Test that this is the same as our simple conception
     y0 = y(xvals)
     y1 = simple_hyperbola(hyp_axes[1:],xvals)[1]
+    y2 = hyperbolic_errors(N.diag(hyp_axes),normal)(xvals)
     assert N.allclose(y0,y1)
+    assert N.allclose(y0,y2)
 

@@ -35,6 +35,10 @@ class Conic(N.ndarray):
         _ = ell.solve(v)
         return N.allclose(_,0) if shell_only else _ <= 0
 
+    def hyperbolic_axes(self):
+        d = N.abs(N.diagonal(self)[:-1])[::-1]
+        return 1/d
+
     def major_axes(ell):
         """
         Gets major axes of ellipsoids

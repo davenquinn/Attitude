@@ -2,9 +2,34 @@ from __future__ import division
 
 import numpy as N
 
-from attitude.geom.util import dot
-from attitude.geom.vector import vector
-from attitude.geom.conics import conic
+from ..geom.util import dot
+from ..geom.vector import vector, plane
+from ..geom.conics import Conic, conic
+
+def hyperbolic_errors(hyp_axes, view_direction=None):
+    """
+    Returns a function that can be used to create a view of the
+    hyperbolic error ellipse from a specific direction.
+
+    This creates a hyperbolic quadric and slices it to form a conic
+    on a 2d cartesian plane aligned with the requested direction.
+
+    A function is returned that takes x values (distance along nominal
+    line) and returns y values (width of error hyperbola)
+    """
+    if view_direction is None:
+        view_direction = vector(1,0,0)
+
+    arr = N.identity(4)*-1
+    arr[:-1,:-1] = hyp_axes
+    hyp = conic(arr).dual()
+    p = plane(view_direction) # no offset (goes through origin)
+    h1 = hyp.slice(p)[0]
+    ax = h1.hyperbolic_axes()
+    ax = N.sqrt(ax)
+    u = lambda x: N.arcsinh(x/ax[0])
+    y = lambda x: ax[1]*N.cosh(u(x))
+    return y
 
 def asymptotes(hyp, n=1000):
     """
@@ -16,3 +41,4 @@ def asymptotes(hyp, n=1000):
     _ = N.ones(len(u))
     angles = N.array([N.cos(u),N.sin(u),_]).T
     return dot(angles,hyp[:-1,:-1])
+
