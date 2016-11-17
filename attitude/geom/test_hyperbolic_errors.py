@@ -134,8 +134,6 @@ def test_hyperbolic_projection():
     # conic axes
     c1 = Conic.from_axes(hyp_axes)
     cd = c1.dual()
-    # Not sure why this works, but it does
-    cd[-2,-2] *= -1
     assert cd.is_hyperbolic()
     assert N.allclose(hyp, cd)
     assert hyp.is_hyperbolic()

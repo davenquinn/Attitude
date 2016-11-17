@@ -13,6 +13,7 @@ class Conic(N.ndarray):
         This can be converted into a hyperbola by getting the dual conic
         """
         ax = list(axes)
+        ax[-1] *= -1
         arr = N.diag(ax + [-1])
         return arr.view(cls)
 
@@ -147,6 +148,8 @@ class Conic(N.ndarray):
         """
         The inverse conic that represents the bundle
         of lines tangent to this conic.
+
+        Conics and their duals, p 159
         """
         return N.linalg.inv(self)
 
