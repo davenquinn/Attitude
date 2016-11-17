@@ -6,6 +6,16 @@ from .util import dot
 from .vector import vector, augment, Plane, angle
 
 class Conic(N.ndarray):
+    @classmethod
+    def from_axes(cls,axes):
+        """
+        Get axis-aligned elliptical conic from axis lenths
+        This can be converted into a hyperbola by getting the dual conic
+        """
+        ax = list(axes)
+        arr = N.diag(ax + [-1])
+        return arr.view(cls)
+
     def center(conic):
         # (https://en.wikipedia.org/wiki/Matrix_representation_of_conic_sections#Center)
         ec = N.linalg.inv(conic[:-1,:-1])

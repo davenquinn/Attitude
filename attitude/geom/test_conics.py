@@ -111,6 +111,7 @@ def test_conic():
         _ = angle(d,vector(1,0,0))
         assert same(N.degrees(_),30)
 
+    # It's a circle, so neither elliptical or hyperbolic
     assert ell.dual().is_hyperbolic()
 
     # Cone of tangency

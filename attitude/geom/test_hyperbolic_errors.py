@@ -9,7 +9,7 @@ from scipy.stats import chi2
 from ..display.plot.cov_types.regressions import hyperbola
 from ..orientation.test_pca import random_pca
 from ..orientation.pca import augment as augment_matrix
-from .conics import conic
+from .conics import Conic, conic
 from ..error import asymptotes
 from .vector import vector, plane
 from . import dot
@@ -130,6 +130,14 @@ def test_hyperbolic_projection():
     arr[N.diag_indices(ndim)] = d
     hyp = conic(arr)
 
+    # Check if we can get to this from
+    # conic axes
+    c1 = Conic.from_axes(hyp_axes)
+    cd = c1.dual()
+    # Not sure why this works, but it does
+    cd[-2,-2] *= -1
+    assert cd.is_hyperbolic()
+    assert N.allclose(hyp, cd)
     assert hyp.is_hyperbolic()
 
     # Get hyperbolic slice on yz plane
@@ -140,6 +148,8 @@ def test_hyperbolic_projection():
     h1, rotation, offset = hyp.slice(p)
     assert h1.is_hyperbolic()
 
+    # Not sure why we need to reverse array
+    # but it seems to work
     d = N.abs(N.diagonal(h1)[:-1])[::-1]
     axes = N.sqrt(1/d)
 
