@@ -142,7 +142,7 @@ def test_hyperbolic_projection():
     # Test that this is the same as our simple conception
     y0 = y(xvals)
     y1 = simple_hyperbola(hyp_axes[1:],xvals)[1]
-    y2 = hyperbolic_errors(N.diag(hyp_axes),normal)(xvals)
+    y2 = hyperbolic_errors(N.diag(hyp_axes),xvals,normal)[2][1]
     assert N.allclose(y0,y1)
     assert N.allclose(y0,y2)
 
