@@ -11,6 +11,7 @@ from ..orientation.test_pca import random_pca
 from ..orientation.pca import augment as augment_matrix
 from .conics import Conic, conic
 from ..error import hyperbolic_errors
+from ..error.axes import sampling_axes
 from .vector import vector, plane
 from . import dot
 
@@ -147,10 +148,15 @@ def test_hyperbolic_projection():
     assert N.allclose(y0,y1)
     assert N.allclose(y0,y2)
 
-def test_minimum_variation():
+def test_sampling_covariance():
     hyp_axes = covariance.copy()
     hyp_axes[-1]*=level**2/n
+    a = sampling_axes(fit)
+    N.allclose(a,hyp_axes)
 
+
+def test_minimum_variation():
+    hyp_axes = sampling_axes(fit)
     hax2 = N.delete(hyp_axes,1,0)
 
     res1 = simple_hyperbola(hax2,xvals)[1]

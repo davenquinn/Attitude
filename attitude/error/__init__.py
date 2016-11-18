@@ -35,7 +35,8 @@ def hyperbolic_errors(hyp_axes, xvals,
 
     ax1 = dot(axes,transformation,axes.T)
     #ax1 = transformation[:2,:2]
-    assert len(ax1) == 2
+    #ax1 = dot(transformation,axes[0])[1:]
+    #print(ax1)
 
     p = plane(n_) # no offset (goes through origin)
     h1 = hyp.slice(p, axes=axes)[0]
@@ -68,4 +69,26 @@ def asymptotes(hyp, n=1000):
     _ = N.ones(len(u))
     angles = N.array([N.cos(u),N.sin(u),_]).T
     return dot(angles,hyp[:-1,:-1])
+
+class ErrorHyperbola(object):
+    """
+    A class to simplify plotting and animation of hyperbolic error
+    areas that are orthogonal to the fitted plane.
+    `ax.fill_between` cannot be used for these (unless
+    the plane is flat), because the coordinate system
+    is rotated.
+    """
+    def __init__(self, data=None,**kw):
+        #self.n, = ax.plot([],[], '-', **kw)
+        patch = Polygon([[0,0]], **kw)
+        self.poly = ax.add_patch(patch)
+        if data is not None:
+            self.set_data(data)
+
+    def set_data(self, n):
+        #self.n.set_data(n[0][0],n[0][1])
+        coords = N.concatenate((n[1],n[2][:,::-1]),axis=1).T
+        self.poly.set_xy(coords)
+        #self.b.set_data(n[1][0],n[1][1])
+        #self.t.set_data(n[2][0],n[2][1])
 
