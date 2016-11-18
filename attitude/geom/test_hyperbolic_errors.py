@@ -142,7 +142,20 @@ def test_hyperbolic_projection():
     # Test that this is the same as our simple conception
     y0 = y(xvals)
     y1 = simple_hyperbola(hyp_axes[1:],xvals)[1]
-    y2 = hyperbolic_errors(N.diag(hyp_axes),xvals,normal)[2][1]
+    axes = N.array([[0,1,0],[0,0,1]])
+    y2 = hyperbolic_errors(N.diag(hyp_axes),xvals, axes=axes)[2][1]
     assert N.allclose(y0,y1)
     assert N.allclose(y0,y2)
+
+def test_minimum_variation():
+    hyp_axes = covariance.copy()
+    hyp_axes[-1]*=level**2/n
+
+    hax2 = N.delete(hyp_axes,1,0)
+
+    res1 = simple_hyperbola(hax2,xvals)[1]
+    axes = N.array([[1,0,0],[0,0,1]])
+    res2 = hyperbolic_errors(N.diag(hyp_axes),xvals,axes=axes)
+    for a,b in zip(res1,res2[2][1]):
+        assert N.allclose(a,b)
 

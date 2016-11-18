@@ -36,7 +36,7 @@ class Conic(N.ndarray):
         return N.allclose(_,0) if shell_only else _ <= 0
 
     def hyperbolic_axes(self):
-        d = N.abs(N.diagonal(self)[:-1])[::-1]
+        d = N.abs(N.diagonal(self)[:-1])
         return 1/d
 
     def major_axes(ell):
@@ -107,7 +107,8 @@ class Conic(N.ndarray):
         return v[:3]/v[3]
 
     def slice(self, plane, **kwargs):
-        if not kwargs.pop('axes',None):
+        axes = kwargs.pop('axes',None)
+        if axes is None:
             n = plane.normal()
             # Two vectors in plane
             v1 = N.cross(n,vector(0,1,0))
