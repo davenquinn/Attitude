@@ -1,6 +1,7 @@
 from __future__ import division
 
 import numpy as N
+from matplotlib.patches import Polygon
 
 from ..geom.util import dot, augment_tensor
 from ..geom.vector import vector, plane
@@ -78,7 +79,7 @@ class ErrorHyperbola(object):
     the plane is flat), because the coordinate system
     is rotated.
     """
-    def __init__(self, data=None,**kw):
+    def __init__(self, ax, data=None,**kw):
         #self.n, = ax.plot([],[], '-', **kw)
         patch = Polygon([[0,0]], **kw)
         self.poly = ax.add_patch(patch)
