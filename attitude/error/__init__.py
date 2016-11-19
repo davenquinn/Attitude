@@ -7,6 +7,25 @@ from ..geom.util import dot, augment_tensor
 from ..geom.vector import vector, plane, angle
 from ..geom.conics import Conic, conic
 
+def apparent_dip_correction(axes):
+    """
+    Produces a rotation matrix that
+    rotates a dataset to correct for apparent dip
+    """
+    a1 = axes[0].copy()
+    a1[-1] = 0
+    cosa = angle(axes[0],a1,cos=True)
+    _ = 1-cosa**2
+    if _ > 1e-12:
+        sina = N.sqrt(_)
+        # Construct rotation matrix
+        R= N.array([[cosa,sina],[-sina,cosa]])
+    else:
+        # Small angle, don't bother
+        # (small angles can lead to spurious results)
+        R = N.identity(2)
+    return R
+
 def hyperbolic_errors(hyp_axes, xvals,
                       transformation=None, axes=None, means=None):
     """
@@ -33,21 +52,6 @@ def hyperbolic_errors(hyp_axes, xvals,
     hyp = hyp.transform(augment_tensor(transformation))
 
     n_ = N.cross(axes[0],axes[1])
-
-    ax1 = dot(axes,transformation,axes.T)
-    #ax1 = transformation[:2,:2]
-    #ax1 = dot(transformation,axes[0])[1:]
-    a1 = axes[0].copy()
-    a1[-1] = 0
-    a = angle(axes[0],a1)
-    if a > 1e-6:
-        # Construct rotation matrix
-        ax1 = N.array([[N.cos(a),N.sin(a)],[-N.sin(a),N.cos(a)]])
-    else:
-        # Small angle, don't bother
-        # (small angles can lead to spurious results)
-        ax1 = N.identity(2)
-
     p = plane(n_) # no offset (goes through origin)
     h1 = hyp.slice(p, axes=axes)[0]
 
@@ -58,6 +62,7 @@ def hyperbolic_errors(hyp_axes, xvals,
     vals = N.array([xvals,yvals]).transpose()
     nom = N.array([xvals,N.zeros(xvals.shape)]).transpose()
 
+    ax1 = apparent_dip_correction(axes)
     # Top
     t = dot(vals,ax1).T+means[:,N.newaxis]
     # Btm
