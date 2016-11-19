@@ -4,7 +4,7 @@ import numpy as N
 from matplotlib.patches import Polygon
 
 from ..geom.util import dot, augment_tensor
-from ..geom.vector import vector, plane
+from ..geom.vector import vector, plane, angle
 from ..geom.conics import Conic, conic
 
 def hyperbolic_errors(hyp_axes, xvals,
@@ -37,7 +37,16 @@ def hyperbolic_errors(hyp_axes, xvals,
     ax1 = dot(axes,transformation,axes.T)
     #ax1 = transformation[:2,:2]
     #ax1 = dot(transformation,axes[0])[1:]
-    #print(ax1)
+    a1 = axes[0].copy()
+    a1[-1] = 0
+    a = angle(axes[0],a1)
+    if a > 1e-6:
+        # Construct rotation matrix
+        ax1 = N.array([[N.cos(a),N.sin(a)],[-N.sin(a),N.cos(a)]])
+    else:
+        # Small angle, don't bother
+        # (small angles can lead to spurious results)
+        ax1 = N.identity(2)
 
     p = plane(n_) # no offset (goes through origin)
     h1 = hyp.slice(p, axes=axes)[0]
