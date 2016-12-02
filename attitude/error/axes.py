@@ -25,7 +25,7 @@ def noise_covariance(fit, dof=2):
     From Faber, 1993
     """
     sv = fit.singular_values
-    v = sv[2]/(fit.n-dof)
+    v = sv[2]/(fit.n-dof)/4
     return (2*sv*v)**2
 
 def apply_error_level(cov, level):
