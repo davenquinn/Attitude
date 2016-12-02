@@ -25,6 +25,8 @@ def test_conic_errors():
     # Get hyperbolic slice on xz plane
     n = vector(0,1,0)
     p = plane(n)
+
+    # Make sure plane is realistic
     assert same(p.normal(),n)
     assert same(p.offset(),vector(0,0,0))
 

@@ -23,7 +23,7 @@ def axis_covariance(fit, do_bootstrap=False, **kwargs):
 
     width = kwargs.pop("width", None)
     if width is None:
-        max = deskewed_data.max(axis=0)[1].max()
+        max = N.abs(deskewed_data).max(axis=0)[1].max()
         width = 2.2*max
 
     v = width/2

@@ -6,6 +6,17 @@ from .util import dot
 from .vector import vector, augment, Plane, angle
 
 class Conic(N.ndarray):
+    @classmethod
+    def from_axes(cls,axes):
+        """
+        Get axis-aligned elliptical conic from axis lenths
+        This can be converted into a hyperbola by getting the dual conic
+        """
+        ax = list(axes)
+        #ax[-1] *= -1  # Not sure what is going on here...
+        arr = N.diag(ax + [-1])
+        return arr.view(cls)
+
     def center(conic):
         # (https://en.wikipedia.org/wiki/Matrix_representation_of_conic_sections#Center)
         ec = N.linalg.inv(conic[:-1,:-1])
@@ -23,6 +34,10 @@ class Conic(N.ndarray):
         v = augment(p)
         _ = ell.solve(v)
         return N.allclose(_,0) if shell_only else _ <= 0
+
+    def hyperbolic_axes(self):
+        d = N.abs(N.diagonal(self)[:-1])
+        return 1/d
 
     def major_axes(ell):
         """
@@ -92,7 +107,8 @@ class Conic(N.ndarray):
         return v[:3]/v[3]
 
     def slice(self, plane, **kwargs):
-        if not kwargs.pop('axes',None):
+        axes = kwargs.pop('axes',None)
+        if axes is None:
             n = plane.normal()
             # Two vectors in plane
             v1 = N.cross(n,vector(0,1,0))
@@ -137,6 +153,8 @@ class Conic(N.ndarray):
         """
         The inverse conic that represents the bundle
         of lines tangent to this conic.
+
+        Conics and their duals, p 159
         """
         return N.linalg.inv(self)
 

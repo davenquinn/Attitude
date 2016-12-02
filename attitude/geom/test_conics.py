@@ -11,7 +11,7 @@ from numpy.linalg import norm
 
 from attitude.geom.util import dot
 from attitude.geom.vector import vector, augment, column, angle
-from attitude.geom.conics import conic
+from attitude.geom.conics import conic, Conic
 
 same = N.allclose
 
@@ -124,3 +124,10 @@ def test_conic():
     # Likely only works on ellipsoids
 
     assert same(cone.center(),origin)
+
+def test_conic_axes():
+    # Create ellipsoid
+    ell = Conic.from_axes([500,200,100])
+    assert ell.is_elliptical()
+    assert not ell.dual().is_hyperbolic() # Degenerate case
+    assert ell.translate(vector(0,0,1)).dual().is_hyperbolic()

@@ -180,3 +180,13 @@ def test_grouped_plane():
         noise_covariance,
         N.diagonal(fit._covariance_matrix('noise')))
 
+def test_singular_values():
+    """
+    Singular values should represent the standard deviations along major axes of the
+    dataset, scaled by a constant.
+    """
+    o = random_pca()
+    # Presumably, an array of constants
+    c = o.singular_values/o.rotated().std(axis=0)
+    # Check this
+    assert N.allclose(c/c[0],N.ones(c.shape))
