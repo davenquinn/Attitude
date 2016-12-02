@@ -48,6 +48,7 @@ def hyperbolic_errors(hyp_axes, xvals,
     if axes is None:
         axes = N.array([[0,1,0],[0,0,1]])
 
+    # Transform ellipsoid to dual hyperboloid
     hyp = conic(arr).dual()
     hyp = hyp.transform(augment_tensor(transformation))
 
