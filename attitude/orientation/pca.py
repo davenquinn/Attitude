@@ -112,7 +112,7 @@ class PCAOrientation(BaseOrientation):
         """
         pass
 
-    def __init__(self, arr, axes=None, weights=None):
+    def __init__(self, arr, weights=None,  axes=None):
         """
         Perform PCA on on an input array
 
@@ -131,7 +131,12 @@ class PCAOrientation(BaseOrientation):
         Not dividing by std leaves us with an eigen-analysis of
         the *covariance matrix*, while dividing
         by it leaves us with an eigen-analysis
-        of the *correlation matrix*
+        of the *correlation matrix*.
+
+        Applying non-equal weights will necessarily have an impact
+        on the true orthagonality of the axes of error in the dataset,
+        which may have an impact on plotting errors in Cartesian space.
+        For now, this is ignore.
         """
         # For principal components, data needs
         # to be pre-processed to have zero mean
@@ -152,26 +157,23 @@ class PCAOrientation(BaseOrientation):
         self.__compute_derived_parameters()
 
     def __run_svd(self):
-        # Note: it might be desirable to further
-        # standardize the data by dividing by
-        # the standard deviation as such
-        # self.arr /= self.arr.std(axis=0)
-        # but this is not clear. Not dividing by
-        # std leaves us with an eigen-analysis of
-        # the *covariance matrix*, while dividing
-        # by it leaves us with an eigen-analysis
-        # of the *correlation matrix*
-
         # Get singular values
         log.debug("Running singular value decomposition")
 
-        ### Apply weights here ###
+        ### Apply factor weights
+        # We should be careful that they aren't too
+        # large so we don't run into numerical difficulties
+        w = self.weights[N.newaxis,:]
+        arr = self.arr/w
 
-        res = N.linalg.svd(self.arr,
+        res = N.linalg.svd(arr,
             full_matrices=False)
 
-        ### Divide by weights ###
         self._U, s, V = res
+
+        ### Divide by weights ###
+        V *= w
+        V /= N.linalg.norm(V,axis=1)
 
         self.singular_values = s
         self.V = V
