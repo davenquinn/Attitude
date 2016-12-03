@@ -112,14 +112,46 @@ class PCAOrientation(BaseOrientation):
         """
         pass
 
-    def __init__(self, arr, axes=None):
-        """ Requires an object implementing the
-            Attitude interface
+    def __init__(self, arr, axes=None, weights=None):
+        """
+        Perform PCA on on an input array
+
+        :param axes: Precalculated axes for PCA fit
+        :param weights: Relative axis loadings
+
+        Relative loadings for individual axes of the input dataset.
+        These will be applied transparently during the calculation
+        of the PCA. This allows arbitrary standardization of the
+        data for differently-scaled errors along coordinate axes.
+
+        A common use of factor weightings is to standardize differently-
+        scaled variables. This is accomplished by dividing by the standard
+        deviation as such:
+        `self.arr /= self.arr.std(axis=0)`
+        Not dividing by std leaves us with an eigen-analysis of
+        the *covariance matrix*, while dividing
+        by it leaves us with an eigen-analysis
+        of the *correlation matrix*
         """
         # For principal components, data needs
         # to be pre-processed to have zero mean
         self.arr = centered(arr)
 
+        # Factor loadings
+        if weights is None:
+            weights = N.ones(self.arr.shape[1])
+        self.weights = weights
+
+        self.n = len(self.arr)
+
+        if axes is None:
+            self.__run_svd()
+        else:
+            self.__load_saved_fit(axes)
+
+        self.__compute_derived_parameters()
+
+    def __run_svd(self):
         # Note: it might be desirable to further
         # standardize the data by dividing by
         # the standard deviation as such
@@ -130,33 +162,39 @@ class PCAOrientation(BaseOrientation):
         # by it leaves us with an eigen-analysis
         # of the *correlation matrix*
 
-        self.n = len(self.arr)
+        # Get singular values
+        log.debug("Running singular value decomposition")
 
-        if axes is not None:
-            log.debug("Loaded PCA from saved axes")
-            ## Get from axes if these are defined
-            # In this case, axes must be equivalent
-            # to self.axes*self.singular_values
-            s = N.linalg.norm(axes,axis=0)
-            V = axes/s
-            # Don't compute U unless we have to
-            self._U = None
+        ### Apply weights here ###
 
-        else:
-            # Get singular values
-            log.debug("Running singular value decomposition")
-            res = N.linalg.svd(self.arr,
-                full_matrices=False)
-            self._U, s, V = res
+        res = N.linalg.svd(self.arr,
+            full_matrices=False)
+
+        ### Divide by weights ###
+        self._U, s, V = res
 
         self.singular_values = s
-        self.axes = V
-
-        self.sigma = N.diag(self.singular_values)
         self.V = V
 
-        # Similar to normal vector, but not rotated into
-        # Cartesian frame
+    def __load_saved_fit(self, axes):
+
+        # Saves us the computationally expensive
+        # step of running a SVD
+        log.debug("Loaded PCA from saved axes")
+        ## Get from axes if these are defined
+        # In this case, axes must be equivalent
+        # to self.axes*self.singular_values
+        s = N.linalg.norm(axes,axis=0)
+        self.V = axes/s
+        # Don't compute U unless we have to
+        self._U = None
+        self.singular_values = s
+
+    def __compute_derived_parameters(self):
+        self.axes = self.V
+        self.sigma = N.diag(self.singular_values)
+
+        # Normal vector in axis-aligned coordinate frame
         self.offset = N.cross(self.sigma[0],self.sigma[1])
 
         self.normal = self.axes[2]
@@ -175,6 +213,9 @@ class PCAOrientation(BaseOrientation):
 
     @property
     def U(self):
+        """
+        Property to support lazy evaluation of residuals
+        """
         if self._U is None:
             sinv = N.diag(1/self.singular_values)
             self._U = dot(self.arr,self.V.T,sinv)
