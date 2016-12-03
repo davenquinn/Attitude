@@ -172,8 +172,9 @@ class PCAOrientation(BaseOrientation):
         self._U, s, V = res
 
         ### Divide by weights ###
-        V *= w
-        V /= N.linalg.norm(V,axis=1)
+        #V *= w
+        #V /= N.linalg.norm(V,axis=1)
+        s *= self.weights
 
         self.singular_values = s
         self.V = V
