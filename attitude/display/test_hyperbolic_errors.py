@@ -6,7 +6,7 @@ expressions.
 import numpy as N
 from scipy.stats import chi2
 
-from .plot.cov_types.regressions import as_hyperbola, hyperbola
+from .plot.cov_types.regressions import hyperbola
 from ..orientation.test_pca import random_pca
 from ..geom import dot
 
