@@ -30,30 +30,30 @@ def bootstrap_ci(deskewed_data):
 def error_comparison(fit, do_bootstrap=False, **kwargs):
 
     deskewed_data = fit.rotated()
-
     fig, ax = subplots()
 
-    arr = fit.arr
+    width = kwargs.pop("width", None)
+    if width is None:
+        max = N.abs(deskewed_data[0]).max()
+        width = 2.5*max
+    height = kwargs.pop('height',None)
+    if height is None:
+        height = width/25
 
-    sv = fit.singular_values
-    covariance = sv**2/(len(arr)-1) # naive covariance for each axis, taking into account number of samples
-    v = N.var(deskewed_data,axis=0)[-1]
-    v =sv[2]/(2*(len(arr)-2))
-    covariance2 = 4*sv**2*v # taking into account measurement noise
-    covariance2 /= covariance2.sum()
-    covariance2 *= v
-
-    max = N.abs(deskewed_data).max(axis=0)[1].max()
-    width = 2.2*max
+    aspect_ratio = kwargs.pop("aspect_ratio",None)
+    if aspect_ratio is not None:
+        ax.set_aspect(aspect_ratio)
 
     def bounds(dim):
         v = dim/2
         return (-v,v)
 
-    v = bounds(1.8*max)
-    xvals = N.linspace(*v,401)
+    w = bounds(width)
+    xvals = N.linspace(*w,401)
+    ax.set_xlim(*w)
+    ax.set_ylim(*bounds(height))
 
-    ax.plot(v,[0,0],color='#888888', label='Nominal fit')
+    ax.plot(w,[0,0],color='#888888', label='Nominal fit')
 
     ax.plot(*deskewed_data[:,1:].T, '.', color='#aaaaaa', zorder=-5)
 
