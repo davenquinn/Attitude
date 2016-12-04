@@ -4,6 +4,28 @@ from scipy.stats import chi2
 
 from ..orientation import Orientation
 from ..display.plot.cov_types import hyperbola, bootstrap_noise, augment, ci
+from ..error.axes import sampling_axes, noise_axes
+from ..geom.vector import vector
+from .hyperbola import HyperbolicErrors
+
+def bootstrap_ci(deskewed_data):
+    # Bootstrap with noise std greater of 1m or the standard deviation of residuals
+    # (in this case about 1m)
+    def func(arr):
+        means = arr.mean(axis=0)
+        arr -= means
+        f = Orientation(arr)
+        al = f.axes[1][1:]
+        xc = xvals - means[1]
+        yc = al[1]/al[0]*xc
+        y = yc + means[2]
+        return y
+
+    s = deskewed_data[:,2].std()
+    if s < 1:
+        s = 1
+    yhat_boots = bootstrap_noise(deskewed_data, func, std=s)
+    return ci(yhat_boots,axis=0)
 
 def error_comparison(fit, do_bootstrap=False, **kwargs):
 
@@ -21,72 +43,40 @@ def error_comparison(fit, do_bootstrap=False, **kwargs):
     covariance2 /= covariance2.sum()
     covariance2 *= v
 
-    width = kwargs.pop("width", None)
-    if width is None:
-        max = N.abs(deskewed_data).max(axis=0)[1].max()
-        width = 2.2*max
+    max = N.abs(deskewed_data).max(axis=0)[1].max()
+    width = 2.2*max
 
-    v = width/2
-    v_ = (-v,v)
-    xvals = N.linspace(*v_,401)
+    def bounds(dim):
+        v = dim/2
+        return (-v,v)
 
-    def func(arr):
-        means = arr.mean(axis=0)
-        arr -= means
-        f = Orientation(arr)
-        al = f.axes[1][1:]
-        xc = xvals - means[1]
-        yc = al[1]/al[0]*xc
-        y = yc + means[2]
-        return y
+    v = bounds(1.8*max)
+    xvals = N.linspace(*v,401)
 
-    ax.plot(v_,[0,0],color='dodgerblue', label='PCA')
-
-
-    def hyperbolic_errors(cov, **kwargs):
-        # Make into a 95% CI
-        #http://stats.stackexchange.com/questions/164741/how-to-find-the-maximum-axis-of-ellipsoid-given-the-covariance-matrix
-        # scaling determined by chi2 distribution
-        hyp_default = dict(
-            n=1,
-            level=1)
-        hyp_kws = {k: kwargs.pop(k,v) for k,v in hyp_default.items()}
-        #cov = N.sqrt(cov)
-        cov = cov[1:]
-        hyp = hyperbola(cov,N.identity(2),N.array([0,0]),xvals,**hyp_kws)
-        ax.fill_between(*hyp,**kwargs)
+    ax.plot(v,[0,0],color='#888888', label='Nominal fit')
 
     ax.plot(*deskewed_data[:,1:].T, '.', color='#aaaaaa', zorder=-5)
 
-    hyperbolic_errors(
-        sv,
-        color='#aaaaaa',
-        alpha=0.15,
-        label="Simple variance",
-        level=1)
-    n = len(arr)
-    hyperbolic_errors(
-        covariance,
-        n=n,
-        level=N.sqrt(chi2.ppf(0.95,n-3)),
-        color='dodgerblue',
-        alpha=0.15,
-        label="Sampling-based")
-    hyperbolic_errors(
-        covariance2,
-        n=1,
-        level=N.sqrt(chi2.ppf(0.95,3)),
-        color='dodgerblue',alpha=0.15,
-        label="Noise-based", linestyle="--")
+    l = 1.2*max
+    ax.set_xlim(*bounds(1.5*max))
+    ax.set_aspect(10)
+
+    # axes correspond to max angular error
+    axes = N.array([vector(0,1,0),vector(0,0,1)])
+
+    err = HyperbolicErrors(fit.singular_values,xvals,axes=axes)
+    err.plot(ax, fc='#cccccc', alpha=0.3, label="Variance")
+
+    hyp = sampling_axes(fit)
+    err = HyperbolicErrors(hyp,xvals,axes=axes)
+    err.plot(ax, fc='#ffcccc', alpha=0.3, label="Sampling-based")
+
+    hyp = noise_axes(fit)
+    err = HyperbolicErrors(hyp,xvals,axes=axes)
+    err.plot(ax, fc='dodgerblue', alpha=0.3, label="Noise-based")
 
     if do_bootstrap:
-        # Bootstrap with noise std greater of 1m or the standard deviation of residuals
-        # (in this case about 1m)
-        s = deskewed_data[:,2].std()
-        if s < 1:
-            s = 1
-        yhat_boots = bootstrap_noise(deskewed_data, func, std=s)
-        err_bands = ci(yhat_boots,axis=0)
+        err_bands = bootstrap_ci(deskewed_data)
         ax.fill_between(xvals, *err_bands, facecolor="none",edgecolor='blue',
                         alpha=.5, label="Noise bootstrap",linestyle='--')
 
