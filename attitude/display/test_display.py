@@ -71,7 +71,7 @@ def input_data():
         obj.sheet = sheet
         yield obj
 
-def test_javascript_plane():
+def _test_javascript_plane():
     """
     Test plane functions implemented
     in javascript
@@ -86,7 +86,7 @@ def test_javascript_plane():
             sheet=obj.sheet, n=n, adaptive=False)
         assert N.allclose(err,js_err)
 
-def test_javascript_ellipse():
+def _test_javascript_ellipse():
     data = list(input_data())
     output = __coffeescript_plane(data,'ellipse')
     for obj,arr in zip(data,output):
@@ -119,7 +119,7 @@ def test_javascript_ellipse():
         assert N.allclose(err,js_err)
 
 
-def test_grouped_plane():
+def _test_grouped_plane():
     data = list(input_data())
     output = __coffeescript_plane(data,'grouped')
     for obj,arr in zip(data,output):
@@ -127,7 +127,7 @@ def test_grouped_plane():
         for i in ['nominal','upper','lower']:
             assert N.allclose(err[i],N.array(arr[i]))
 
-def test_axis_deconvolution():
+def _test_axis_deconvolution():
     """
     Test that we can recover PCA axes from
     premultiplied representation in javascript
