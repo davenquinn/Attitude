@@ -11,6 +11,7 @@
   },
   "devDependencies": {
     "browserify": "^12.0.1",
+    "chai": "^3.5.0",
     "coffeeify": "^1.2.0",
     "mocha": "^3.1.2",
     "node-sass": "^3.4.2",
