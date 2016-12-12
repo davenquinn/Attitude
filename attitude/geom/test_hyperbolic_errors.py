@@ -144,7 +144,7 @@ def test_hyperbolic_projection():
     y0 = y(xvals)
     y1 = simple_hyperbola(hyp_axes[1:],xvals)[1]
     axes = N.array([[0,1,0],[0,0,1]])
-    y2 = hyperbolic_errors(N.diag(hyp_axes),xvals, axes=axes)[2][1]
+    y2 = hyperbolic_errors(hyp_axes,xvals, axes=axes)[2][1]
     assert N.allclose(y0,y1)
     assert N.allclose(y0,y2)
 
@@ -161,7 +161,7 @@ def test_minimum_variation():
 
     res1 = simple_hyperbola(hax2,xvals)[1]
     axes = N.array([[1,0,0],[0,0,1]])
-    res2 = hyperbolic_errors(N.diag(hyp_axes),xvals,axes=axes)
+    res2 = hyperbolic_errors(hyp_axes,xvals,axes=axes)
     for a,b in zip(res1,res2[2][1]):
         assert N.allclose(a,b)
 

@@ -11,7 +11,6 @@ from matplotlib.gridspec import GridSpec
 from matplotlib.ticker import FuncFormatter, MaxNLocator
 
 from ...geom.vector import vector,plane
-from .pca_aligned import plot_aligned
 
 def current_axes():
     import matplotlib.pyplot as P

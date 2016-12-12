@@ -57,10 +57,6 @@ def error_comparison(fit, do_bootstrap=False, **kwargs):
 
     ax.plot(*deskewed_data[:,1:].T, '.', color='#aaaaaa', zorder=-5)
 
-    l = 1.2*max
-    ax.set_xlim(*bounds(1.5*max))
-    ax.set_aspect(10)
-
     # axes correspond to max angular error
     axes = N.array([vector(0,1,0),vector(0,0,1)])
 

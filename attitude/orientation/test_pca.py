@@ -183,10 +183,21 @@ def test_grouped_plane():
 def test_singular_values():
     """
     Singular values should represent the standard deviations along major axes of the
-    dataset, scaled by a constant.
+    dataset, scaled by the size of the dataset. E.g. they represent the sqrt(sum of deviations)
+    along that axis of the dataset.
+
+    See https://docs.scipy.org/doc/numpy/reference/generated/numpy.std.html for more information
     """
     o = random_pca()
-    # Presumably, an array of constants
-    c = o.singular_values/o.rotated().std(axis=0)
-    # Check this
-    assert N.allclose(c/c[0],N.ones(c.shape))
+
+    # Use average squared deviaion (max. likelihood estimator of variance of
+    # normally distributed variables), uncorrected sample variance
+    stdev = o.rotated().std(axis=0)
+    assert N.allclose(o.singular_values/N.sqrt(o.n),stdev)
+
+    # Using n-1 as the scaling factor results
+    # in an unbiased estimator of variance
+    # in an infinite population.
+    stdev = o.rotated().std(axis=0, ddof=1)
+    assert N.allclose(o.singular_values/N.sqrt(o.n-1),stdev)
+

@@ -9,7 +9,9 @@ from matplotlib.patches import Polygon
 from matplotlib.gridspec import GridSpec
 from matplotlib.ticker import FuncFormatter
 
-from ...geom.vector import vector,plane
+from .hyperbola import HyperbolicErrors
+from ..error.axes import sampling_axes, noise_axes
+from ..geom.vector import vector,plane
 
 log = logging.getLogger(__name__)
 
@@ -73,30 +75,36 @@ def plot_aligned(pca, sparse=True, **kwargs):
 
     colors = ['cornflowerblue','red']
 
-    hyp = pca.as_hyperbola(rotated=False)
-    d = N.abs(N.diagonal(hyp)[:-1])
-    hyp_axes = N.sqrt(1/d)
+    hyp = sampling_axes(pca)
+    vertical = vector(0,0,1)
 
     for title,ax,(a,b),ylabel in zip(titles,axes,
             [(0,1),(0,2),(1,2)],ylabels):
 
         kw = dict(linewidth=2, alpha=0.5)
         bounds = minmax[a]
-        ax.plot(bounds,(0,0), c=colors[a], **kw)
         if b != 2:
+            ax.plot(bounds,(0,0), c=colors[a], **kw)
             ax.plot((0,0),minmax[b], c=colors[b], **kw)
         else:
-            title += ": {:.0f} m".format(lengths[a])
+            ax.plot(bounds,(-10,-10), c=colors[a], **kw)
+            v0 = N.zeros(3)
+            v0[a] = 1
+            axes = N.array([v0,vertical])
 
-            # Plot hyperbola
-            u = lambda x: N.arcsinh(x/hyp_axes[a])
-            y = lambda x: hyp_axes[-1]*N.cosh(u(x))
+            ax_ = (axes@N.diag(hyp)@axes.T).T
+            ax_ = N.sqrt(ax_)
+            l1 = N.linalg.norm(ax_[:-1])
+            l2 = N.linalg.norm(ax_[-1])
+            ang_error = 2*N.degrees(N.arctan2(l2,l1))
+
+            title += ": {:.0f} m long, angular error (95% CI): {:.2f}º".format(lengths[a], ang_error)
+
             bounds = minmax[0]
-            x_ = N.linspace(bounds[0],bounds[1],100)
+            x_ = N.linspace(bounds[0]*1.2,bounds[1]*1.2,100)
 
-            vals = y(x_)
-            ax.plot(x_,vals, color='#aaaaaa',alpha=0.5)
-            ax.plot(x_,-vals, color='#aaaaaa',alpha=0.5)
+            err = HyperbolicErrors(hyp,x_,axes=axes)
+            err.plot(ax, fc='#cccccc', alpha=0.3)
 
         x,y = A[:,a], A[:,b]
         kw = dict(alpha=0.5, zorder=5)
@@ -113,10 +121,16 @@ def plot_aligned(pca, sparse=True, **kwargs):
             transform=ax.transAxes)
         ax.autoscale(tight=True)
         ax.yaxis.set_ticks([])
+        ax.xaxis.set_ticks_position('bottom')
+        if a != 1:
+            pass
+            #ax.xaxis.set_ticks([])
+            #ax.spines['bottom'].set_color('none')
         for spine in ax.spines.values():
             spine.set_visible(False)
 
-    ax.text(0.99,0.99,"Residuals: {:.1f} m".format(lengths[2]),
+
+    ax.text(0.99,0.99,"Max residual: {:.1f} m".format(lengths[2]),
         verticalalignment='bottom',
         ha='right',
         transform=ax.transAxes)
@@ -124,3 +138,4 @@ def plot_aligned(pca, sparse=True, **kwargs):
 
     ax.set_xlabel("Meters")
     return fig
+

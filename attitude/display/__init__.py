@@ -12,7 +12,7 @@ except ImportError:
     from urllib import quote
 
 from .plot import setup_figure, strike_dip, normal,\
-        trend_plunge, error_ellipse, plot_aligned,\
+        trend_plunge, error_ellipse,\
         strike_dip_montecarlo,\
         plane_confidence, error_asymptotes
 from ..orientation import PCAOrientation, LinearOrientation
