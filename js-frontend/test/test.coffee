@@ -7,3 +7,8 @@ describe '`Attitude` python module', ->
       if err?
         done(err)
       else done()
+
+describe 'math module', ->
+  it 'should be importable', ->
+    o = require '../src/math'
+

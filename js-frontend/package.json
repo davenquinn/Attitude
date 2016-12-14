@@ -19,7 +19,7 @@
     "watchify": "^3.6.1"
   },
   "scripts": {
-    "test": "mocha --compilers coffee:coffee-script/register"
+    "test": "./run-tests"
   },
   "repository": {
     "type": "git",

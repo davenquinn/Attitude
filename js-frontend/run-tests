@@ -1,0 +1,3 @@
+#!/bin/zsh
+python -m pytest test/test-runner.py "$@"
+$(npm bin)/mocha --compilers coffee:coffee-script/register
