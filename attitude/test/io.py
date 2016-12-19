@@ -26,7 +26,7 @@ def save_test_plane(name,*arrays):
     Multiple arrays (for grouping, etc.) will
     be saved to the same file.
     """
-    with open(__test_fp(name),'w') as f:
+    with open(__test_fp(name),'wb') as f:
         for i,arr in enumerate(arrays):
             N.savetxt(f, arr)
             if i != len(arrays)-1:
@@ -51,5 +51,5 @@ def load_test_plane(name):
         splits = (StringIO(txt) for txt in __split_text(f))
         arrays = [N.loadtxt(fobj) for fobj in splits]
         if len(arrays) == 1:
-            arrays = array[0]
+            arrays = arrays[0]
     return arrays

@@ -18,6 +18,16 @@ def random_pca(scattered=True):
     arr = N.array(arr).transpose()
     return PCAOrientation(arr)
 
+def test_rotation():
+    """
+    Make sure we can rotate between PCA and global coordinate systems
+    """
+    o = random_pca()
+
+    Mbar = dot(o.arr,o.axes.T)
+    assert N.allclose(Mbar, o.rotated())
+    assert N.allclose(dot(Mbar,o.axes),o.arr)
+
 def test_error_angles():
     """
     Test simplistic formulation of error angle
