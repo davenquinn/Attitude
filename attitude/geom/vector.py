@@ -55,7 +55,7 @@ class Plane(N.ndarray):
         (ax + by + cz + d = 0) where [a,b,c] forms
         the unit normal vector and d is the distance
         to the origin."""
-        return plane/N.linalg.norm(plane[:3])
+        return plane/N.linalg.norm(plane[:-1])
 
     def offset(plane):
         """
@@ -63,11 +63,11 @@ class Plane(N.ndarray):
         origin or an arbitrary point.
         """
         v = plane.hessian_normal()
-        return -N.array(v[:3]*v[3])
+        return -N.array(v[:-1]*v[-1])
 
     def normal(plane):
         v = plane.hessian_normal()
-        return v[:3]
+        return v[:-1]
 
 def plane(normal,offset=0):
     # This only works in Hessian-Normal form

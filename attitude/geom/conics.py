@@ -104,7 +104,7 @@ class Conic(N.ndarray):
         a given conic section.
         """
         v = dot(N.linalg.inv(conic),plane)
-        return v[:3]/v[3]
+        return v[:-1]/v[-1]
 
     def slice(self, plane, **kwargs):
         axes = kwargs.pop('axes',None)

@@ -1,7 +1,7 @@
 d3 = require 'd3'
 turf = require 'turf'
-math = require './math'
-{errorSurface,nominalPlane} = require './functions'
+math = require '../src/math'
+{errorSurface,nominalPlane} = require '../src/functions'
 
 # Test implementations of plane functions in javascript
 mode = process.argv[2]
