@@ -4,8 +4,9 @@ and hyperbolic axes. These all operate in axis-aligned
 space---rotation into global coordinate systems should
 occur after these transformations are applied.
 """
+from __future__ import division
 import numpy as N
-from scipy.stats import chi2
+from scipy.stats import chi2, f
 
 def sampling_covariance(fit):
     """
@@ -18,15 +19,18 @@ def sampling_covariance(fit):
     sv = fit.singular_values
     return 2*sv**2/(fit.n-1)
 
+def sampling_covariance(fit):
+    ev = fit.eigenvalues
+    return N.sqrt(2*ev**2/(fit.n-1))
+
 def noise_covariance(fit, dof=2):
     """
     Covariance taking into account the 'noise covariance' of the data.
     This is technically more realistic for continuously sampled data.
     From Faber, 1993
     """
-    sv = fit.singular_values
-    v = sv[2]/N.sqrt(fit.n-dof)
-    return (2*sv/(fit.n-1)*v)**2
+    ev = fit.eigenvalues
+    return N.sqrt(4*ev*ev[2]/(fit.n-dof))
 
 def apply_error_level(cov, level):
     """
@@ -73,3 +77,21 @@ def angular_errors(hyp_axes):
     """
     return tuple(__angular_error(hyp_axes, i)
             for i in hyp_axes[:-1])
+
+### Sampling axes from Jolliffe, 1980 v2 pp50-52
+
+def jolliffe_axes(fit, confidence_level=0.95, dof=2):
+    n = fit.n
+    lam = fit.eigenvalues
+    z = chi2.ppf(confidence_level, n-dof)
+    tau = N.sqrt(2/(n-1))
+    return lam/N.sqrt(1+tau*z)
+
+def francq_axes(fit, confidence_level=0.95):
+    n = fit.n
+    s = fit.singular_values
+    h = s/N.sqrt(n)
+    # Use f statistic instead of chi2 (ratio of two chi2 variables)
+    F = f.ppf(confidence_level, 2, n-2)
+    h[-1] *= N.sqrt(2*F/(n-2))
+    return h

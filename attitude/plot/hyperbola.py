@@ -18,6 +18,7 @@ class HyperbolicErrors(object):
             self.data = None
 
     def plot(self, ax,**kw):
+        kw['edgecolor'] = kw.get("fc","black")
         #self.n, = ax.plot([],[], '-', **kw)
         patch = Polygon([[0,0]], **kw)
         self.poly = ax.add_patch(patch)

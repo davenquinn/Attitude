@@ -224,6 +224,10 @@ class PCAOrientation(BaseOrientation):
             self._U = dot(self.arr,self.V.T,sinv)
         return self._U
 
+    @property
+    def eigenvalues(self):
+        return self.singular_values**2/(self.n-1)
+
     def rotated(self):
         """
         Returns a dataset 'despun' so that
