@@ -1,6 +1,6 @@
 from matplotlib.patches import Polygon
 import numpy as N
-from ..error import hyperbolic_errors
+from ..error.hyperbola import hyperbolic_errors
 
 class HyperbolicErrors(object):
     """
@@ -17,8 +17,20 @@ class HyperbolicErrors(object):
         else:
             self.data = None
 
+    def __setup_hyperbola(self, *args,**kwargs):
+        self.args = args
+        self.kwargs = kwargs
+
+
+    def __construct_errors(self):
+        pass
+
+
     def plot(self, ax,**kw):
-        kw['edgecolor'] = kw.get("fc","black")
+        _ec = kw.get("fc","black")
+        _ec = kw.get("facecolor",_ec)
+        _ec = kw.pop("ec",_ec)
+        kw['edgecolor'] = kw.pop("edgecolor",_ec)
         #self.n, = ax.plot([],[], '-', **kw)
         patch = Polygon([[0,0]], **kw)
         self.poly = ax.add_patch(patch)
