@@ -37,7 +37,7 @@ class Conic(N.ndarray):
 
     def hyperbolic_axes(self):
         d = N.abs(N.diagonal(self)[:-1])
-        return 1/d
+        return d**-1
 
     def major_axes(ell):
         """

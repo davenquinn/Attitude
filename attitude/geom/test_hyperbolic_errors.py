@@ -165,3 +165,16 @@ def test_minimum_variation():
     for a,b in zip(res1,res2[2][1]):
         assert N.allclose(a,b)
 
+def test_error_projection():
+    """
+    Test projection of errors into error ellipsoid and
+    hyperboloid, and recovery of angular errors
+    """
+    axial_lengths = N.array([500,200,10])
+    errors = N.array([30,15,10])
+
+    axes = N.identity(3)*axial_lengths
+    normal = N.cross(axes[0],axes[1])
+
+    c = Conic.from_axes(axial_lengths)
+    pass

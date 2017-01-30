@@ -39,6 +39,23 @@ def apply_error_level(cov, level):
     cov[-1]*=level
     return cov
 
+def apply_error_scaling_old(nominal,errors):
+    """
+    This method does not account for errors on the
+    in-plane axes
+    """
+    try:
+        nominal[2] = errors[2]
+    except IndexError:
+        # We're dealing with a scalar
+        nominal[2] = errors
+    return nominal
+
+def apply_error_scaling(nominal,errors):
+    nominal[-1] = 0
+    nominal += errors
+    return nominal
+
 def sampling_axes(fit, confidence_level=0.95, dof=2):
     """
     Hyperbolic axis lengths based on sample-size
@@ -53,13 +70,15 @@ def sampling_axes(fit, confidence_level=0.95, dof=2):
     data.
     """
     cov = sampling_covariance(fit)
-    sigma = chi2.ppf(confidence_level,fit.n-dof)/fit.n
-    return apply_error_level(cov,sigma)
+    sigma = f.ppf(confidence_level,dof,fit.n-dof)
+    e = fit.eigenvalues
+    return apply_error_scaling(e, cov*sigma)
 
 def noise_axes(fit, confidence_level=0.95, dof=2):
     cov = noise_covariance(fit)
     sigma = chi2.ppf(confidence_level,dof)
-    return apply_error_level(cov, sigma)
+    e = fit.eigenvalues
+    return apply_error_scaling(e, sigma*cov)
 
 def __angular_error(hyp_axes, axis_length):
     """
@@ -82,16 +101,31 @@ def angular_errors(hyp_axes):
 
 def jolliffe_axes(fit, confidence_level=0.95, dof=2):
     n = fit.n
-    lam = fit.eigenvalues
+    e = fit.eigenvalues[:]
     z = chi2.ppf(confidence_level, n-dof)
     tau = N.sqrt(2/(n-1))
-    return lam/N.sqrt(1+tau*z)
+    e[2]*=1/N.sqrt(1+tau*z)
+    return apply_error_scaling_old(fit.eigenvalues, e)
+
+def fisher_statistic(n, confidence_level, dof=2):
+    #a = 1-confidence_level
+    # not sure if dof should be two or 3
+    df = (dof,n-dof) # Degrees of freedom
+    return f.ppf(confidence_level, *df)
 
 def francq_axes(fit, confidence_level=0.95):
     n = fit.n
     s = fit.singular_values
-    h = s/N.sqrt(n)
+    e = fit.eigenvalues
+    h = e
     # Use f statistic instead of chi2 (ratio of two chi2 variables)
-    F = f.ppf(confidence_level, 2, n-2)
-    h[-1] *= N.sqrt(2*F/(n-2))
-    return h
+    F = fisher_statistic(n, confidence_level)
+    h[2] *= N.sqrt(2*F/(n-2))
+    return h #apply_error_scaling_old(e,h)
+
+def babamoradi_axes(fit, confidence_level=0.95):
+    e = fit.eigenvalues
+    n = fit.n
+    F = fisher_statistic(n, confidence_level)
+    H = N.sqrt(e*F*2*(n**2-1)/(n*(n-2)))
+    return apply_error_scaling(e,H)
