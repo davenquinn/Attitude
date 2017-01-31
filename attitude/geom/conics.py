@@ -2,8 +2,7 @@ from __future__ import division
 
 import numpy as N
 
-from .util import dot
-from .vector import vector, augment, Plane, angle
+from .util import dot, vector, augment, Plane, angle
 
 class Conic(N.ndarray):
     @classmethod

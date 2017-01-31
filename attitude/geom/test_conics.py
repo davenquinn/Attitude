@@ -9,8 +9,7 @@ from scipy.linalg import lu
 import traceback
 from numpy.linalg import norm
 
-from attitude.geom.util import dot
-from attitude.geom.vector import vector, augment, column, angle
+from attitude.geom.util import dot, vector, augment, column, angle
 from attitude.geom.conics import conic, Conic
 
 same = N.allclose

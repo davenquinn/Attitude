@@ -1,7 +1,7 @@
 from __future__ import division
 
 import numpy as N
-from .vector import vector, plane
+from .util import vector, plane
 from .conics import conic
 from ..error import asymptotes
 

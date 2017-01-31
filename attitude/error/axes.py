@@ -101,11 +101,11 @@ def angular_errors(hyp_axes):
 
 def jolliffe_axes(fit, confidence_level=0.95, dof=2):
     n = fit.n
-    e = fit.eigenvalues[:]
+    e = fit.eigenvalues
     z = chi2.ppf(confidence_level, n-dof)
     tau = N.sqrt(2/(n-1))
-    e[2]*=1/N.sqrt(1+tau*z)
-    return apply_error_scaling_old(fit.eigenvalues, e)
+    error = e*1/N.sqrt(1+tau*z)
+    return apply_error_scaling(e, error)
 
 def fisher_statistic(n, confidence_level, dof=2):
     #a = 1-confidence_level

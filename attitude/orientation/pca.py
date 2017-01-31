@@ -12,9 +12,8 @@ from .base import BaseOrientation, rotation
 from ..error.ellipse import ellipse
 from ..stereonet import plane_errors, error_coords
 
-from ..geom.util import dot
-from ..geom.vector import vector
-from ..geom.vector import angle as vector_angle
+from ..geom.util import dot, vector
+from ..geom.util import angle as vector_angle
 from ..geom.conics import conic
 
 log = logging.getLogger('attitude')

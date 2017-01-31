@@ -16,7 +16,7 @@ from .plot import setup_figure, strike_dip, normal,\
         strike_dip_montecarlo,\
         plane_confidence, error_asymptotes
 from ..orientation import PCAOrientation, LinearOrientation
-from ..geom.vector import unit_vector
+from ..geom.util import unit_vector
 
 def encode(fig):
     b = BytesIO()

@@ -1,7 +1,7 @@
 import numpy as N
 
 from ..geom.util import dot, augment_tensor
-from ..geom.vector import vector, plane, angle
+from ..geom.util import vector, plane, angle
 from ..geom.conics import Conic, conic
 
 def apparent_dip_correction(axes):
@@ -34,6 +34,11 @@ def hyperbolic_errors(hyp_axes, xvals,
 
     A function is returned that takes x values (distance along nominal
     line) and returns y values (width of error hyperbola)
+
+    kwargs:
+        transformation  rotation to apply to quadric prior to slicing
+                        (e.g. transformation into 'world' coordinates
+        axes            axes on which to slice the data
     """
     if means is None:
         means = N.array([0,0])
@@ -50,6 +55,9 @@ def hyperbolic_errors(hyp_axes, xvals,
     hyp = hyp.transform(augment_tensor(transformation))
 
     n_ = N.cross(axes[0],axes[1])
+
+    # Create a plane containing the two axes specified
+    # in the function call
     p = plane(n_) # no offset (goes through origin)
     h1 = hyp.slice(p, axes=axes)[0]
 

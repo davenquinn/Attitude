@@ -11,7 +11,7 @@ from matplotlib.ticker import FuncFormatter
 
 from .hyperbola import HyperbolicErrors
 from ..error.axes import sampling_axes, noise_axes
-from ..geom.vector import vector,plane
+from ..geom.util import vector,plane
 
 log = logging.getLogger(__name__)
 

@@ -1,7 +1,7 @@
 import numpy as N
 from .util import dot
 from .conics import conic
-from .vector import angle
+from .util import angle, vector
 
 def aligned_covariance(fit, type='noise'):
     """

@@ -4,8 +4,7 @@ import numpy as N
 
 from .hyperbola import hyperbolic_errors
 from ..geom.util import dot, augment_tensor
-from ..geom.vector import vector, plane, angle
-from ..geom.conics import Conic, conic
+from ..geom.util import vector, plane, angle
 
 def error_bounds(hyp_errors):
     nominal, width = hyp_errors

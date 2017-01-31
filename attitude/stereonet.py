@@ -2,8 +2,7 @@ import numpy as N
 from mplstereonet.stereonet_math import cart2sph
 from scipy.stats import chi2
 
-from .geom.vector import vector, unit_vector
-from .geom.util import dot
+from .geom.util import vector, unit_vector, dot
 
 def quaternion(vector, angle):
     """

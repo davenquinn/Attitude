@@ -12,8 +12,7 @@ from ..orientation.pca import augment as augment_matrix
 from .conics import Conic, conic
 from ..error import hyperbolic_errors
 from ..error.axes import sampling_axes
-from .vector import vector, plane
-from . import dot
+from .util import vector, plane, dot
 
 def simple_hyperbola(cov, xvals, n=1, level=1):
     """

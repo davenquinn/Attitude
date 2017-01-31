@@ -10,7 +10,7 @@ from matplotlib.patches import Polygon
 from matplotlib.gridspec import GridSpec
 from matplotlib.ticker import FuncFormatter, MaxNLocator
 
-from ...geom.vector import vector,plane
+from ...geom.util import vector,plane
 
 def current_axes():
     import matplotlib.pyplot as P

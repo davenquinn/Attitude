@@ -5,7 +5,7 @@ from scipy.stats import chi2
 from ..orientation import Orientation
 from ..display.plot.cov_types import hyperbola, bootstrap_noise, augment, ci
 from ..error.axes import sampling_axes, noise_axes
-from ..geom.vector import vector
+from ..geom.util import vector
 from .hyperbola import HyperbolicErrors
 
 def bootstrap_ci(deskewed_data):

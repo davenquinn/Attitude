@@ -5,8 +5,7 @@ import pytest
 from scipy.integrate import quad
 from ..test import random_plane, scattered_plane, load_test_plane
 from .pca import PCAOrientation, centered
-from ..geom.util import dot
-from ..geom.vector import vector, angle
+from ..geom.util import dot, vector, angle
 from mplstereonet.stereonet_math import sph2cart
 from scipy.stats import chi2
 
