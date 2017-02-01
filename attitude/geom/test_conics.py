@@ -6,6 +6,7 @@ from __future__ import print_function, division
 
 import numpy as N
 from scipy.linalg import lu
+from scipy.optimize import fsolve
 import traceback
 from numpy.linalg import norm
 
@@ -151,6 +152,7 @@ def test_angular_shadow():
     inplane = axes[:2]
     # Hyperbolic angular errors
     angles = [N.degrees(N.arctan2(axes[2],i)) for i in inplane]
+    angles = N.sort(angles)[::-1]
 
     b = axes[2]
     # Check that computed distance of offset ellipse
@@ -170,3 +172,19 @@ def test_angular_shadow():
                         for a in ell])
     # Magnitude of all values should be the same or nearly so
     assert computed_centers.max()-computed_centers.min() < 1e-4
+
+    ell0 = Conic.from_semiaxes(1/axes)
+
+    def offset_conic(center):
+        # See what the angle subtended by the conic is
+        ell = ell0.translate(vector(0,0,center))
+        return N.degrees(ell.angle_subtended())
+
+    fn = lambda x: offset_conic(x)[0]-angles[0]
+    res = fsolve(fn, 2*b)
+    center = res[0]
+    angles2 = offset_conic(center)
+    # Test that the relative scaling of angles is correct
+    assert N.allclose(angles, angles2)
+
+    assert center == 50

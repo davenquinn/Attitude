@@ -18,7 +18,9 @@ def angle_subtended(ell, **kwargs):
     return_tangent = kwargs.pop('tangent',False)
 
     con, transform, offset = ell.projection(**kwargs)
-    A = N.squeeze(N.array(con.major_axes()))
+    v = N.linalg.norm(N.array(con.major_axes()),axis=1)
+    A = N.sort(v)[::-1] # Sort highest values first
+    A = N.squeeze(A)
     B = N.linalg.norm(offset)
     if return_tangent: return A/B
     return N.arctan2(A,B)
@@ -31,6 +33,17 @@ class Conic(N.ndarray):
         This can be converted into a hyperbola by getting the dual conic
         """
         ax = list(axes)
+        #ax[-1] *= -1  # Not sure what is going on here...
+        arr = N.diag(ax + [-1])
+        return arr.view(cls)
+
+    @classmethod
+    def from_semiaxes(cls,axes):
+        """
+        Get axis-aligned elliptical conic from axis lenths
+        This can be converted into a hyperbola by getting the dual conic
+        """
+        ax = list(1/N.array(axes)**2)
         #ax[-1] *= -1  # Not sure what is going on here...
         arr = N.diag(ax + [-1])
         return arr.view(cls)
