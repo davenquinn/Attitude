@@ -131,7 +131,7 @@ def test_hyperbolic_projection():
 
     # Not sure why we need to reverse array
     # but it seems to work
-    d = N.abs(N.diagonal(h1)[:-1])[::-1]
+    d = N.abs(N.diagonal(h1)[:-1])
     axes = N.sqrt(1/d)
 
     assert N.allclose(axes**2,hyp_axes[1:])

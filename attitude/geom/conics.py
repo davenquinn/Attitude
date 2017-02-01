@@ -2,7 +2,8 @@ from __future__ import division
 
 import numpy as N
 
-from .util import dot, vector, augment, Plane, angle
+from .util import (dot, vector, augment, Plane,
+                   angle, perpendicular_vector)
 
 class Conic(N.ndarray):
     @classmethod
@@ -114,33 +115,39 @@ class Conic(N.ndarray):
 
     def slice(self, plane, **kwargs):
         axes = kwargs.pop('axes',None)
+        dim = len(plane)-1
+
         if axes is None:
             n = plane.normal()
-            # Two vectors in plane
-            v1 = N.cross(n,vector(0,1,0))
-            if N.linalg.norm(v1) == 0:
-                # we need to use another axis
-                v1 = N.cross(n,vector(0,0,1))
-            v2 = N.cross(v1,n)
-            axes = (v1,v2)
+            v1 = perpendicular_vector(n)
+            if dim == 3:
+                v2 = N.cross(v1,n)
+                axes = (v1,v2)
+            elif dim == 2:
+                axes = (v1,)
         pt = plane.offset()
 
+        last_col = N.zeros(dim)
+        last_col[-1] = 1
+
         m = N.append(
-            N.column_stack((axes[0],axes[1],pt)),
-            N.array([[0,0,1]]),axis=0)
+            N.column_stack(list(axes)+[pt]),
+            last_col[N.newaxis,:],axis=0)
 
         # This isn't an ideal return signature
         # but it's what we're working with now
         return self.transform(m), m, pt
 
-    def projection(self, **kwargs):
+    def projection(self, viewpoint=None, **kwargs):
         """
         The elliptical cut of an ellipsoidal
         conic describing all points of tangency
         to the conic as viewed from the origin.
         """
-        v = kwargs.pop('viewpoint',vector(0,0,0))
-        plane = self.polar_plane(v)
+        if viewpoint is None:
+            ndim = self.shape[0]-1
+            viewpoint = N.zeros(ndim)
+        plane = self.polar_plane(viewpoint)
         return self.slice(plane, **kwargs)
 
     def maximum_angle(self):

@@ -87,3 +87,25 @@ class Plane(N.ndarray):
 def plane(normal,offset=0):
     # This only works in Hessian-Normal form
     return N.append(normal,offset).view(Plane)
+
+def perpendicular_vector(n):
+    """
+    Get a random vector perpendicular
+    to the given vector
+    """
+    dim = len(n)
+    if dim == 2:
+        return n[::-1]
+    # More complex in 3d
+    for ix in range(dim):
+        _ = N.zeros(dim)
+        # Try to keep axes near the global projection
+        # by finding vectors perpendicular to higher-
+        # index axes first. This may or may not be worth
+        # doing.
+        _[dim-ix-1] = 1
+        v1 = N.cross(n,_)
+        if N.linalg.norm(v1) != 0:
+            return v1
+    raise ValueError("Cannot find perpendicular vector")
+

@@ -4,9 +4,45 @@ defined from covariance matrices and the hyperbolic and ellipsoidal error bounds
 """
 
 import numpy as N
+from .util import vector, dot
 from ..error.axes import sampling_axes, noise_axes
-from ..geom.conics import Conic, vector
+from .conics import Conic, conic
 import pytest
+
+origin = vector(0,0)
+
+def test_angular_shadow():
+    """
+    Make sure we can successfully recover an angular shadow
+    from an ellipse offset from the origin, a simple two
+    dimensional case of the more general 3d solution.
+
+    BASIS: an ellipse with semiaxes [1,1] centered at
+    [0,2] will have a half angular shadow of 30º
+    """
+    # Create an mean-centered conic with the requisite
+    # semiaxial lengths
+    _ = N.identity(3)
+    _[-1,-1] = -1
+    ell0 = conic(_)
+
+    # Translate conic to new center
+    ell = ell0.translate(vector(0,2))
+
+    # Get the polar plane to the origin (plane intersecting
+    # the conic at all points of tangency to the origin)
+    plane = ell.polar_plane(vector(0,0))
+    assert N.linalg.norm(plane.offset()) == 1.5
+
+    # Get degenerate conic with d-1 dimensionality
+    # (in this case, a line) and distance from projection
+    # point of tangent
+    con, transform, offset = ell.slice(plane)
+    # this will be the half-length of the cut of the ellipse
+    l = float(con.major_axes())
+    dist = N.linalg.norm(offset)
+
+    assert N.allclose(N.degrees(N.arctan2(l,dist)), 30)
 
 @pytest.mark.xfail(reason="Mathematical basis seems to be incorrect")
 def test_ellipse_offset():
