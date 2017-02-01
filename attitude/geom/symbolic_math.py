@@ -3,6 +3,7 @@ Functions for conic geometry implemented for
 use with the `sympy` symbolic math module.
 Generally, for use in testing and validation.
 """
+from sympy import Matrix
 
 def center(conic):
     ec = conic[:-1,:-1].inv()
@@ -20,3 +21,4 @@ def polar_plane(ell, point=None):
 
 def origin_distance(polar_plane):
     return polar_plane[-1]/Matrix(polar_plane[:-1]).norm()
+

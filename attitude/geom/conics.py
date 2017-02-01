@@ -34,7 +34,14 @@ class Conic(N.ndarray):
         _ = ell.solve(v)
         return N.allclose(_,0) if shell_only else _ <= 0
 
-    def hyperbolic_axes(self):
+    def semiaxes(self):
+        """
+        Semiaxial lengths for ellipsoid and hyperboloid
+        (need to be aligned with coordinate system for
+        now, could integrate with major_axes method below
+        for added clarity.
+        """
+
         d = N.abs(N.diagonal(self)[:-1])
         return d**-1
 

@@ -63,7 +63,7 @@ def hyperbolic_errors(hyp_axes, xvals,
 
     # Major axes of the conic sliced in the requested viewing
     # geometry
-    A = N.sqrt(h1.hyperbolic_axes())
+    A = N.sqrt(h1.semiaxes())
 
     yvals = A[1]*N.cosh(N.arcsinh(xvals/A[0]))
 

@@ -127,7 +127,46 @@ def test_conic():
 
 def test_conic_axes():
     # Create ellipsoid
+    # not why this doesn't work with axial lengths
     ell = Conic.from_axes([500,200,100])
     assert ell.is_elliptical()
     assert not ell.dual().is_hyperbolic() # Degenerate case
     assert ell.translate(vector(0,0,1)).dual().is_hyperbolic()
+
+def get_offset_center(a,b):
+    """
+    Get the center of an offset ellipse corresponding
+    to the lengths of the hyperbolic axes
+    """
+    _ = a**2*b**2 + a**2*b**4 - a**2 + b**2
+    cdist = 1/(a*b)*N.sqrt(_)
+    return cdist
+
+def test_angular_shadow():
+    """
+    Check that we can compute the angular shadow of an
+    offset error ellipse.
+    """
+    axes = N.array([40,30,20])
+    inplane = axes[:2]
+    # Hyperbolic angular errors
+    angles = [N.degrees(N.arctan2(axes[2],i)) for i in inplane]
+
+    b = axes[2]
+    # Check that computed distance of offset ellipse
+    # is the same for both 
+    computed_centers =  [get_offset_center(a,b)
+                         for a in inplane]
+    assert N.allclose(*computed_centers)
+
+    # Do the same but for all possible in-plane axes
+    u = N.linspace(0,2*N.pi,100)
+    # Get a bundle of vectors defining cone
+    # which circumscribes ellipsoid
+    v = N.array([N.cos(u)**2,N.sin(u)**2])
+    # Axial lengths of in-plane axes
+    ell = dot(inplane, v)
+    computed_centers = N.array([get_offset_center(a,b)
+                        for a in ell])
+    # Magnitude of all values should be the same or nearly so
+    assert computed_centers.max()-computed_centers.min() < 1e-4

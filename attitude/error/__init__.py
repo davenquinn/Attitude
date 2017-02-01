@@ -2,6 +2,7 @@ from __future__ import division
 
 import numpy as N
 
+from .axes import angular_errors
 from .hyperbola import hyperbolic_errors
 from ..geom.util import dot, augment_tensor
 from ..geom.util import vector, plane, angle
