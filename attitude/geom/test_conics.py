@@ -95,8 +95,8 @@ def test_conic():
         assert con.contains(i, shell_only=True)
 
     # Rotate major axes into 3d space
-    axs = N.append(ax,N.zeros((2,1)),axis=1)
-    axs = dot(axs,m[:3].T)
+    axs_ = N.append(ax,N.zeros((2,1)),axis=1)
+    axs = dot(axs_,m[:,:3])
 
     u = N.linspace(0,2*N.pi,1000)
 

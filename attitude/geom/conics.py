@@ -136,14 +136,27 @@ class Conic(N.ndarray):
 
         # This isn't an ideal return signature
         # but it's what we're working with now
-        return self.transform(m), m, pt
 
-    def projection(self, viewpoint=None, **kwargs):
+        # Lower-dimensional or degenerate conic
+        # section representing the slice of the
+        # ellipsoid or ellipse
+        conic = self.transform(m)
+        # Transformation matrix to move back to
+        # degenerate conic in higher dimension
+        # e.g. from a projected ellipse to an
+        # inscribing cone
+        transform = m.T
+        # Vector describing offset of conic center
+        offset = pt
+        return conic, transform, offset
+
+    def projection(self, **kwargs):
         """
         The elliptical cut of an ellipsoidal
         conic describing all points of tangency
         to the conic as viewed from the origin.
         """
+        viewpoint = kwargs.pop('viewpoint', None)
         if viewpoint is None:
             ndim = self.shape[0]-1
             viewpoint = N.zeros(ndim)
