@@ -11,20 +11,6 @@ import pytest
 
 origin = vector(0,0)
 
-def angle_subtended(ell, **kwargs):
-    """
-    Compute the angle subtended (or min and max angles)
-    for an offset elliptical conic
-    from the origin or an arbitrary viewpoint.
-    """
-    return_tangent = kwargs.pop('tangent',False)
-
-    con, transform, offset = ell.projection(**kwargs)
-    A = N.squeeze(N.array(con.major_axes()))
-    B = N.linalg.norm(offset)
-    if return_tangent: return A/B
-    return N.arctan2(A,B)
-
 def test_angular_shadow():
     """
     Make sure we can successfully recover an angular shadow
@@ -59,7 +45,7 @@ def test_angular_shadow():
     assert N.allclose(N.degrees(N.arctan2(l,dist)), 30)
 
     # Same with generalized function
-    assert N.allclose(N.degrees(angle_subtended(ell)), 30)
+    assert N.allclose(N.degrees(ell.angle_subtended()), 30)
 
 
 @pytest.mark.xfail(reason="Mathematical basis seems to be incorrect")

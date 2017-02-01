@@ -5,6 +5,24 @@ import numpy as N
 from .util import (dot, vector, augment, Plane,
                    angle, perpendicular_vector)
 
+def angle_subtended(ell, **kwargs):
+    """
+    Compute the half angle subtended (or min and max angles)
+    for an offset elliptical conic
+    from the origin or an arbitrary viewpoint.
+
+    kwargs:
+        tangent  Return tangent instead of angle (default false)
+        viewpoint   Defaults to origin
+    """
+    return_tangent = kwargs.pop('tangent',False)
+
+    con, transform, offset = ell.projection(**kwargs)
+    A = N.squeeze(N.array(con.major_axes()))
+    B = N.linalg.norm(offset)
+    if return_tangent: return A/B
+    return N.arctan2(A,B)
+
 class Conic(N.ndarray):
     @classmethod
     def from_axes(cls,axes):
@@ -134,9 +152,6 @@ class Conic(N.ndarray):
             N.column_stack(list(axes)+[pt]),
             last_col[N.newaxis,:],axis=0)
 
-        # This isn't an ideal return signature
-        # but it's what we're working with now
-
         # Lower-dimensional or degenerate conic
         # section representing the slice of the
         # ellipsoid or ellipse
@@ -163,18 +178,6 @@ class Conic(N.ndarray):
         plane = self.polar_plane(viewpoint)
         return self.slice(plane, **kwargs)
 
-    def maximum_angle(self):
-        conic, T, center = self.projection()
-        ax = conic.major_axes()
-
-        # Rotate into 3d space
-        _ = N.zeros((2,1))
-        ax = N.append(ax,_,axis=1)
-        ax = dot(ax,m[:3].T)
-
-        v = ax[0]+center
-        return angle(v,center)
-
     def dual(self):
         """
         The inverse conic that represents the bundle
@@ -183,6 +186,8 @@ class Conic(N.ndarray):
         Conics and their duals, p 159
         """
         return N.linalg.inv(self)
+
+    angle_subtended = angle_subtended
 
 def conic(x):
     return N.array(x).view(Conic)
