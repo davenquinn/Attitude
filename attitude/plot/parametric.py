@@ -42,7 +42,21 @@ def ellipse(axes,  **kwargs):
         axes[0]*N.cos(th)+center[0],
         axes[1]*N.sin(th)+center[1])
 
-def plot_conjugate_conics(ax, axes):
+def __squished_ellipse(axes):
+    scalar = 3
+    ax1 = axes.copy()
+    ax1[0] = scalar*N.sqrt(N.sqrt(3)/2)*(axes[1]**2)/axes[0]
+    center = scalar*axes[1]
+    return ax1, center
+
+def __inverse_ellipse(axes, scalar=3):
+
+    ax1 = 1/axes*axes[1]**2*scalar
+    center = ax1[1]*N.sqrt(2)
+    return ax1, center
+
+
+def plot_conjugate_conics(ax, axes, width=None):
     hyp, = ax.plot(*hyperbola(axes))
     ax.plot(*ellipse(axes), zorder=-5)
 
@@ -54,18 +68,13 @@ def plot_conjugate_conics(ax, axes):
     # scales inversely with axes but can
     # be rescaled at will
 
-    scalar = 3
-    ax1 = axes.copy()
-    ax1[0] = scalar*N.sqrt(N.sqrt(3)/2)*(axes[1]**2)/axes[0]
+    ax1,center = __inverse_ellipse(axes)
 
     # Plot ellipse foci
     c = ax1**2
     c.sort()
     c[0] *= -1
     ell_c = N.sqrt(N.sum(c))
-
-    center = scalar*axes[1]#N.sqrt(hyp_c**2+ell_c**2)/N.sqrt(2)
-    #center=	axes[1]+ell_c#+axes[1]/axes[0]
 
     ell, = ax.plot(*ellipse(ax1, center=[0,center]))
 
@@ -84,9 +93,11 @@ def plot_conjugate_conics(ax, axes):
     ax.plot(yvals, xvals, ':', **kw)
     ax.plot(yvals, -xvals, ':', **kw)
 
-    m = N.linalg.norm(axes)*2
-    lim = N.array([-m,m])
 
+
+    if width is None:
+        width = N.linalg.norm(axes)*4
+    lim = N.array([-width,width])/2
     ax.set_xlim(lim)
     ax.set_ylim(lim*0.6)
     ax.set_aspect(1)
