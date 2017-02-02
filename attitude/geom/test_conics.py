@@ -143,16 +143,13 @@ def get_offset_center(a,b):
     cdist = 1/(a*b)*N.sqrt(_)
     return cdist
 
-def test_angular_shadow():
+def test_center_recovery():
     """
-    Check that we can compute the angular shadow of an
-    offset error ellipse.
+    Check that we can recover the same center for ellipses
+    for all axes.
     """
-    axes = N.array([40,30,20])
+    axes = N.array([50,40,20])
     inplane = axes[:2]
-    # Hyperbolic angular errors
-    angles = [N.degrees(N.arctan2(axes[2],i)) for i in inplane]
-    angles = N.sort(angles)[::-1]
 
     b = axes[2]
     # Check that computed distance of offset ellipse
@@ -173,6 +170,23 @@ def test_angular_shadow():
     # Magnitude of all values should be the same or nearly so
     assert computed_centers.max()-computed_centers.min() < 1e-4
 
+
+def test_angular_shadow():
+    """
+    Check that we can compute the angular shadow of an
+    offset error ellipse.
+    """
+    axes = N.array([200,100,1])
+    inplane = axes[:2]
+    # Hyperbolic angular errors
+    angles = [N.degrees(N.arctan2(axes[2],i)) for i in inplane]
+    angles = N.sort(angles)[::-1]
+
+    b = axes[2]
+
+    centers =  [get_offset_center(a,b)
+                         for a in inplane]
+
     ell0 = Conic.from_semiaxes(1/axes)
 
     def offset_conic(center):
@@ -187,4 +201,7 @@ def test_angular_shadow():
     # Test that the relative scaling of angles is correct
     assert N.allclose(angles, angles2)
 
-    assert center == 50
+    c10 = (axes[0]**2+axes[1]**2)/(2*axes[2])
+    c1 = (axes[2]**2)/(2*axes[0]*axes[1])
+    cent = center - c10
+    #assert N.allclose(center, c10+c1)
