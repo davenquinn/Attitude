@@ -49,20 +49,22 @@ def __squished_ellipse(axes):
     center = scalar*axes[1]
     return ax1, center
 
-def __inverse_ellipse(axes, scalar=3):
-
+def __inverse_ellipse(axes, scalar=1):
     ax1 = 1/axes*axes[1]**2*scalar
     center = ax1[1]*N.sqrt(2)
     return ax1, center
 
+def __reverse_ellipse(axes, scalar=1):
+    """
+    This method doesn't work as well
+    """
+    ax1 = axes.copy()[::-1]*scalar
+    center = ax1[1]*N.sqrt(2)*scalar
+    return ax1, center
 
-def plot_conjugate_conics(ax, axes, width=None):
+def plot_conjugate_conics(ax, axes, width=None, plot_foci=False):
     hyp, = ax.plot(*hyperbola(axes))
-    ax.plot(*ellipse(axes), zorder=-5)
-
-    # Plot hyperbola focus
-    hyp_c = N.sqrt(N.sum(axes**2))
-    ax.plot([0,0],[hyp_c,-hyp_c], '.', color=hyp.get_color())
+    ax.plot(*ellipse(axes), zorder=-5, color=hyp.get_color(),alpha=0.5, linewidth=1)
 
     # Normal vector ellipse axes lengths
     # scales inversely with axes but can
@@ -70,16 +72,20 @@ def plot_conjugate_conics(ax, axes, width=None):
 
     ax1,center = __inverse_ellipse(axes)
 
-    # Plot ellipse foci
-    c = ax1**2
-    c.sort()
-    c[0] *= -1
-    ell_c = N.sqrt(N.sum(c))
-
     ell, = ax.plot(*ellipse(ax1, center=[0,center]))
 
-    # Plot ellipse foci
-    ax.plot([0,0],[center+ell_c,center-ell_c], '.', color=ell.get_color())
+    if plot_foci:
+        # Plot hyperbola focus
+        hyp_c = N.sqrt(N.sum(axes**2))
+        ax.plot([0,0],[hyp_c,-hyp_c], '.', color=hyp.get_color())
+
+        # Plot ellipse foci
+        c = ax1**2
+        c.sort()
+        c[0] *= -1
+        ell_c = N.sqrt(N.sum(c))
+        # Plot ellipse foci
+        ax.plot([0,0],[center+ell_c,center-ell_c], '.', color=ell.get_color())
 
     # Plot tangents
     xvals = N.array([-500,500])
