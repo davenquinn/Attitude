@@ -54,8 +54,9 @@ def plot_conjugate_conics(ax, axes):
     # scales inversely with axes but can
     # be rescaled at will
 
+    scalar = 3
     ax1 = axes.copy()
-    ax1[0] = (axes[0]+axes[1]**2)/axes[0]
+    ax1[0] = scalar*N.sqrt(N.sqrt(3)/2)*(axes[1]**2)/axes[0]
 
     # Plot ellipse foci
     c = ax1**2
@@ -63,7 +64,7 @@ def plot_conjugate_conics(ax, axes):
     c[0] *= -1
     ell_c = N.sqrt(N.sum(c))
 
-    center = N.sqrt(hyp_c**2+ell_c**2)/N.sqrt(2)
+    center = scalar*axes[1]#N.sqrt(hyp_c**2+ell_c**2)/N.sqrt(2)
     #center=	axes[1]+ell_c#+axes[1]/axes[0]
 
     ell, = ax.plot(*ellipse(ax1, center=[0,center]))
