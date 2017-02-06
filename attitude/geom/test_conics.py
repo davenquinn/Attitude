@@ -139,8 +139,9 @@ def get_offset_center(a,b):
     Get the center of an offset ellipse corresponding
     to the lengths of the hyperbolic axes
     """
-    _ = a**2*b**2 + a**2*b**4 - a**2 + b**2
-    cdist = 1/(a*b)*N.sqrt(_)
+    #_ = a**2*b**2 + a**2*b**4 - a**2 + b**2
+    #cdist = 1/(a*b)*N.sqrt(_)
+    cdist = b*N.sqrt(2)
     return cdist
 
 def test_center_recovery():
@@ -187,7 +188,8 @@ def test_angular_shadow():
     centers =  [get_offset_center(a,b)
                          for a in inplane]
 
-    ell0 = Conic.from_semiaxes(1/axes)
+    ax1 = axes[2]**2/axes
+    ell0 = Conic.from_semiaxes(ax1)
 
     def offset_conic(center):
         # See what the angle subtended by the conic is
@@ -201,7 +203,4 @@ def test_angular_shadow():
     # Test that the relative scaling of angles is correct
     assert N.allclose(angles, angles2)
 
-    c10 = (axes[0]**2+axes[1]**2)/(2*axes[2])
-    c1 = (axes[2]**2)/(2*axes[0]*axes[1])
-    cent = center - c10
-    #assert N.allclose(center, c10+c1)
+    assert N.allclose(center, ax1[-1]*N.sqrt(2))
