@@ -18,11 +18,16 @@ def hyperbola(axes, **kwargs):
     """
     Plots a hyperbola that opens along y axis
     """
+    opens_up = kwargs.pop('opens_up', True)
     center = kwargs.pop('center', defaults['center'])
     th = N.linspace(0,2*N.pi,kwargs.pop('n', 500))
 
-    x = axes[0]*N.tan(th)+center[0]
-    y = axes[1]*1/N.cos(th)+center[1]
+    vals = [N.tan(th),1/N.cos(th)]
+    if not opens_up:
+        vals = vals[::-1]
+
+    x = axes[0]*vals[0]+center[0]
+    y = axes[1]*vals[1]+center[1]
 
     extrema = [N.argmin(x),N.argmax(x)]
 
@@ -62,17 +67,25 @@ def __reverse_ellipse(axes, scalar=1):
     center = ax1[1]*N.sqrt(2)*scalar
     return ax1, center
 
-def plot_conjugate_conics(ax, axes, width=None, plot_foci=False):
+def plot_conjugate_conics(ax, axes, width=None, plot_foci=False, plot_inverse_hyperbola=False):
     hyp, = ax.plot(*hyperbola(axes))
+
+    if plot_inverse_hyperbola:
+        # Plot inverse hyperbola
+        hyp_inv, = ax.plot(*hyperbola(1/axes, opens_up=False))
+        color = hyp_inv.get_color()
+    else:
+        color = None
+
     ax.plot(*ellipse(axes), zorder=-5, color=hyp.get_color(),alpha=0.5, linewidth=1)
 
     # Normal vector ellipse axes lengths
     # scales inversely with axes but can
     # be rescaled at will
 
-    ax1,center = __squished_ellipse(axes)
+    ax1,center = __inverse_ellipse(axes)
 
-    ell, = ax.plot(*ellipse(ax1, center=[0,center]))
+    ell, = ax.plot(*ellipse(ax1, center=[0,center]), color=color)
 
     if plot_foci:
         # Plot hyperbola focus
@@ -99,10 +112,12 @@ def plot_conjugate_conics(ax, axes, width=None, plot_foci=False):
     ax.plot(yvals, xvals, ':', **kw)
     ax.plot(yvals, -xvals, ':', **kw)
 
-
+    _ = 4
+    if axes[1] > 0.5*axes[0]:
+        _ = 6
 
     if width is None:
-        width = N.linalg.norm(axes)*4
+        width = N.linalg.norm(axes)*_
     lim = N.array([-width,width])/2
     ax.set_xlim(lim)
     ax.set_ylim(lim*0.6)
