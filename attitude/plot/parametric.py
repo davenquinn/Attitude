@@ -43,7 +43,7 @@ def ellipse(axes,  **kwargs):
         axes[1]*N.sin(th)+center[1])
 
 def __squished_ellipse(axes):
-    scalar = 3
+    scalar = 2
     ax1 = axes.copy()
     ax1[0] = scalar*N.sqrt(N.sqrt(3)/2)*(axes[1]**2)/axes[0]
     center = scalar*axes[1]
@@ -70,7 +70,7 @@ def plot_conjugate_conics(ax, axes, width=None, plot_foci=False):
     # scales inversely with axes but can
     # be rescaled at will
 
-    ax1,center = __inverse_ellipse(axes)
+    ax1,center = __squished_ellipse(axes)
 
     ell, = ax.plot(*ellipse(ax1, center=[0,center]))
 
