@@ -37,6 +37,7 @@ class Regression(object):
         self.df_r = self.ncoef - 1                      # degrees of freedom, regression 
         self.n,self.k = self.C.shape
 
+    @property
     def coefficients(self):
         if self.__coefficients__ is not None:
             return self.__coefficients__
@@ -45,11 +46,13 @@ class Regression(object):
         self.__coefficients__ = N.dot(self.xTx,self.xy)
         return self.__coefficients__
 
+    @property
     def predictions(self):
-        return self.C[:,0], self.C[:,1], N.dot(self.C,self.coefficients())
+        return self.C[:,0], self.C[:,1], N.dot(self.C,self.coefficients)
 
+    @property
     def residuals(self):
-        return self.Z - self.predictions()[2]
+        return self.Z - self.predictions[2]
 
     @property
     def covariance_matrix(self):
@@ -60,7 +63,7 @@ class Regression(object):
             self.__covariance__ = N.zeros((self.n,self.k))
         else:
             #rTr = matrix_squared(self.residuals())
-            e = self.residuals()
+            e = self.residuals
             sse = N.dot(e,e) #/self.df_e #SSE
             self.__covariance__ = N.dot(sse,self.xTx)
         return self.__covariance__

@@ -6,7 +6,8 @@ occur after these transformations are applied.
 """
 from __future__ import division
 import numpy as N
-from scipy.stats import chi2, f
+from scipy.stats import chi2, f, norm
+from ..orientation.linear import Regression
 
 def sampling_covariance(fit):
     """
@@ -20,8 +21,10 @@ def sampling_covariance(fit):
     return 2*sv**2/(fit.n-1)
 
 def sampling_covariance(fit):
+    # This is asserted in both Faber and Jolliffe, although the
+    # former expression is ambiguous due to a weirdly-typeset radical
     ev = fit.eigenvalues
-    return N.sqrt(2*ev**2/(fit.n-1))
+    return 2/(fit.n-1)*ev**2
 
 def noise_covariance(fit, dof=2):
     """
@@ -30,7 +33,7 @@ def noise_covariance(fit, dof=2):
     From Faber, 1993
     """
     ev = fit.eigenvalues
-    return N.sqrt(4*ev*ev[2]/(fit.n-dof))
+    return 4*ev*ev[2]/(fit.n-dof)
 
 def apply_error_level(cov, level):
     """
@@ -53,7 +56,7 @@ def apply_error_scaling_old(nominal,errors):
 
 def apply_error_scaling(nominal,errors):
     nominal[-1] = 0
-    nominal += errors
+    nominal -= errors
     return nominal
 
 def sampling_axes(fit, confidence_level=0.95, dof=2):
@@ -70,15 +73,18 @@ def sampling_axes(fit, confidence_level=0.95, dof=2):
     data.
     """
     cov = sampling_covariance(fit)
-    sigma = f.ppf(confidence_level,dof,fit.n-dof)
+    sigma = chi2.ppf(confidence_level,dof)
     e = fit.eigenvalues
-    return apply_error_scaling(e, cov*sigma)
+    # Apply error scaling to standard errors, not covariance
+    return apply_error_scaling(e, N.sqrt(cov)*sigma)
 
 def noise_axes(fit, confidence_level=0.95, dof=2):
     cov = noise_covariance(fit)
+    # Not sure if this needs to be a root or not
     sigma = chi2.ppf(confidence_level,dof)
+    #sigma = fisher_statistic(fit.n, confidence_level)#/(fit.n-dof)
     e = fit.eigenvalues
-    return apply_error_scaling(e, sigma*cov)
+    return apply_error_scaling(e, sigma*N.sqrt(cov))
 
 def __angular_error(hyp_axes, axis_length):
     """
@@ -102,30 +108,62 @@ def angular_errors(hyp_axes):
 def jolliffe_axes(fit, confidence_level=0.95, dof=2):
     n = fit.n
     e = fit.eigenvalues
-    z = chi2.ppf(confidence_level, n-dof)
+    l = e*(n-1)/n # This is correct to first order
+
+    # z a/2 is the "upper 100*a/2 percentile of the standard normal
+    # distribution, which probably means
+    level = (1-confidence_level)/2
+    z = norm.pdf(level)
+    # or could it be
+    z = norm.ppf(confidence_level/2)
     tau = N.sqrt(2/(n-1))
-    error = e*1/N.sqrt(1+tau*z)
-    return apply_error_scaling(e, error)
+    scalar = tau*z
+    # Lower confidence bound
+    lc = l/N.sqrt(1+scalar)
+
+    return N.array([
+        lc[0],
+        lc[1], # Lower error bound for first two axes
+        e[2]-lc[2] # Only the error
+    ])
 
 def fisher_statistic(n, confidence_level, dof=2):
     #a = 1-confidence_level
     # not sure if dof should be two or 3
     df = (dof,n-dof) # Degrees of freedom
     return f.ppf(confidence_level, *df)
+## Maybe we should use Bingham distribution instead
 
 def francq_axes(fit, confidence_level=0.95):
     n = fit.n
     s = fit.singular_values
     e = fit.eigenvalues
-    h = e
     # Use f statistic instead of chi2 (ratio of two chi2 variables)
+    # Significance level $\alpha = 0.05$ (e.g.)
     F = fisher_statistic(n, confidence_level)
-    h[2] *= N.sqrt(2*F/(n-2))
-    return h #apply_error_scaling_old(e,h)
+
+    # This factor is common between Francq and Babamoradi
+    factor = 2*F/(n-2)
+    h = e*N.sqrt(factor)
+    return apply_error_scaling(e,h)
 
 def babamoradi_axes(fit, confidence_level=0.95):
     e = fit.eigenvalues
     n = fit.n
     F = fisher_statistic(n, confidence_level)
-    H = N.sqrt(e*F*2*(n**2-1)/(n*(n-2)))
+    val = 2*F/(n-2)
+    H = N.sqrt(e*val*(n**2-1)/n)
     return apply_error_scaling(e,H)
+
+def weingarten_axes(fit, confidence_level=0.95):
+    """
+    This is basically meaningless in its current form
+    """
+    e = fit.eigenvalues
+    reg = Regression(fit.rotated())
+
+    c = N.abs(reg.coefficients)
+    c = c[-1]/c*e[-1]
+    c = c/c[-1]*e[-1]
+    # rise over run
+    return apply_error_scaling(e,c)
