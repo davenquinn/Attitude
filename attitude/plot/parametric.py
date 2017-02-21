@@ -9,6 +9,7 @@ not super useful at the moment.
 """
 import numpy as N
 from matplotlib import pyplot as P
+from colour import Color
 
 defaults = dict(
     center=N.zeros(2),
@@ -70,22 +71,24 @@ def __reverse_ellipse(axes, scalar=1):
 def plot_conjugate_conics(ax, axes, width=None, plot_foci=False, plot_inverse_hyperbola=False):
     hyp, = ax.plot(*hyperbola(axes))
 
-    if plot_inverse_hyperbola:
-        # Plot inverse hyperbola
-        hyp_inv, = ax.plot(*hyperbola(1/axes, opens_up=False))
-        color = hyp_inv.get_color()
-    else:
-        color = None
-
-    ax.plot(*ellipse(axes), zorder=-5, color=hyp.get_color(),alpha=0.5, linewidth=1)
-
     # Normal vector ellipse axes lengths
     # scales inversely with axes but can
     # be rescaled at will
 
     ax1,center = __inverse_ellipse(axes)
 
-    ell, = ax.plot(*ellipse(ax1, center=[0,center]), color=color)
+    ell, = ax.plot(*ellipse(ax1, center=[0,center]))
+
+
+    if plot_inverse_hyperbola:
+        # Plot inverse hyperbola
+        color = Color(ell.get_color())
+        color.saturation = 0.8
+        color.luminance = 0.85
+        hyp_inv, = ax.plot(*hyperbola(1/axes, opens_up=True), color=str(color), zorder=-1)
+
+    ax.plot(*ellipse(axes), zorder=-5, color=hyp.get_color(),alpha=0.5, linewidth=1)
+
 
     if plot_foci:
         # Plot hyperbola focus
