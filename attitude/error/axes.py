@@ -10,17 +10,6 @@ from scipy.stats import chi2, f, norm
 from ..orientation.linear import Regression
 
 def sampling_covariance(fit):
-    """
-    Naive covariance for each axis, taking into account number of samples
-
-    The factor of two originates from (Faber, 1993), but I am not sure where
-    it arises from statistically. Including it increases correspondence with
-    noise covariance results.
-    """
-    sv = fit.singular_values
-    return 2*sv**2/(fit.n-1)
-
-def sampling_covariance(fit):
     # This is asserted in both Faber and Jolliffe, although the
     # former expression is ambiguous due to a weirdly-typeset radical
     ev = fit.eigenvalues
@@ -54,8 +43,15 @@ def apply_error_scaling_old(nominal,errors):
         nominal[2] = errors
     return nominal
 
-def apply_error_scaling(nominal,errors):
-    nominal[-1] = 0
+def apply_error_scaling(nominal,errors, variance_on_all_axes=False):
+    if variance_on_all_axes:
+        # We apply variance to error axis as well, making a more
+        # explicit dependence on the scale of the errors to the
+        # plane. This reduces the effects of statistical scaling,
+        # sometimes to the point of irrelevance.
+        nominal[-1] *= -1
+    else:
+        nominal[-1] = 0
     nominal -= errors
     return nominal
 
@@ -134,6 +130,28 @@ def fisher_statistic(n, confidence_level, dof=2):
     return f.ppf(confidence_level, *df)
 ## Maybe we should use Bingham distribution instead
 
+def sampling_axes_fisher(fit, confidence_level=0.95):
+    """
+    Sampling axes using a fisher statistic instead of chi2
+    """
+    sigma = N.sqrt(sampling_covariance(fit))
+    z = 2*fisher_statistic(fit.n,confidence_level,dof=2)
+    e = fit.eigenvalues
+    # Apply error scaling to standard errors, not covariance
+    return apply_error_scaling(e, z*sigma)
+
+def noise_axes_fisher(fit, confidence_level=0.95):
+    """
+    Sampling axes using a fisher statistic instead of chi2
+    """
+    sigma = N.sqrt(noise_covariance(fit))
+    # Not sure if extra factor of two is necessary (increases
+    # correspondence with 
+    z = 2*fisher_statistic(fit.n,confidence_level,dof=2)
+    e = fit.eigenvalues
+    # Apply error scaling to standard errors, not covariance
+    return apply_error_scaling(e, z*sigma)
+
 def francq_axes(fit, confidence_level=0.95):
     n = fit.n
     s = fit.singular_values
@@ -144,6 +162,7 @@ def francq_axes(fit, confidence_level=0.95):
 
     # This factor is common between Francq and Babamoradi
     factor = 2*F/(n-2)
+    # Not sure if we should take sqrt of Fisher distribution
     h = e*N.sqrt(factor)
     return apply_error_scaling(e,h)
 

@@ -72,7 +72,7 @@ def plot_conjugate_conics(ax, axes, width=None, plot_foci=False, plot_inverse_hy
     hyp, = ax.plot(*hyperbola(axes))
 
     # Normal vector ellipse axes lengths
-    # scales inversely with axes but can
+    # scales inversely\ with axes but can
     # be rescaled at will
 
     ax1,center = __inverse_ellipse(axes)
