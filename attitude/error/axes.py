@@ -82,7 +82,7 @@ def noise_axes(fit, confidence_level=0.95, dof=2):
     e = fit.eigenvalues
     return apply_error_scaling(e, sigma*N.sqrt(cov))
 
-def __angular_error(hyp_axes, axis_length):
+def axis_angular_error(hyp_axes, axis_length):
     """
     The angular error for an in-plane axis of
     given length (either a PCA major axis or
@@ -96,7 +96,7 @@ def angular_errors(hyp_axes):
     corresponding to 1st and 2nd axes
     of PCA distribution.
     """
-    return tuple(__angular_error(hyp_axes, i)
+    return tuple(axis_angular_error(hyp_axes, i)
             for i in hyp_axes[:-1])
 
 ### Sampling axes from Jolliffe, 1980 v2 pp50-52
