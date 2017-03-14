@@ -8,21 +8,48 @@ from __future__ import division
 import numpy as N
 from scipy.stats import chi2, f, norm
 from ..orientation.linear import Regression
+from ..geom import dot
 
-def sampling_covariance(fit):
+def mean_estimator(data_variance, n):
+    """
+    Get the variance of the mean from a data variance term
+    (e.g. an eigenvalue) and return an estimator of the precision of the mean
+    """
+    return data_variance/n
+
+# We aren't going to apply this for now, which means that we
+# are using the estimator for variance on all axes.
+mean_on_error_axis = True
+
+def sampling_covariance(fit, **kw):
     # This is asserted in both Faber and Jolliffe, although the
     # former expression is ambiguous due to a weirdly-typeset radical
     ev = fit.eigenvalues
-    return 2/(fit.n-1)*ev**2
+    cov = 2/(fit.n-1)*ev**2
+    ### Don't know if the below is a good idea ###
+    if mean_on_error_axis and not kw.get('variance_on_all_axes',False):
+        # Try applying estimator of mean to the sample distribution
+        # This is the variance of the mean, not the variance of axial lengths
+        # Not sure if this is the right framework
+        # Moving from a second-order to first-order estimator
+        cov[-1] = mean_estimator(ev[-1],fit.n)
+    return cov
 
-def noise_covariance(fit, dof=2):
+def noise_covariance(fit, dof=2, **kw):
     """
     Covariance taking into account the 'noise covariance' of the data.
     This is technically more realistic for continuously sampled data.
     From Faber, 1993
     """
     ev = fit.eigenvalues
-    return 4*ev*ev[2]/(fit.n-dof)
+    cov = 4*ev*ev[2]/(fit.n-dof)
+    if mean_on_error_axis and not kw.get('variance_on_all_axes',False):
+        # Try applying estimator of mean to the sample distribution
+        # This is the variance of the mean, not the variance of axial lengths
+        # Not sure if this is the right framework
+        # Moving from a second-order to first-order estimator
+        cov[-1] = mean_estimator(ev[-1],fit.n)
+    return cov
 
 def apply_error_level(cov, level):
     """
@@ -50,6 +77,7 @@ def apply_error_scaling(nominal,errors, variance_on_all_axes=True):
         # plane. This reduces the effects of statistical scaling,
         # sometimes to the point of irrelevance.
         nominal[-1] *= -1
+        #pass
     else:
         nominal[-1] = 0
     nominal -= errors
@@ -139,7 +167,7 @@ def sampling_axes_fisher(fit, confidence_level=0.95, **kw):
     """
     Sampling axes using a fisher statistic instead of chi2
     """
-    sigma = N.sqrt(sampling_covariance(fit))
+    sigma = N.sqrt(sampling_covariance(fit,**kw))
     z = fisher_statistic(fit.n,confidence_level,dof=2)
     e = fit.eigenvalues
     # Apply error scaling to standard errors, not covariance
@@ -149,9 +177,9 @@ def noise_axes_fisher(fit, confidence_level=0.95, **kw):
     """
     Sampling axes using a fisher statistic instead of chi2
     """
-    sigma = N.sqrt(noise_covariance(fit))
+    sigma = N.sqrt(noise_covariance(fit,**kw))
     # Not sure if extra factor of two is necessary (increases
-    # correspondence with 
+    # correspondence with
     z = fisher_statistic(fit.n,confidence_level,dof=2)
     e = fit.eigenvalues
     # Apply error scaling to standard errors, not covariance
@@ -191,3 +219,28 @@ def weingarten_axes(fit, confidence_level=0.95):
     c = c/c[-1]*e[-1]
     # rise over run
     return apply_error_scaling(e,c)
+
+def regression_axes(fit, confidence_level=0.95, **kw):
+    # For now we are ignoring slight rotation from PCA errors
+    arr = fit.rotated()
+    X = N.ones_like(arr)
+    X[:,:2] = arr[:,:2]
+
+    y = arr[:,2]
+
+    inv = N.linalg.inv(dot(X.T,X))
+
+    B_hat = dot(inv,X.T,y)
+
+    yhat = dot(X,B_hat)
+    mse = ((y-yhat)**2).mean()
+    # We could find axes here
+    VarB = N.diag(dot(mse,inv))
+    dof = 2
+    sigma = chi2.ppf(confidence_level,dof)
+
+    # We go off the rails at this point
+    h = sigma*N.sqrt(VarB)
+    a = 1/h
+    a[-1] = h[-1]**2
+    return a
