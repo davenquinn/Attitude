@@ -19,7 +19,7 @@ def mean_estimator(data_variance, n):
 
 # We aren't going to apply this for now, which means that we
 # are using the estimator for variance on all axes.
-mean_on_error_axis = True
+mean_on_error_axis = False
 
 def sampling_covariance(fit, **kw):
     # This is asserted in both Faber and Jolliffe, although the
@@ -172,6 +172,34 @@ def sampling_axes_fisher(fit, confidence_level=0.95, **kw):
     e = fit.eigenvalues
     # Apply error scaling to standard errors, not covariance
     return apply_error_scaling(e, z*sigma, **kw)
+
+def sampling_axes_fisher(fit, confidence_level=0.95, **kw):
+    """
+    Sampling axes using a fisher statistic instead of chi2
+    And with a treatment of beta instead of old
+    """
+    # From @Fahrmeir2013 instead of old way
+    # The math is sound but not the endpoint, I think.
+    cov = sampling_covariance(fit)
+    z = fisher_statistic(fit.n,confidence_level,dof=3)
+    # e = fit.eigenvalues
+    # Use definition of beta
+    l = fit.eigenvalues
+    beta = -l/l[-1] # Plane parameters
+
+    # errors to plane parameters
+    # from propagation of division
+    #err = N.abs(beta)*N.sqrt(cov/l+cov[-1]/l[-1])
+    #err *= N.sqrt(2*z)
+
+    # Apply two fisher F parameters
+    # Since we apply to each axis without division,
+    # it is as if we are applying N.sqrt(2*F) to the entire
+    # distribution, aligning us with fisher
+    err = z*N.sqrt(cov)
+
+    # Apply error scaling to standard errors, not covariance
+    return apply_error_scaling(l, err, **kw)
 
 def noise_axes_fisher(fit, confidence_level=0.95, **kw):
     """
