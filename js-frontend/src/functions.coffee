@@ -29,6 +29,8 @@ createNominalPlane = (d)->
   createFeature 'LineString', d.nominal
 
 createGroupedPlane = (opts)->
+  opts.nominal ?= true
+
   (p)->
     e = combinedErrors p.covariance, p.axes, opts
     el = d3.select @
@@ -36,7 +38,7 @@ createGroupedPlane = (opts)->
       .datum createErrorSurface(e)
       .attrs
         class: 'error'
-
+    return if not opts.nominal
     el.append "path"
       .datum createNominalPlane(e)
       .attrs

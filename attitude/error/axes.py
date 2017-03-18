@@ -32,7 +32,7 @@ def sampling_covariance(fit, **kw):
         # This is the variance of the mean, not the variance of axial lengths
         # Not sure if this is the right framework
         # Moving from a second-order to first-order estimator
-        cov[-1] = mean_estimator(ev[-1],fit.n)
+        cov[-1] += mean_estimator(ev[-1],fit.n)
     return cov
 
 def noise_covariance(fit, dof=2, **kw):
@@ -81,7 +81,7 @@ def apply_error_scaling(nominal,errors, variance_on_all_axes=True):
     else:
         nominal[-1] = 0
     nominal -= errors
-    return nominal
+    return N.abs(nominal)
 
 def eigenvalue_axes(fit,**kw):
     return fit.eigenvalues
@@ -185,7 +185,7 @@ def sampling_axes_fisher(fit, confidence_level=0.95, **kw):
     # e = fit.eigenvalues
     # Use definition of beta
     l = fit.eigenvalues
-    beta = -l/l[-1] # Plane parameters
+    #beta = -l/l[-1] # Plane parameters
 
     # errors to plane parameters
     # from propagation of division
@@ -233,7 +233,8 @@ def babamoradi_axes(fit, confidence_level=0.95, **kw):
     F = fisher_statistic(n, confidence_level)
     val = 2*F/(n-2)
     H = N.sqrt(e*val*(n**2-1)/n)
-    return apply_error_scaling(e,H, **kw)
+    #H[-1] -= e[-1]
+    return H**2# apply_error_scaling(e,H, **kw)
 
 def weingarten_axes(fit, confidence_level=0.95):
     """

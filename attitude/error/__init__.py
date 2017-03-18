@@ -21,3 +21,16 @@ def asymptotes(hyp, n=1000):
     angles = N.array([N.cos(u),N.sin(u),_]).T
     return dot(angles,hyp[:-1,:-1])
 
+def pca_to_mapping(pca,**extra_props):
+    """
+    A helper to return a mapping of a PCA result set suitable for
+    reconstructing a planar error surface in other software packages
+
+    kwargs: method (defaults to sampling axes)
+    """
+    method = extra_props.pop('method',sampling_axes)
+    return dict(
+        axes=pca.axes.tolist(),
+        covariance=method(pca).tolist(),
+        **extra_props)
+
