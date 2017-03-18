@@ -234,6 +234,7 @@ def babamoradi_axes(fit, confidence_level=0.95, **kw):
     val = 2*F/(n-2)
     H = N.sqrt(e*val*(n**2-1)/n)
     #H[-1] -= e[-1]
+    # Not sure why this done have worked but it do
     return H**2# apply_error_scaling(e,H, **kw)
 
 def weingarten_axes(fit, confidence_level=0.95):
