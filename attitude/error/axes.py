@@ -19,7 +19,7 @@ def mean_estimator(data_variance, n):
 
 # We aren't going to apply this for now, which means that we
 # are using the estimator for variance on all axes.
-mean_on_error_axis = False
+mean_on_error_axis = True#False
 
 def sampling_covariance(fit, **kw):
     # This is asserted in both Faber and Jolliffe, although the
@@ -27,7 +27,7 @@ def sampling_covariance(fit, **kw):
     ev = fit.eigenvalues
     cov = 2/(fit.n-1)*ev**2
     ### Don't know if the below is a good idea ###
-    if mean_on_error_axis and not kw.get('variance_on_all_axes',False):
+    if mean_on_error_axis: #and not kw.get('variance_on_all_axes',False):
         # Try applying estimator of mean to the sample distribution
         # This is the variance of the mean, not the variance of axial lengths
         # Not sure if this is the right framework
@@ -129,8 +129,7 @@ def angular_errors(hyp_axes):
 
     Ordered as [minimum, maximum] angular error.
     """
-    return tuple(axis_angular_error(hyp_axes, i)
-            for i in hyp_axes[:-1])
+    return tuple(N.arctan2(hyp_axes[-1],hyp_axes[:-1]))
 
 ### Sampling axes from Jolliffe, 1980 v2 pp50-52
 
@@ -201,6 +200,8 @@ def sampling_axes_fisher(fit, confidence_level=0.95, **kw):
     # Apply error scaling to standard errors, not covariance
     return apply_error_scaling(l, err, **kw)
 
+sampling_axes = sampling_axes_fisher
+
 def noise_axes_fisher(fit, confidence_level=0.95, **kw):
     """
     Sampling axes using a fisher statistic instead of chi2
@@ -208,7 +209,7 @@ def noise_axes_fisher(fit, confidence_level=0.95, **kw):
     sigma = N.sqrt(noise_covariance(fit,**kw))
     # Not sure if extra factor of two is necessary (increases
     # correspondence with
-    z = fisher_statistic(fit.n,confidence_level,dof=2)
+    z = fisher_statistic(fit.n,confidence_level,dof=3)
     e = fit.eigenvalues
     # Apply error scaling to standard errors, not covariance
     return apply_error_scaling(e, z*sigma, **kw)

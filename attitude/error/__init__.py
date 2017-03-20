@@ -28,6 +28,7 @@ def pca_to_mapping(pca,**extra_props):
 
     kwargs: method (defaults to sampling axes)
     """
+    from .axes import sampling_axes
     method = extra_props.pop('method',sampling_axes)
     return dict(
         axes=pca.axes.tolist(),
