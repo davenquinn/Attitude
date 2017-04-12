@@ -154,7 +154,7 @@ def test_center_recovery():
 
     b = axes[2]
     # Check that computed distance of offset ellipse
-    # is the same for both 
+    # is the same for both
     computed_centers =  [get_offset_center(a,b)
                          for a in inplane]
     assert N.allclose(*computed_centers)

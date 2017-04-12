@@ -199,19 +199,25 @@ class PCAOrientation(BaseOrientation):
         # Normal vector in axis-aligned coordinate frame
         self.offset = N.cross(self.sigma[0],self.sigma[1])
 
-        self.normal = self.axes[2]
-        if self.normal[2] < 0:
+        self.normal = self.axes[-1]
+        if self.normal[-1] < 0:
             # Could create a special case for inverted bedding
             self.normal = -self.normal
 
-        self._vertical = N.array([0,0,1])
+        v = N.zeros_like(self.normal)
+        v[-1] = 1
+        self._vertical = v
         self.strike = N.cross(self.normal,self._vertical)
-        self.dip_dr = normalize(N.cross(self.strike,self.normal))
+        try:
+            self.dip_dr = normalize(N.cross(self.strike,self.normal))
+        except ValueError:
+            # Can't do this in 2D cases
+            self.dip_dr = None
 
         # Hyperbolic form of PCA
-        self.hyp = self.as_hyperbola(rotated=False)
-        d = N.abs(N.diagonal(self.hyp)[:-1])
-        self.hyp_axes = N.sqrt(1/d)
+        #self.hyp = self.as_hyperbola(rotated=False)
+        #d = N.abs(N.diagonal(self.hyp)[:-1])
+        #self.hyp_axes = N.sqrt(1/d)
 
     @property
     def U(self):

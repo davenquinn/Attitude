@@ -38,3 +38,18 @@ def fit_similarity(fit1, fit2):
     rotated = dot(V,v0) # rotate vector into PCA space
     val = rotated**2/N.sqrt(s)
     return N.sqrt(val.sum())
+
+def axis_aligned_transforms():
+    """
+    Get transformations to map three-dimensional data down
+    to slices on the xy, xz and yz planes, respectively.
+    """
+    I = N.eye(3)
+    xy = I[:2]
+    xz = N.vstack((I[0],I[2]))
+    yz = I[1:]
+    return xy,xz,yz
+
+def rotate_2D(angle):
+    return N.array([[N.cos(angle),-N.sin(angle)],
+                    [N.sin(angle),N.cos(angle)]])

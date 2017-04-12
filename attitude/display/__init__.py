@@ -1,3 +1,5 @@
+from .hyperbola import HyperbolicErrors
+
 from os import path
 from io import BytesIO
 from base64 import b64encode

@@ -9,6 +9,7 @@ def apparent_dip_correction(axes):
     Produces a rotation matrix that
     rotates a dataset to correct for apparent dip
     """
+    print(axes)
     a1 = axes[0].copy()
     a1[-1] = 0
     cosa = angle(axes[0],a1,cos=True)
@@ -21,6 +22,9 @@ def apparent_dip_correction(axes):
         # Small angle, don't bother
         # (small angles can lead to spurious results)
         R = N.identity(2)
+    #if axes[0,0] < 0:
+    #    return R.T
+    #else:
     return R
 
 def hyperbolic_errors(hyp_axes, xvals,
@@ -45,21 +49,28 @@ def hyperbolic_errors(hyp_axes, xvals,
 
     arr = augment_tensor(N.diag(hyp_axes))
 
-    if transformation is None:
-        transformation = N.identity(3)
-    if axes is None:
-        axes = N.array([[0,1,0],[0,0,1]])
-
     # Transform ellipsoid to dual hyperboloid
     hyp = conic(arr).dual()
-    hyp = hyp.transform(augment_tensor(transformation))
 
-    n_ = N.cross(axes[0],axes[1])
+    if len(hyp_axes) == 3:
+        # Three_dimensional case
 
-    # Create a plane containing the two axes specified
-    # in the function call
-    p = plane(n_) # no offset (goes through origin)
-    h1 = hyp.slice(p, axes=axes)[0]
+        if transformation is None:
+            transformation = N.identity(3)
+        if axes is None:
+            axes = N.array([[0,1,0],[0,0,1]])
+
+        hyp = hyp.transform(augment_tensor(transformation))
+
+        n_ = N.cross(axes[0],axes[1])
+
+        # Create a plane containing the two axes specified
+        # in the function call
+        p = plane(n_) # no offset (goes through origin)
+        h1 = hyp.slice(p, axes=axes)[0]
+    else:
+        # We have a 2d geometry
+        h1 = hyp
 
     # Major axes of the conic sliced in the requested viewing
     # geometry
@@ -79,3 +90,14 @@ def hyperbolic_errors(hyp_axes, xvals,
     vals[:,-1] *= -1
     b = dot(vals,ax1).T+means[:,N.newaxis]
     return nom, b, t
+
+def hyperbola_values(hyp_axes, xvals):
+    """
+    kwargs:
+        transformation  rotation to apply to quadric prior to slicing
+                        (e.g. transformation into 'world' coordinates
+        axes            axes on which to slice the data
+    """
+    A = N.sqrt(hyp_axes)
+    return A[1]*N.cosh(N.arcsinh(xvals/A[0]))
+

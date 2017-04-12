@@ -15,11 +15,11 @@ def mean_estimator(data_variance, n):
     Get the variance of the mean from a data variance term
     (e.g. an eigenvalue) and return an estimator of the precision of the mean
     """
-    return data_variance/n
+    return data_variance/n**2
 
 # We aren't going to apply this for now, which means that we
 # are using the estimator for variance on all axes.
-mean_on_error_axis = True#False
+mean_on_error_axis = False
 
 def sampling_covariance(fit, **kw):
     # This is asserted in both Faber and Jolliffe, although the
@@ -27,7 +27,7 @@ def sampling_covariance(fit, **kw):
     ev = fit.eigenvalues
     cov = 2/(fit.n-1)*ev**2
     ### Don't know if the below is a good idea ###
-    if mean_on_error_axis: #and not kw.get('variance_on_all_axes',False):
+    if mean_on_error_axis:# and not kw.get('variance_on_all_axes',False):
         # Try applying estimator of mean to the sample distribution
         # This is the variance of the mean, not the variance of axial lengths
         # Not sure if this is the right framework
@@ -42,7 +42,7 @@ def noise_covariance(fit, dof=2, **kw):
     From Faber, 1993
     """
     ev = fit.eigenvalues
-    cov = 4*ev*ev[2]/(fit.n-dof)
+    cov = 4*ev*ev[-1]/(fit.n-dof)
     if mean_on_error_axis and not kw.get('variance_on_all_axes',False):
         # Try applying estimator of mean to the sample distribution
         # This is the variance of the mean, not the variance of axial lengths
@@ -58,16 +58,16 @@ def apply_error_level(cov, level):
     cov[-1]*=level
     return cov
 
-def apply_error_scaling_old(nominal,errors):
+def apply_error_scaling_old(nominal,errors, **kw):
     """
     This method does not account for errors on the
     in-plane axes
     """
     try:
-        nominal[2] = errors[2]
+        nominal[-1] = errors[-1]
     except IndexError:
         # We're dealing with a scalar
-        nominal[2] = errors
+        nominal[-1] = errors
     return nominal
 
 def apply_error_scaling(nominal,errors, variance_on_all_axes=True):
@@ -166,8 +166,9 @@ def sampling_axes_fisher(fit, confidence_level=0.95, **kw):
     """
     Sampling axes using a fisher statistic instead of chi2
     """
+    dof = kw.pop('dof',3)
     sigma = N.sqrt(sampling_covariance(fit,**kw))
-    z = fisher_statistic(fit.n,confidence_level,dof=2)
+    z = fisher_statistic(fit.n,confidence_level,dof=dof)
     e = fit.eigenvalues
     # Apply error scaling to standard errors, not covariance
     return apply_error_scaling(e, z*sigma, **kw)
@@ -179,8 +180,9 @@ def sampling_axes_fisher(fit, confidence_level=0.95, **kw):
     """
     # From @Fahrmeir2013 instead of old way
     # The math is sound but not the endpoint, I think.
+    dof = kw.pop('dof',3)
     cov = sampling_covariance(fit)
-    z = fisher_statistic(fit.n,confidence_level,dof=3)
+    z = fisher_statistic(fit.n,confidence_level,dof=dof)
     # e = fit.eigenvalues
     # Use definition of beta
     l = fit.eigenvalues
@@ -200,8 +202,6 @@ def sampling_axes_fisher(fit, confidence_level=0.95, **kw):
     # Apply error scaling to standard errors, not covariance
     return apply_error_scaling(l, err, **kw)
 
-sampling_axes = sampling_axes_fisher
-
 def noise_axes_fisher(fit, confidence_level=0.95, **kw):
     """
     Sampling axes using a fisher statistic instead of chi2
@@ -209,10 +209,14 @@ def noise_axes_fisher(fit, confidence_level=0.95, **kw):
     sigma = N.sqrt(noise_covariance(fit,**kw))
     # Not sure if extra factor of two is necessary (increases
     # correspondence with
-    z = fisher_statistic(fit.n,confidence_level,dof=3)
+    dof = kw.pop('dof',3)
+    z = fisher_statistic(fit.n,confidence_level,dof=dof)
     e = fit.eigenvalues
     # Apply error scaling to standard errors, not covariance
     return apply_error_scaling(e, z*sigma, **kw)
+
+sampling_axes = sampling_axes_fisher
+noise_axes = noise_axes_fisher
 
 def francq_axes(fit, confidence_level=0.95, **kw):
     n = fit.n
@@ -261,6 +265,9 @@ def regression_axes(fit, confidence_level=0.95, **kw):
 
     inv = N.linalg.inv(dot(X.T,X))
 
+    # Orthogonalize the design matrix
+    # using the Gram-Schmidt transformation
+    # (from p 112 of Fahrimer et al., Regression statistics)
     B_hat = dot(inv,X.T,y)
 
     yhat = dot(X,B_hat)
