@@ -181,7 +181,7 @@ def sampling_axes_fisher(fit, confidence_level=0.95, **kw):
     # From @Fahrmeir2013 instead of old way
     # The math is sound but not the endpoint, I think.
     dof = kw.pop('dof',3)
-    cov = sampling_covariance(fit)
+    cov = sampling_covariance(fit,**kw)
     z = fisher_statistic(fit.n,confidence_level,dof=dof)
     # e = fit.eigenvalues
     # Use definition of beta

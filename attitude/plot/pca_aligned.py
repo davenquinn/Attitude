@@ -9,7 +9,7 @@ from matplotlib.patches import Polygon
 from matplotlib.gridspec import GridSpec
 from matplotlib.ticker import FuncFormatter
 
-from .hyperbola import HyperbolicErrors
+from ..display.hyperbola import HyperbolicErrors
 from ..error.axes import sampling_axes, noise_axes
 from ..geom.util import vector,plane
 

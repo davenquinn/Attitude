@@ -6,7 +6,7 @@ from ..orientation import Orientation
 from ..display.plot.cov_types import hyperbola, bootstrap_noise, augment, ci
 from ..error.axes import sampling_axes, noise_axes
 from ..geom.util import vector
-from .hyperbola import HyperbolicErrors
+from ..display.hyperbola import HyperbolicErrors
 
 def bootstrap_ci(deskewed_data):
     # Bootstrap with noise std greater of 1m or the standard deviation of residuals

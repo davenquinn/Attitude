@@ -139,6 +139,7 @@ class PCAOrientation(BaseOrientation):
         """
         # For principal components, data needs
         # to be pre-processed to have zero mean
+        self.mean = arr.mean(axis=0)
         self.arr = centered(arr)
 
         # Factor loadings
