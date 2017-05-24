@@ -8,6 +8,7 @@ from .pca import PCAOrientation, centered
 from ..geom.util import dot, vector, angle
 from mplstereonet.stereonet_math import sph2cart
 from scipy.stats import chi2
+from ..error.axes import variance_axes
 
 def random_pca(scattered=True):
     if scattered:
@@ -27,13 +28,14 @@ def test_rotation():
     assert N.allclose(Mbar, o.rotated())
     assert N.allclose(dot(Mbar,o.axes),o.arr)
 
+@pytest.mark.xfail(reason="This is overly simplistic")
 def test_error_angles():
     """
     Test simplistic formulation of error angle
     measurement
     """
     o = random_pca()
-    err = o.angular_errors()
+    err = o.angular_errors(method=variance_axes)
 
     mat = N.sqrt(o.covariance_matrix)
 

@@ -10,7 +10,7 @@ from ..display.plot.cov_types.regressions import hyperbola
 from ..orientation.test_pca import random_pca
 from ..orientation.pca import augment as augment_matrix
 from .conics import Conic, conic
-from ..error import hyperbolic_errors
+from ..display.hyperbola import hyperbolic_errors
 from ..error.axes import sampling_axes
 from .util import vector, plane, dot
 

@@ -282,3 +282,6 @@ def regression_axes(fit, confidence_level=0.95, **kw):
     a = 1/h
     a[-1] = h[-1]**2
     return a
+
+def variance_axes(fit):
+    return fit.eigenvalues

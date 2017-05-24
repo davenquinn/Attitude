@@ -11,6 +11,7 @@ from ..coordinates import centered
 from .base import BaseOrientation, rotation
 from ..error.ellipse import ellipse
 from ..stereonet import plane_errors, error_coords
+from ..error.axes import sampling_axes, sampling_covariance, angular_errors
 
 from ..geom.util import dot, vector
 from ..geom.util import angle as vector_angle
@@ -139,6 +140,8 @@ class PCAOrientation(BaseOrientation):
         """
         # For principal components, data needs
         # to be pre-processed to have zero mean
+        self.method = sampling_axes
+
         self.mean = arr.mean(axis=0)
         self.arr = centered(arr)
 
@@ -254,22 +257,23 @@ class PCAOrientation(BaseOrientation):
         _ = N.dot(_,self.axes)
         return self.arr - _
 
-    def angular_error(self, axis_length):
+    def angular_error(self, axis_length, method=sampling_axes):
         """
         The angular error for an in-plane axis of
         given length (either a PCA major axis or
         an intermediate direction).
         """
-        return N.arctan2(self.hyp_axes[-1],axis_length)
+        hyp_axes = method(self)
+        return N.arctan2(hyp_axes[-1],axis_length)
 
-    def angular_errors(self):
+    def angular_errors(self, method=sampling_axes):
         """
         Minimum and maximum angular errors
         corresponding to 1st and 2nd axes
         of PCA distribution.
         """
-        return tuple(self.angular_error(i)
-                for i in self.hyp_axes[:-1])
+        hyp_axes = method(self)
+        return angular_errors(hyp_axes)
 
     def _covariance_matrix(self, type='noise'):
         """
