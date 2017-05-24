@@ -1,7 +1,7 @@
-BIN := node_modules/.bin
-BASE := attitude/display
-ASSETS := $(BASE)/assets
-BUILD := $(BASE)/templates/build
+BIN := js-frontend/node_modules/.bin
+BASE := js-frontend
+ASSETS := $(BASE)/src
+BUILD := $(BASE)/assets
 
 SCRIPT := $(BUILD)/stereonet.js
 
@@ -28,7 +28,7 @@ watch: $(coffee) | $(BUILD)
 $(SCRIPT): $(coffee) | $(BUILD)
 	$(BIN)/browserify -t coffeeify $</index.coffee > $@
 
-$(BUILD)/style.css: $(ASSETS)/style.scss | $(BUILD)
+$(BUILD)/style.css: $(ASSETS)/style.styl | $(BUILD)
 	rm -f $@
-	cat $^ | $(BIN)/node-sass > $@
+	cat $^ | $(BIN)/stylus > $@
 

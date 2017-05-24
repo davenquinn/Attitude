@@ -15,6 +15,7 @@
     "coffeeify": "^1.2.0",
     "mocha": "^3.1.2",
     "node-sass": "^3.4.2",
+    "stylus": "^0.54.5",
     "turf": "^3.0.14",
     "watchify": "^3.6.1"
   },
