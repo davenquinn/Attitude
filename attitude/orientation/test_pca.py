@@ -4,19 +4,11 @@ import numpy as N
 import pytest
 from scipy.integrate import quad
 from ..test import random_plane, scattered_plane, load_test_plane
-from .pca import PCAOrientation, centered
+from .pca import PCAOrientation, centered, random_pca
 from ..geom.util import dot, vector, angle
 from mplstereonet.stereonet_math import sph2cart
 from scipy.stats import chi2
 from ..error.axes import variance_axes
-
-def random_pca(scattered=True):
-    if scattered:
-        arr,coeffs = scattered_plane()
-    else:
-        arr, coeffs = random_plane()
-    arr = N.array(arr).transpose()
-    return PCAOrientation(arr)
 
 def test_rotation():
     """

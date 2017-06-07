@@ -12,12 +12,20 @@ from .base import BaseOrientation, rotation
 from ..error.ellipse import ellipse
 from ..stereonet import plane_errors, error_coords
 from ..error.axes import sampling_axes, sampling_covariance, angular_errors
-
+from ..test import scattered_plane
 from ..geom.util import dot, vector
 from ..geom.util import angle as vector_angle
 from ..geom.conics import conic
 
 log = logging.getLogger('attitude')
+
+def random_pca(scattered=True):
+    if scattered:
+        arr,coeffs = scattered_plane()
+    else:
+        arr, coeffs = random_plane()
+    arr = N.array(arr).transpose()
+    return PCAOrientation(arr)
 
 def augment(matrix):
     size = matrix.shape
@@ -266,14 +274,17 @@ class PCAOrientation(BaseOrientation):
         hyp_axes = method(self)
         return N.arctan2(hyp_axes[-1],axis_length)
 
-    def angular_errors(self, method=sampling_axes):
+    def angular_errors(self, method=sampling_axes, degrees=True):
         """
         Minimum and maximum angular errors
         corresponding to 1st and 2nd axes
         of PCA distribution.
         """
         hyp_axes = method(self)
-        return angular_errors(hyp_axes)
+        v = angular_errors(hyp_axes)
+        if degrees:
+            v = N.degrees(v)
+        return tuple(v)
 
     def _covariance_matrix(self, type='noise'):
         """
