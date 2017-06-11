@@ -2,6 +2,7 @@ import numpy as N
 from .util import dot
 from .conics import conic
 from .util import angle, vector
+from .transform import rotate_2D
 
 def aligned_covariance(fit, type='noise'):
     """
@@ -50,6 +51,3 @@ def axis_aligned_transforms():
     yz = I[1:]
     return xy,xz,yz
 
-def rotate_2D(angle):
-    return N.array([[N.cos(angle),-N.sin(angle)],
-                    [N.sin(angle),N.cos(angle)]])

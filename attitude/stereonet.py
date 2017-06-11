@@ -237,3 +237,4 @@ def error_coords(axes, covariance_matrix, **kwargs):
         i = {l:__(l) for l in levels}
     out.update(i)
     return out
+

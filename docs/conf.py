@@ -33,6 +33,7 @@ import attitude
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.todo',
+    'nbsphinx',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     "guzzle_sphinx_theme"

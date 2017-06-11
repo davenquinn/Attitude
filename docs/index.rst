@@ -13,6 +13,8 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   example-notebooks/Plotting-Attitudes.ipynb
+
 .. automodule:: attitude.error
     :members:
 

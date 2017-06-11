@@ -330,6 +330,13 @@ class PCAOrientation(BaseOrientation):
         mag = N.linalg.norm(_)
         return N.arccos(_[2]/mag)
 
+    def _strike_dip(self):
+        n = self.axes[2]
+        r = N.linalg.norm(n)
+        strike = N.arctan2(n[0],n[1])-N.pi/2
+        dip = N.arccos(n[2]/r)
+        return strike, dip
+
     def strike_dip(self):
         """
         Computes strike and dip from a normal vector.
@@ -355,6 +362,21 @@ class PCAOrientation(BaseOrientation):
             strike += 360
 
         return strike, dip
+
+    def _rake(self):
+        """
+        Rake of maximum angular error relative to strike of plane
+        (this is functionally equivalent to rake of minimum error
+        from dip direction)
+        """
+        self.dip_dr
+        return vector_angle(self.dip_dr, self.axes[0])
+
+    def rake(self):
+        return N.degrees(self._rake())
+
+    def strike_dip_rake(self):
+        return (*self.strike_dip(), self.rake())
 
     def as_conic(self, level=1):
 
