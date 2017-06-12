@@ -27,7 +27,17 @@ def transform(v1, v2):
 
     return R
 
-def stereonet_errors(ax, fit, **kwargs):
+def plot_patch(ax, vertices, codes, **kwargs):
+    # Make path plot in order with lines
+    # https://matplotlib.org/examples/pylab_examples/zorder_demo.html
+    defaults = dict(zorder=2)
+    defaults.update(kwargs)
+
+    path = Path(vertices, codes)
+    patch = PathPatch(path, **defaults)
+    ax.add_patch(patch)
+
+def girdle_error(ax, fit, **kwargs):
     """
     Plot an attitude measurement on an `mplstereonet` axes object.
     """
@@ -44,11 +54,9 @@ def stereonet_errors(ax, fit, **kwargs):
         codes.append(Path.MOVETO)
         codes += [Path.LINETO]*(n-1)
 
-    path = Path(vertices, codes)
-    patch = PathPatch(path, **kwargs)
-    ax.add_patch(patch)
+    plot_patch(ax, vertices, codes, **kwargs)
 
-def stereonet_pole_error(ax, fit, **kwargs):
+def pole_error(ax, fit, **kwargs):
     """
     Plot the error to the pole to a plane on a `mplstereonet`
     axis object.
@@ -60,9 +68,7 @@ def stereonet_pole_error(ax, fit, **kwargs):
     codes += [Path.LINETO]*(n-1)
     vertices = list(lonlat)
 
-    path = Path(vertices, codes)
-    patch = PathPatch(path, **kwargs)
-    ax.add_patch(patch)
+    plot_patch(ax, vertices, codes, **kwargs)
 
 class UncertainPlane(object):
     """

@@ -22,6 +22,14 @@ def ellipse(n=1000, adaptive=False):
     # a full rotation around the unit circle
     return N.array([N.cos(u),N.sin(u)]).T
 
+_trans_arr = N.array([-1, -1, 1])
+def sph2cart(latlon):
+    _ = M.sph2cart(*latlon)
+    val = N.array(_).flatten()
+    val = N.roll(val,-1)
+    return val * _trans_arr
+
+
 def scale_errors(cov_axes, confidence_level=0.95):
     """
     Returns major axes of error ellipse or

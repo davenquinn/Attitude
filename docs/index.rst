@@ -15,7 +15,22 @@ Contents:
 
    example-notebooks/Plotting-Attitudes.ipynb
 
+.. automodule:: attitude
+    :members:
+
+Attitude.orientation
+====================
+
+.. autoclass:: attitude.orientation.pca.PCAOrientation
+    :members:
+
+Attitude.error
+==============
+
 .. automodule:: attitude.error
+    :members:
+
+.. automodule:: attitude.error.axes
     :members:
 
 Indices and tables

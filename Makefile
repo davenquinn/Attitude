@@ -5,7 +5,7 @@ BUILD := $(BASE)/assets
 
 SCRIPT := $(BUILD)/stereonet.js
 
-all: assets
+all: assets docs
 
 .PHONY: install clean assets
 install:
@@ -32,3 +32,6 @@ $(BUILD)/style.css: $(ASSETS)/style.styl | $(BUILD)
 	rm -f $@
 	cat $^ | $(BIN)/stylus > $@
 
+.PHONY: docs
+docs:
+	cd docs && make html
