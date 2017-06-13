@@ -1,5 +1,5 @@
 import numpy as N
-from mplstereonet.stereonet_math import cart2sph
+from mplstereonet import stereonet_math
 from scipy.stats import chi2
 
 from .geom.util import vector, unit_vector, dot
@@ -22,12 +22,12 @@ def ellipse(n=1000, adaptive=False):
     # a full rotation around the unit circle
     return N.array([N.cos(u),N.sin(u)]).T
 
-_trans_arr = N.array([-1, -1, 1])
-def sph2cart(latlon):
-    _ = M.sph2cart(*latlon)
-    val = N.array(_).flatten()
-    val = N.roll(val,-1)
-    return val * _trans_arr
+def sph2cart(lat,lon):
+    _ = stereonet_math.sph2cart(lat,lon)
+    #val = N.array(_).flatten()
+    val = N.roll(_,-1)
+    val[:-1] *= -1
+    return val
 
 
 def scale_errors(cov_axes, confidence_level=0.95):
@@ -61,7 +61,7 @@ def normal_errors(axes, covariance_matrix, **kwargs):
 
     _ = dot(e.T,axes).T
 
-    lon,lat = cart2sph(_[2],_[0],_[1])
+    lon,lat = stereonet_math.cart2sph(_[2],_[0],_[1])
     return list(zip(lon,lat))
 
 def iterative_normal_errors(axes, covariance_matrix, **kwargs):
@@ -139,9 +139,9 @@ def plane_errors(axes, covariance_matrix, sheet='upper',**kwargs):
     _ = dot(bundle,axes).T
 
     if traditional_layout:
-        lon,lat = cart2sph(_[2],_[0],_[1])
+        lon,lat = stereonet_math.cart2sph(_[2],_[0],_[1])
     else:
-        lon,lat = cart2sph(-_[1],_[0],_[2])
+        lon,lat = stereonet_math.cart2sph(-_[1],_[0],_[2])
 
     return list(zip(lon,lat))
 
@@ -205,9 +205,9 @@ def error_ellipse(axes, covariance_matrix, **kwargs):
     _ = normal + bundle
 
     if traditional_layout:
-        lon,lat = cart2sph(_[2],_[0],_[1])
+        lon,lat = stereonet_math.cart2sph(_[2],_[0],_[1])
     else:
-        lon,lat = cart2sph(-_[1],_[0],_[2])
+        lon,lat = stereonet_math.cart2sph(-_[1],_[0],_[2])
 
     return list(zip(lon,lat))
 

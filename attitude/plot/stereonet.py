@@ -6,26 +6,7 @@ import mplstereonet.stereonet_math as M
 from ..stereonet import plane_errors, ellipse, dot, error_ellipse, normal_errors
 from ..error.axes import sampling_axes
 from ..geom.transform import rotate_2D
-from ..geom.util import angle
-
-def transform(v1, v2):
-    """
-    Create an affine transformation matrix that maps vector 1
-    onto vector 2
-
-    https://math.stackexchange.com/questions/293116/rotating-one-3d-vector-to-another
-    """
-    theta = angle(v1,v2)
-    x = N.cross(v1,v2)
-    x /= N.linalg.norm(x)
-
-    A = N.array([
-        [0, -x[2], x[1]],
-        [x[2], 0, -x[0]],
-        [-x[1], x[0], 0]])
-    R = N.exp(A*theta)
-
-    return R
+from ..coordinates.rotations import transform
 
 def plot_patch(ax, vertices, codes, **kwargs):
     # Make path plot in order with lines
@@ -113,4 +94,4 @@ class UncertainPlane(object):
 
 def uncertain_plane(ax, *args, **kwargs):
     fit = UncertainPlane(*args)
-    return stereonet_errors(ax, fit, **kwargs)
+    return girdle_error(ax, fit, **kwargs)
