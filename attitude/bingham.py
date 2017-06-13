@@ -17,17 +17,27 @@ def confluent_hypergeometric_function(k1, k2, n=10):
 def bingham_pdf(fit):
     """
     From the *Encyclopedia of Paleomagnetism*
+
+    From Onstott, 1980:
+    Vector resultant: R is analogous to eigenvectors
+    of T.
+    Eigenvalues are analogous to |R|/N.
     """
-    kappa = (fit.eigenvalues-fit.eigenvalues[2])[:-1]
+    # Uses eigenvectors of the covariance matrix
+    e = fit.eigenvalues #singular_values
+    kappa = (e-e[2])[:-1]
     kappa /= kappa[-1]
     F = N.sqrt(N.pi)*confluent_hypergeometric_function(*kappa)
-    e1, e2 = fit.axes[:-1]
+    ax = fit.axes
+    if ax[-1,-1] < 0:
+        ax *= -1
+    e1, e2 = ax[:-1]
 
     def pdf(I, D):
         # Given in spherical coordinates of inclination
         # and declination in radians
 
-        xhat = sph2cart(D,I).T
+        xhat = sph2cart(I,D).T
 
         return 1/F*N.exp(
               kappa[0]*dot(xhat,e1)**2
