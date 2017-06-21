@@ -129,7 +129,8 @@ def angular_errors(hyp_axes):
 
     Ordered as [minimum, maximum] angular error.
     """
-    return tuple(N.arctan2(hyp_axes[-1],hyp_axes[:-1]))
+    ax = N.sqrt(hyp_axes)
+    return tuple(N.arctan2(ax[-1],ax[:-1]))
 
 ### Sampling axes from Jolliffe, 1980 v2 pp50-52
 

@@ -71,5 +71,5 @@ class ReconstructedPlane(ErrorShell):
         if self.axes[-1,-1] < 0:
             self.axes *= -1
 
-        lengths = 1/N.tan(errors[::-1])**2
+        lengths = 1/N.tan(errors[::-1])
         self.covariance_matrix = N.diag(list(lengths)+[1])

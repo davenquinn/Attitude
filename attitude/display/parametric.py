@@ -69,7 +69,7 @@ def __reverse_ellipse(axes, scalar=1):
     return ax1, center
 
 def plot_conjugate_conics(ax, axes, width=None, plot_foci=False, plot_inverse_hyperbola=False):
-    hyp, = ax.plot(*hyperbola(axes))
+    hyp, = ax.plot(*hyperbola(axes), color='dodgerblue', label='Hyperbolic bundle of planes')
 
     # Normal vector ellipse axes lengths
     # scales inversely\ with axes but can
@@ -77,7 +77,8 @@ def plot_conjugate_conics(ax, axes, width=None, plot_foci=False, plot_inverse_hy
 
     ax1,center = __inverse_ellipse(axes)
 
-    ell, = ax.plot(*ellipse(ax1, center=[0,center]))
+    ell, = ax.plot(*ellipse(ax1, center=[0,center]), color='red',
+                label='Normal vector endpoint (fixed length)')
 
 
     if plot_inverse_hyperbola:
@@ -85,9 +86,12 @@ def plot_conjugate_conics(ax, axes, width=None, plot_foci=False, plot_inverse_hy
         color = Color(ell.get_color())
         color.saturation = 0.8
         color.luminance = 0.85
-        hyp_inv, = ax.plot(*hyperbola(1/axes, opens_up=True), color=str(color), zorder=-1)
+        hyp_inv, = ax.plot(*hyperbola(1/axes, opens_up=True),
+                            color=str(color), zorder=-1,
+                           label='Normal vector endpoint (arbitrary length)')
 
-    ax.plot(*ellipse(axes), zorder=-5, color=hyp.get_color(),alpha=0.5, linewidth=1)
+    ax.plot(*ellipse(axes), zorder=-5, color=hyp.get_color(),alpha=0.5, linewidth=1,
+            label='Ellipsoid inscribing axes')
 
 
     if plot_foci:
@@ -107,12 +111,12 @@ def plot_conjugate_conics(ax, axes, width=None, plot_foci=False, plot_inverse_hy
     xvals = N.array([-500,500])
     yvals = axes[1]/axes[0]*xvals
     kw = dict(zorder=-1, color=hyp.get_color(), linewidth=0.5)
-    ax.plot(xvals, yvals, ':', **kw)
+    ax.plot(xvals, yvals, ':', **kw, label='Hyperbolic tangents')
     ax.plot(xvals, -yvals, ':', **kw)
 
     #yvals = axes[0]/axes[1]*xvals
     kw = dict(zorder=-1, color=ell.get_color(), linewidth=0.5)
-    ax.plot(yvals, xvals, ':', **kw)
+    ax.plot(yvals, xvals, ':', **kw, label='Inverse tangents')
     ax.plot(yvals, -xvals, ':', **kw)
 
     _ = 4
