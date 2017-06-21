@@ -42,8 +42,12 @@ def fit_similarity(fit1, fit2):
 
 def axis_aligned_transforms():
     """
-    Get transformations to map three-dimensional data down
+    Generates three transformation matrices
+    to map three-dimensional data down
     to slices on the xy, xz and yz planes, respectively.
+    The typical use case for this is to iterate over the results
+    of this method to provide arguments to e.g. the `HyperbolicErrors`
+    function.
     """
     I = N.eye(3)
     xy = I[:2]

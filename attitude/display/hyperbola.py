@@ -8,8 +8,8 @@ from ..geom.conics import Conic, conic
 
 def apparent_dip_correction(axes):
     """
-    Produces a rotation matrix that
-    rotates a dataset to correct for apparent dip
+    Produces a two-dimensional rotation matrix that
+    rotates a projected dataset to correct for apparent dip
     """
     a1 = axes[0].copy()
     a1[-1] = 0
@@ -31,7 +31,9 @@ def apparent_dip_correction(axes):
     return R
 
 def hyperbolic_errors(hyp_axes, xvals,
-                      transformation=None, axes=None, means=None):
+                      transformation=None, axes=None,
+                      means=None, correct_apparent_dip=True,
+                      reverse=False):
     """
     Returns a function that can be used to create a view of the
     hyperbolic error ellipse from a specific direction.
@@ -87,6 +89,10 @@ def hyperbolic_errors(hyp_axes, xvals,
     # Rotate the whole result if the PCA axes aren't aligned to the
     # major axes of the view coordinate system
     ax1 = apparent_dip_correction(axes)
+
+    # This is a dirty hack to flip things left to right
+    if reverse:
+        ax1 = ax1.T
     # Top
     t = dot(vals,ax1).T+means[:,N.newaxis]
     # Btm
@@ -168,9 +174,20 @@ def hyperbolic_errors_parametric(hyp_axes, xvals=None,
 
     nom = N.array([[N.cos(a), N.sin(a)]])
 
-    xvals = N.array([-500,500])
+    xvals = N.array([-10000,10000])
     nom = N.array([xvals,N.zeros(2)]).transpose()
-    return nom, b, t
+
+    # Rotate the whole result if the PCA axes aren't aligned to the
+    # major axes of the view coordinate system
+    ax1 = apparent_dip_correction(axes)
+    # Top
+    t = dot(t.T,ax1).T+means[:,N.newaxis]
+    # Btm
+    b[:,-1] *= -1
+    b = dot(b.T,ax1).T+means[:,N.newaxis]
+
+    nom = dot(nom,ax1).T+means[:,N.newaxis]
+    return nom, b, t[:,::-1]
 
 
 def hyperbola_values(hyp_axes, xvals):
@@ -224,7 +241,7 @@ class HyperbolicErrors(object):
         ax.plot(*self.data[0],*args, **kw)
 
     def update_data(self, *args, **kwargs):
-        self.data = hyperbolic_errors_parametric(*args,**kwargs)
+        self.data = hyperbolic_errors(*args,**kwargs)
         self.__set_plot_data(self.data)
 
     def __set_plot_data(self,n):

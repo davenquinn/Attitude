@@ -11,6 +11,7 @@ def cartopy_girdle(fit, **kw):
     from cartopy import crs, feature
     from shapely.geometry import Polygon
     d = sampling_axes(fit,**kw)
+    cm = N.diag(d)
     sheets = {i: N.degrees(plane_errors(fit.axes, cm, sheet=i))
         for i in ('upper','lower')}
     geom = Polygon(sheets['upper'], [sheets['lower'][::-1]])
