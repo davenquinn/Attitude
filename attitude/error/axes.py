@@ -42,7 +42,9 @@ def noise_covariance(fit, dof=2, **kw):
     From Faber, 1993
     """
     ev = fit.eigenvalues
-    cov = 4*ev*ev[-1]/(fit.n-dof)
+
+    measurement_noise = ev[-1]/(fit.n-dof)
+    cov = 4*ev*measurement_noise
     if mean_on_error_axis and not kw.get('variance_on_all_axes',False):
         # Try applying estimator of mean to the sample distribution
         # This is the variance of the mean, not the variance of axial lengths

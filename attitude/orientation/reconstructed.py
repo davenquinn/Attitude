@@ -9,6 +9,10 @@ class ErrorShell(object):
     """
     Object representing a specific error level
     """
+    def __init__(self, axes, covariance):
+        self.axes = axes
+        self.covariance_matrix = covariance
+
     def cartopy_girdle(self, **kw):
         from cartopy import crs, feature
         from shapely.geometry import Polygon
