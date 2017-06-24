@@ -7,7 +7,8 @@ install_requires = [
     'scipy',
     'matplotlib',
     'mplstereonet',
-    'jinja2'
+    'jinja2',
+    'colour'
     ]
 
 setup(
@@ -22,7 +23,7 @@ setup(
     maintainer_email='dev@davenquinn.com',
     url='http://github.com/davenquinn/Attitude',
     install_requires=install_requires,
-    tests_require=['nose'],
+    tests_require=['nose','pytest'],
     test_suite='nose.collector',
     packages=find_packages(),
     package_dir={'attitude':'attitude'},

@@ -199,7 +199,7 @@ def sampling_axes_fisher(fit, confidence_level=0.95, **kw):
     # Apply two fisher F parameters
     # Since we apply to each axis without division,
     # it is as if we are applying N.sqrt(2*F) to the entire
-    # distribution, aligning us with fisher
+    # distribution, aligning us with (Francq, 2014)
     err = z*N.sqrt(cov)
 
     # Apply error scaling to standard errors, not covariance
