@@ -302,8 +302,10 @@ class PCAOrientation(BaseOrientation):
     @property
     def covariance_matrix(self):
         """
-        The data covariance matrix is related to X^T X
-        but basically 
+        The data covariance matrix is related to the
+        cross-product matrix M^T M but scaled by the number of
+        samples.
+        """
         return self._covariance_matrix()
 
     @property

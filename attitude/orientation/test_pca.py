@@ -130,7 +130,7 @@ def test_pca_regression_variable():
     # B_hat from the formal definition
     B_hat = N.linalg.inv(X.T@X-N.eye(2)*sigma[2])@X.T@y
     # B_hat from SVD
-    beta = -v[-1,:-1]/v[-1,-1]
+    beta = -fit.axes[-1,:-1]/fit.axes[-1,-1]
 
     assert N.allclose(B_hat, beta)
 
@@ -166,9 +166,7 @@ def test_builtin_recovery():
 def __do_component_planes(fit,component):
     ax = fit.axes
     rotated_axes = dot(component.axes,ax.T)
-    assert False
 
-@pytest.mark.xfail(reason="Not fully implemented")
 def test_component_planes():
     components = [centered(a) for a in
               load_test_plane('grouped-plane')]
