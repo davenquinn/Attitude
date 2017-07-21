@@ -29,6 +29,7 @@ def plot_aligned(pca, sparse=True, **kwargs):
     lengths = [j-i for i,j in minmax]
 
     if sparse:
+        i = 1
         l = len(A)
         if l > 10000:
             i = N.ceil(l/10000)
