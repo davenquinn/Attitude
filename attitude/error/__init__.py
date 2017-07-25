@@ -34,3 +34,24 @@ def pca_to_mapping(pca,**extra_props):
         covariance=method(pca).tolist(),
         **extra_props)
 
+def to_normal_errors(axes):
+    """
+    A temporary method that gets normal vector errors
+    corresponding with a fitted orientation
+    """
+    ax1 = 1/axes*axes[2]**2
+    return ax1
+
+def from_normal_errors(axes):
+    """
+    Hyperbolic error axis lengths for planes from the equivalent
+    representation for normal vector endpoints
+    """
+    return axes
+
+def average_orientation(orientations):
+    """
+    Find the average orientation of a set of fitted or reconstructed
+    orientations, taking into account uncertainty.
+    """
+    pass

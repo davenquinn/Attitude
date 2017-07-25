@@ -9,6 +9,7 @@ from ..geom.util import dot, vector, angle
 from mplstereonet.stereonet_math import sph2cart
 from scipy.stats import chi2
 from ..error.axes import variance_axes
+from ..error import to_normal_errors, from_normal_errors
 
 def test_rotation():
     """
@@ -204,3 +205,13 @@ def test_singular_values():
     stdev = o.rotated().std(axis=0, ddof=1)
     assert N.allclose(o.singular_values/N.sqrt(o.n-1),stdev)
 
+def test_normal_errors():
+    """
+    Test the reconstruction of normal vector errors from PCA
+    and conversion back to hyperbolic errors
+    """
+    o = random_pca()
+    v = to_normal_errors(o.covariance_matrix)
+    axes_reconstructed = from_normal_errors(v)
+
+    assert N.allclose(o.covariance_matrix, axes_reconstructed)
