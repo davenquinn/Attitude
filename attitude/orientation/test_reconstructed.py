@@ -31,7 +31,7 @@ def test_reconstructed_plane():
     if fax[-1,-1] < 0:
        fax *= -1
     # Tolerance should be zero
-    assert N.allclose(fax, rax, atol=0.001)
+    assert N.allclose(fax, rax, atol=0.02)
 
     cov = N.diag(fit.covariance_matrix / fit.covariance_matrix[-1,-1])
     rcov = N.diag(reconstructed.covariance_matrix)

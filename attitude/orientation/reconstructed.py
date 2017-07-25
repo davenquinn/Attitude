@@ -60,12 +60,14 @@ class ReconstructedPlane(ErrorShell):
         self.normal = vec(pole)
         ll = M.rake(strike, dip, rake)
         max_angle = vec(ll)
-        min_angle = N.cross(self.normal, max_angle)
-
+        min_angle = N.cross(max_angle, self.normal)
 
         # These axes have the correct length but need to be
         # rotated into the correct reference frame.
         ax = N.vstack((min_angle, max_angle, self.normal))
+
+        # Apply right-hand rule
+        #ax[0:],ax[1:]
 
         #T = N.eye(3)
         #T[:-1,:-1] = rotate_2D(N.radians(rake))
