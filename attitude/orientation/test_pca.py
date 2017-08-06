@@ -8,7 +8,7 @@ from .pca import PCAOrientation, centered, random_pca
 from ..geom.util import dot, vector, angle
 from mplstereonet.stereonet_math import sph2cart
 from scipy.stats import chi2
-from ..error.axes import variance_axes
+from ..error.axes import variance_axes, sampling_axes
 from ..error import to_normal_errors, from_normal_errors
 
 def test_rotation():
@@ -211,7 +211,9 @@ def test_normal_errors():
     and conversion back to hyperbolic errors
     """
     o = random_pca()
-    v = to_normal_errors(o.covariance_matrix)
+
+    hyp_axes = sampling_axes(o)
+    v = to_normal_errors(hyp_axes)
     axes_reconstructed = from_normal_errors(v)
 
-    assert N.allclose(o.covariance_matrix, axes_reconstructed)
+    assert N.allclose(hyp_axes, axes_reconstructed)

@@ -337,7 +337,7 @@ class PCAOrientation(BaseOrientation):
         dip = N.arccos(n[2]/r)
         return strike, dip
 
-    def strike_dip(self):
+    def strike_dip(self, degrees=True):
         """
         Computes strike and dip from a normal vector.
         Results are usually the same as LLSQ
@@ -369,7 +369,6 @@ class PCAOrientation(BaseOrientation):
         (this is functionally equivalent to rake of minimum error
         from dip direction)
         """
-        self.dip_dr
         return vector_angle(self.dip_dr, self.axes[0])
 
     def rake(self):

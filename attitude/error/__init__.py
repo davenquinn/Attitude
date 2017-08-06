@@ -42,12 +42,12 @@ def to_normal_errors(axes):
     ax1 = 1/axes*axes[2]**2
     return ax1
 
-def from_normal_errors(axes):
+def from_normal_errors(ax1):
     """
     Hyperbolic error axis lengths for planes from the equivalent
     representation for normal vector endpoints
     """
-    return axes
+    return ax1[2]**2/ax1
 
 def average_orientation(orientations):
     """

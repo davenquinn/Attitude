@@ -33,7 +33,7 @@ def plot_aligned(pca, sparse=True, **kwargs):
         l = len(A)
         if l > 10000:
             i = N.ceil(l/10000)
-            A = A[::i]
+            A = A[::int(i)]
 
     log.info("Plotting with {} points".format(len(A)))
 
