@@ -1,0 +1,3 @@
+#!/bin/bash
+
+coffee -b -c -w -o lib src

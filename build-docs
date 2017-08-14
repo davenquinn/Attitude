@@ -1,0 +1,5 @@
+#!/usr/bin/env zsh
+
+cd docs
+
+python scripts/generate-json.py _static/planes.json
