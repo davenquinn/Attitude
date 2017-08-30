@@ -40,13 +40,11 @@ createGroupedPlane = (opts)->
     el = d3.select @
     el.append "path"
       .datum createErrorSurface(e)
-      .attrs
-        class: 'error'
+      .attr 'class', 'error'
     return if not opts.nominal
     el.append "path"
       .datum createNominalPlane(e)
-      .attrs
-        class: 'nominal'
+      .attr 'class', 'nominal'
 
 __createErrorEllipse = (opts)->
   #Function generator to create error ellipse
