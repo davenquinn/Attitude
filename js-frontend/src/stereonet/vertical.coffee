@@ -1,5 +1,5 @@
 d2r = Math.PI/180
-module.exports = (stereonet)->
+export default (stereonet)->
   (opts={})->
     opts.startOffset ?= 10
     # correct for start at bottom

@@ -11,7 +11,7 @@ d =
       [180,0]
     ]
 
-module.exports = (stereonet)->
+export default (stereonet)->
   labelDistance = 4
   ->
     da = stereonet.overlay()
