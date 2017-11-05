@@ -1,2 +1,2 @@
 #!/bin/bash
-find src -name '*.coffee' | entr npm run-script build
+find src -name '*.*' | entr npm run-script build

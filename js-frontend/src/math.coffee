@@ -173,10 +173,10 @@ deconvolveAxes = (axes)->
       axes[j][i] /= sv[i]
   [sv,axes]
 
-module.exports =
-  planeErrors: planeErrors
-  normalErrors: normalErrors
-  combinedErrors: combinedErrors
-  transpose: transpose
-  deconvolveAxes: deconvolveAxes
-
+export {
+  planeErrors
+  normalErrors
+  combinedErrors
+  transpose
+  deconvolveAxes
+}

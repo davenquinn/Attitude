@@ -1,9 +1,8 @@
 d3 = require 'd3'
 require 'd3-selection-multi'
-rewind = require 'geojson-rewind'
-math = require './math'
-{cloneOptions} = require './util'
-{matrix,transpose} = require 'mathjs'
+import rewind from 'geojson-rewind'
+import * as math from './math.coffee'
+import {cloneOptions} from './util.coffee'
 
 combinedErrors = math.combinedErrors
 
@@ -104,8 +103,9 @@ createErrorEllipse = (opts)->
     # level
     return __fnAtLevel(levels)
 
-module.exports =
-  plane: createGroupedPlane
-  errorSurface: createErrorSurface
-  nominalPlane: createNominalPlane
-  errorEllipse: createErrorEllipse
+export {
+  createGroupedPlane as plane
+  createErrorSurface as errorSurface
+  createNominalPlane as nominalPlane
+  createErrorEllipse as errorEllipse
+}

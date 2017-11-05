@@ -1,6 +1,11 @@
 # Entrypoint for importing components
 # from node.js
-module.exports =
-  Stereonet: require './stereonet'
-  functions: require './functions'
-  math: require './math'
+import * as stereonet from './stereonet'
+import * as functions from './functions.coffee'
+import * as math from './math.coffee'
+
+module.exports = {
+  stereonet...
+  functions
+  math
+}
