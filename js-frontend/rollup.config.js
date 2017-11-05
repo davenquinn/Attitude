@@ -6,10 +6,10 @@ let plugins = [
 ]
 
 export default {
-  entry: "src/main.coffee",
+  entry: "src/index.coffee",
   dest: "lib/attitude.js",
   extend: true,
-  format: "commonJS",
+  format: "cjs",
   moduleName: "attitude",
   plugins: plugins
 }

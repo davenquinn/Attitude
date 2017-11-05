@@ -6,13 +6,14 @@
   "dependencies": {
     "d3": "^4",
     "d3-selection-multi": "^1.0.0",
-    "geojson-rewind": "^0.1.0"
+    "geojson-rewind": "^0.1.0",
+    "mathjs": "^3.16.5"
   },
   "devDependencies": {
     "babel-core": "^6.25.0",
     "browserify": "^12.0.1",
     "chai": "^3.5.0",
-    "coffeeify": "^1.2.0",
+    "coffeeify": "^3.0.1",
     "mocha": "^3.1.2",
     "rollup": "^0.46.2",
     "rollup-plugin-babel": "^3.0.1",
