@@ -4,10 +4,12 @@
   "description": "Attitude computes the orientations of planes from point data",
   "main": "lib/attitude.js",
   "dependencies": {
-    "d3": "^4",
     "d3-selection-multi": "^1.0.0",
     "geojson-rewind": "^0.1.0",
     "mathjs": "^3.16.5"
+  },
+  "peerDependencies": {
+    "d3": "^4"
   },
   "devDependencies": {
     "babel-core": "^6.25.0",
