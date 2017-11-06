@@ -163,9 +163,22 @@ combinedErrors = (sv, ax, opts={})->
     upper: func('upper')
     lower: func('lower')
 
+convolveAxes = (axes, sv)->
+  # Convolve unit-length principal axes
+  # with singular values to form vectors
+  # representing the orientation and magnitude
+  # of hyperbolic axes
+  # In case we don't pass normalized axes
+  [residual,axes] = deconvolveAxes(axes)
+  for i in [0...axes.length]
+    for j in [0...axes.length]
+      axes[j][i] *= sv[i]
+  axes
+
 deconvolveAxes = (axes)->
   # Deconvolve unit-length principal axes and
   # singular values from premultiplied principal axes
+  # Inverse of `convolveAxes`
   ax = transpose(axes)
   sv = ax.map norm
   for i in [0...axes.length]
@@ -178,5 +191,6 @@ export {
   normalErrors
   combinedErrors
   transpose
+  convolveAxes
   deconvolveAxes
 }

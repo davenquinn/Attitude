@@ -4,6 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var cart2sph;
 var combinedErrors$1;
+var convolveAxes;
 var d3$1;
 var deconvolveAxes;
 var ellipse;
@@ -278,10 +279,27 @@ combinedErrors$1 = function(sv, ax, opts = {}) {
   };
 };
 
+convolveAxes = function(axes, sv) {
+  var i, j, k, l, ref, ref1, residual;
+  // Convolve unit-length principal axes
+  // with singular values to form vectors
+  // representing the orientation and magnitude
+  // of hyperbolic axes
+  // In case we don't pass normalized axes
+  [residual, axes] = deconvolveAxes(axes);
+  for (i = k = 0, ref = axes.length; 0 <= ref ? k < ref : k > ref; i = 0 <= ref ? ++k : --k) {
+    for (j = l = 0, ref1 = axes.length; 0 <= ref1 ? l < ref1 : l > ref1; j = 0 <= ref1 ? ++l : --l) {
+      axes[j][i] *= sv[i];
+    }
+  }
+  return axes;
+};
+
 deconvolveAxes = function(axes) {
   var ax, i, j, k, l, ref, ref1, sv;
   // Deconvolve unit-length principal axes and
   // singular values from premultiplied principal axes
+  // Inverse of `convolveAxes`
   ax = transpose(axes);
   sv = ax.map(norm);
   for (i = k = 0, ref = axes.length; 0 <= ref ? k < ref : k > ref; i = 0 <= ref ? ++k : --k) {
@@ -300,6 +318,7 @@ var math = Object.freeze({
 	get normalErrors () { return normalErrors; },
 	get combinedErrors () { return combinedErrors$1; },
 	get transpose () { return transpose; },
+	get convolveAxes () { return convolveAxes; },
 	get deconvolveAxes () { return deconvolveAxes; }
 });
 
