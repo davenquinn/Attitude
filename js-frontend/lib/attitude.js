@@ -811,8 +811,14 @@ opts = {
 
 getterSetter = function(main) {
   return function(p, fn) {
-    return function() {      // A generic wrapper
-      // to get/set variables
+    // A generic wrapper
+    // to get/set variables
+    if (fn == null) {
+      fn = function(v) {
+        return p = v;
+      };
+    }
+    return function() {
       if (arguments.length > 0) {
         fn(...arguments);
         return main;
@@ -1116,20 +1122,36 @@ exports.Stereonet = function() {
   return f;
 };
 
-exports.opacityByCertainty = function(colorFunc) {
-  var darkenStroke;
+exports.opacityByCertainty = function(colorFunc, accessor = null) {
+  var __getSet, angularError, darkenStroke, f, maxOpacity;
+  angularError = function(d) {
+    return d.max_angular_error;
+  };
   darkenStroke = 0.2;
-  return function(d, i) {
-    var al, alphaScale, color, e, fill, stroke, v;
-    e = d3$2.select(this);
-    alphaScale = d3$2.scaleLinear().range([0.8, 0.1]).domain([0, 5]);
+  maxOpacity = 5;
+  f = function(d, i) {
+    var al, alphaScale, angError, color, e, fill, stroke;
+    alphaScale = d3$2.scaleLinear().range([0.8, 0.1]).domain([0, maxOpacity]);
     alphaScale.clamp(true);
-    al = alphaScale(d.max_angular_error);
+    angError = angularError(d);
+    al = alphaScale(angError);
     color = chroma(colorFunc(d));
     fill = color.alpha(al).css();
     stroke = color.alpha(al + darkenStroke).css();
-    return v = e.selectAll('path.error').attrs({fill, stroke});
+    e = d3$2.select(this);
+    if (accessor != null) {
+      e = e.selectAll('path.error');
+    }
+    return e.attrs({fill, stroke});
   };
+  __getSet = getterSetter(f);
+  f.angularError = __getSet(angularError, function(v) {
+    return angularError = v;
+  });
+  f.max = __getSet(maxOpacity, function(v) {
+    return maxOpacity = v;
+  });
+  return f;
 };
 
 // Entrypoint for importing components

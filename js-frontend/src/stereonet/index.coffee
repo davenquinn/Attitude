@@ -19,6 +19,8 @@ getterSetter = (main)->
   (p, fn)->
     # A generic wrapper
     # to get/set variables
+    if not fn?
+      fn = (v)->p=v
     ->
       if arguments.length > 0
         fn(arguments...)
@@ -338,24 +340,34 @@ Stereonet = ->
 
   return f
 
-opacityByCertainty = (colorFunc)->
+opacityByCertainty = (colorFunc, accessor=null)->
+  angularError = (d)->d.max_angular_error
   darkenStroke = 0.2
-  (d,i)->
-    e = d3.select @
-
+  maxOpacity = 5
+  f = (d,i)->
     alphaScale = d3.scaleLinear()
       .range [0.8,0.1]
-      .domain [0,5]
+      .domain [0,maxOpacity]
     alphaScale.clamp(true)
 
-    al = alphaScale(d.max_angular_error)
+    angError = angularError(d)
+    al = alphaScale(angError)
 
     color = chroma(colorFunc(d))
     fill = color.alpha(al).css()
     stroke = color.alpha(al+darkenStroke).css()
 
-    v = e.selectAll 'path.error'
-      .attrs {fill, stroke}
+    e = d3.select @
+    if accessor?
+      e = e.selectAll 'path.error'
+    e.attrs {fill, stroke}
+
+  __getSet = getterSetter(f)
+
+  f.angularError = __getSet angularError, (v)->angularError = v
+  f.max = __getSet maxOpacity, (v)->maxOpacity=v
+
+  return f
 
 import {globalLabels} from './labels.coffee'
 export {
