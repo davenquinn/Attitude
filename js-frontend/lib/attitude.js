@@ -630,6 +630,42 @@ var vertical = function(stereonet) {
   };
 };
 
+var d3$3;
+
+d3$3 = require('d3');
+
+//# Stereonet Dragging
+var interaction = function(stereonet) {
+  var el, m0, mousedown, mousemove, mouseup, o0, proj;
+  // modified from http://bl.ocks.org/1392560
+  m0 = void 0;
+  o0 = void 0;
+  proj = stereonet.projection();
+  el = stereonet.node();
+  mousedown = function() {
+    m0 = [d3$3.event.pageX, d3$3.event.pageY];
+    o0 = stereonet.rotate();
+    return d3$3.event.preventDefault();
+  };
+  mousemove = function() {
+    var m1, o1;
+    if (m0) {
+      m1 = [d3$3.event.pageX, d3$3.event.pageY];
+      o1 = [o0[0] + (m1[0] - m0[0]) / 3, o0[1] + (m0[1] - m1[1]) / 3];
+      o1[1] = o1[1] > 60 ? 60 : o1[1] < -60 ? -60 : o1[1];
+      return stereonet.rotate(o1);
+    }
+  };
+  mouseup = function() {
+    if (m0) {
+      mousemove();
+      return m0 = null;
+    }
+  };
+  el.on('mousedown', mousedown);
+  return d3$3.select(window).on("mousemove", mousemove).on("mouseup", mouseup);
+};
+
 /*
 Stereonet labeling:
 Based heavily on http://bl.ocks.org/dwtkns/4686432
@@ -663,11 +699,20 @@ labels = [
     name: 'W',
     c: [-90,
   0]
+  },
+  {
+    name: 'Up',
+    c: [0,
+  90]
+  },
+  {
+    name: 'Down',
+    c: [0,
+  -90]
   }
 ];
 
-var labels$1 = function() {  //{name: 'Up', c: [0,90]}
-  //{name: 'Down', c: [0,-90]}
+var labels$1 = function() {
   var i, l, len;
   for (i = 0, len = labels.length; i < len; i++) {
     l = labels[i];
@@ -682,7 +727,7 @@ var labels$1 = function() {  //{name: 'Up', c: [0,90]}
     sz = stereonet.size();
     proj = stereonet.projection();
     svg = stereonet.overlay();
-    path = geoPath().projection(proj).pointRadius(1);
+    path = geoPath().pointRadius(2).projection(proj);
     updateLabels = function() {
       var centerPos, width;
       console.log("Updating labels");
@@ -763,7 +808,7 @@ getterSetter = function(main) {
 };
 
 exports.Stereonet = function() {
-  var _, __getSet, __redraw, __setScale, clipAngle, data, dataArea, dispatch, drawEllipses, drawPlanes, el, ell, ellipses, f, graticule, margin, overlay, path, planes, proj, s, scale, setGraticule, shouldClip;
+  var _, __getSet, __redraw, __setScale, callStack, clipAngle, data, dataArea, dispatch, drawEllipses, drawPlanes, el, ell, ellipses, f, graticule, margin, overlay, path, planes, proj, s, scale, setGraticule, shouldClip;
   planes = null;
   ellipses = null;
   data = null;
@@ -778,6 +823,9 @@ exports.Stereonet = function() {
   graticule = d3$2.geoGraticule().stepMinor([10, 10]).stepMajor([90, 10]).extentMinor([[-180, -80 - s], [180, 80 + s]]).extentMajor([[-180, -90 + s], [180, 90 - s]]);
   proj = d3$2.geoOrthographic().clipAngle(clipAngle).precision(0.01).rotate([0, 0]).scale(300);
   path = d3$2.geoPath().projection(proj);
+  // Items to be added once DOM is available
+  // (e.g. interaction)
+  callStack = [];
   drawPlanes = function(data, o = {}) {
     var con, fn, sel;
     if (o.color == null) {
@@ -866,7 +914,7 @@ exports.Stereonet = function() {
   };
   dispatch = d3$2.dispatch('rotate', 'redraw');
   f = function(_el, opts = {}) {
-    var drag, int;
+    var int, item, j, len;
     // This should be integrated into a reusable
     // component
     el = _el;
@@ -904,12 +952,16 @@ exports.Stereonet = function() {
       class: "overlay"
     });
     // Add dragging for debug purposes
-    drag = d3$2.drag().on('drag', () => {
-      proj.rotate([-d3$2.event.x, -d3$2.event.y]);
-      dispatch.call('rotate', f);
-      return __redraw();
-    });
-    el.call(drag);
+    //drag = d3.drag()
+    //.on 'drag', =>
+    //proj.rotate [d3.event.x, -d3.event.y]
+    //dispatch.call 'rotate', f
+    //__redraw()
+    //el.call drag
+    for (j = 0, len = callStack.length; j < len; j++) {
+      item = callStack[j];
+      item();
+    }
     // Finally, draw all the paths at once
     return __redraw();
   };
@@ -942,6 +994,18 @@ exports.Stereonet = function() {
   }, function(c) {
     return shouldClip = c;
   });
+  f.refresh = function() {
+    return __redraw();
+  };
+  f.rotate = (coords) => {
+    if (coords == null) {
+      return proj.rotate();
+    }
+    proj.rotate(coords);
+    dispatch.call('rotate', f);
+    return __redraw();
+  };
+  f.d3 = d3$2;
   f.on = function(event, callback) {
     return dispatch.on(event, callback);
   };
@@ -980,7 +1044,15 @@ exports.Stereonet = function() {
     return path;
   };
   f.call = function(fn, ...args) {
-    fn(f, ...args);
+    var todo;
+    todo = function() {
+      return fn(f, ...args);
+    };
+    if (f.node() != null) {
+      todo();
+    } else {
+      callStack.push(todo);
+    }
     return f;
   };
   ell = function() {
@@ -1024,6 +1096,7 @@ exports.Stereonet = function() {
   };
   f.horizontal = horizontal(f);
   f.vertical = vertical(f);
+  f.call(interaction);
   return f;
 };
 

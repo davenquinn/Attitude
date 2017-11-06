@@ -12,8 +12,8 @@ labels = [
   {name: 'E', c: [90,0]}
   {name: 'S', c: [0,0]}
   {name: 'W', c: [-90,0]}
-  #{name: 'Up', c: [0,90]}
-  #{name: 'Down', c: [0,-90]}
+  {name: 'Up', c: [0,90]}
+  {name: 'Down', c: [0,-90]}
 ]
 
 export default ->
@@ -27,8 +27,8 @@ export default ->
     svg = stereonet.overlay()
 
     path = geoPath()
+      .pointRadius(2)
       .projection(proj)
-      .pointRadius(1)
 
 
     updateLabels = ->

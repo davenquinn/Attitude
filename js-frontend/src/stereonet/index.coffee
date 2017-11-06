@@ -6,6 +6,7 @@ import * as math from '../math.coffee'
 import style from './module.styl'
 import horizontal from './horizontal'
 import vertical from './vertical'
+import interaction from './interaction.coffee'
 
 opts =
   degrees: true
@@ -52,6 +53,10 @@ Stereonet = ->
 
   path = d3.geoPath()
     .projection proj
+
+  # Items to be added once DOM is available
+  # (e.g. interaction)
+  callStack = []
 
   drawPlanes = (data, o={})->
     o.color ?= '#aaaaaa'
@@ -198,13 +203,15 @@ Stereonet = ->
       .attrs class: "overlay"
 
     # Add dragging for debug purposes
-    drag = d3.drag()
-      .on 'drag', =>
-        proj.rotate [-d3.event.x, -d3.event.y]
-        dispatch.call 'rotate', f
-        __redraw()
-    el.call drag
+    #drag = d3.drag()
+      #.on 'drag', =>
+        #proj.rotate [d3.event.x, -d3.event.y]
+        #dispatch.call 'rotate', f
+        #__redraw()
+    #el.call drag
 
+    for item in callStack
+      item()
     # Finally, draw all the paths at once
     __redraw()
 
@@ -226,6 +233,16 @@ Stereonet = ->
     ->shouldClip
     (c)->shouldClip=c
   )
+
+  f.refresh = ->__redraw()
+  f.rotate = (coords)=>
+    unless coords?
+      return proj.rotate()
+    proj.rotate coords
+    dispatch.call 'rotate', f
+    __redraw()
+
+  f.d3 = d3
 
   f.on = (event,callback)->
     dispatch.on event, callback
@@ -266,7 +283,11 @@ Stereonet = ->
   f.path = -> path
 
   f.call = (fn, ...args)->
-    fn f, args...
+    todo = -> fn f, args...
+    if f.node()?
+      todo()
+    else
+      callStack.push todo
     return f
 
   ell = ->
@@ -311,6 +332,8 @@ Stereonet = ->
   f.overlay = -> overlay
   f.horizontal = horizontal(f)
   f.vertical = vertical(f)
+
+  f.call interaction
 
   return f
 
