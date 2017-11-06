@@ -144,6 +144,8 @@ Stereonet = ->
     el.selectAll 'path'
       .attr 'd', path
 
+  dispatch = d3.dispatch 'rotate', 'redraw'
+
   f = (_el, opts={})->
     # This should be integrated into a reusable
     # component
@@ -199,6 +201,7 @@ Stereonet = ->
     drag = d3.drag()
       .on 'drag', =>
         proj.rotate [-d3.event.x, -d3.event.y]
+        dispatch.call 'rotate', f
         __redraw()
     el.call drag
 
@@ -223,10 +226,13 @@ Stereonet = ->
     ->shouldClip
     (c)->shouldClip=c
   )
+
+  f.on = (event,callback)->
+    dispatch.on event, callback
+
   setGraticule = (lon, lat)->
     ## Could also make this take a d3.geoGraticule object ##
     s = 0.00001
-    console.log lon, lat
     graticule = d3.geoGraticule()
         .stepMinor [lon,lat]
         .stepMajor [90,lat]
@@ -238,10 +244,10 @@ Stereonet = ->
     setGraticule)
 
   _ = (c)->
-      if c == 'vertical'
-        c = [0,90]
-      proj.rotate(c)
-      __redraw() if el?
+    if c == 'vertical'
+      c = [0,90]
+    proj.rotate(c)
+    __redraw() if el?
   f.center = __getSet(
     ->proj.rotate
     _)
@@ -258,6 +264,10 @@ Stereonet = ->
   f.draw = __redraw
 
   f.path = -> path
+
+  f.call = (fn, ...args)->
+    fn f, args...
+    return f
 
   ell = ->
     # Same call signature as d3.Selection.data
@@ -323,5 +333,9 @@ opacityByCertainty = (colorFunc)->
     v = e.selectAll 'path.error'
       .attrs {fill, stroke}
 
-
-export {Stereonet, opacityByCertainty}
+import positionLabels from './labels.coffee'
+export {
+  positionLabels
+  Stereonet
+  opacityByCertainty
+}

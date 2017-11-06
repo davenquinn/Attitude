@@ -1,8 +1,10 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var cart2sph;
 var combinedErrors$1;
-var d3$2;
+var d3$1;
 var deconvolveAxes;
 var ellipse;
 var identity;
@@ -12,7 +14,7 @@ var planeErrors;
 var sdot;
 var transpose;
 
-d3$2 = require('d3');
+d3$1 = require('d3');
 
 transpose = function(array, length = null) {
   var i, j, k, l, m, newArray, ref, ref1, results;
@@ -42,7 +44,7 @@ norm = function(d) {
   _ = d.map(function(a) {
     return a * a;
   });
-  return Math.sqrt(d3$2.sum(_));
+  return Math.sqrt(d3$1.sum(_));
 };
 
 sdot = function(a, b) {
@@ -55,7 +57,7 @@ sdot = function(a, b) {
     }
     return results;
   })();
-  return d3$2.sum(zipped);
+  return d3$1.sum(zipped);
 };
 
 ellipse = function(opts) {
@@ -319,10 +321,10 @@ var createErrorSurface;
 var createFeature;
 var createGroupedPlane;
 var createNominalPlane;
-var d3$1;
+var d3;
 var flipAxesIfNeeded;
 
-d3$1 = require('d3');
+d3 = require('d3');
 
 require('d3-selection-multi');
 
@@ -344,7 +346,7 @@ createErrorSurface = function(d) {
   // objects into error surface
   e = [d.lower, d.upper.reverse()];
   f = createFeature("Polygon", e);
-  a = d3$1.geoArea(f);
+  a = d3.geoArea(f);
   if (a > 2 * Math.PI) {
     f = createFeature("Polygon", e.map(function(d) {
       return d.reverse();
@@ -384,7 +386,7 @@ createGroupedPlane = function(opts) {
     // Make sure axes are not inverted
     axes = flipAxesIfNeeded(axes);
     e = combinedErrors(hyperbolic_axes, axes, opts);
-    el = d3$1.select(this);
+    el = d3.select(this);
     el.append("path").datum(createErrorSurface(e)).attr('class', 'error');
     if (!opts.nominal) {
       return;
@@ -412,10 +414,10 @@ __createErrorEllipse = function(opts) {
       f = createFeature("Polygon", [e]);
       // Check winding (note: only an issue with non-traditional
       // stereonet axes)
-      a = d3$1.geoArea(f);
+      a = d3.geoArea(f);
       if (a > 2 * Math.PI) {
         f = createFeature("Polygon", [e.reverse()]);
-        a = d3$1.geoArea(f);
+        a = d3.geoArea(f);
       }
       f.properties = {
         area: a,
@@ -609,14 +611,113 @@ var vertical = function(stereonet) {
   };
 };
 
-var Stereonet;
+/*
+Stereonet labeling:
+Based heavily on http://bl.ocks.org/dwtkns/4686432
+
+TODO: integrate text halos
+http://bl.ocks.org/nitaku/aff4f425e7959290a1f7
+*/
+var geoDistance;
+var geoPath;
+var labels;
+
+({geoPath, geoDistance} = require('d3'));
+
+labels = [
+  {
+    name: 'N',
+    c: [180,
+  0]
+  },
+  {
+    name: 'E',
+    c: [90,
+  0]
+  },
+  {
+    name: 'S',
+    c: [0,
+  0]
+  },
+  {
+    name: 'W',
+    c: [-90,
+  0]
+  },
+  {
+    name: 'Up',
+    c: [0,
+  90]
+  },
+  {
+    name: 'Down',
+    c: [0,
+  -90]
+  }
+];
+
+var labels$1 = function() {
+  var i, l, len;
+  for (i = 0, len = labels.length; i < len; i++) {
+    l = labels[i];
+    l.type = 'Feature';
+    l.geometry = {
+      type: 'Point',
+      coordinates: l.c
+    };
+  }
+  return function(stereonet) {
+    var path, proj, svg, sz, updateLabels;
+    sz = stereonet.size();
+    proj = stereonet.projection();
+    svg = stereonet.overlay();
+    path = geoPath().projection(proj).pointRadius(1);
+    updateLabels = function() {
+      var centerPos, width;
+      console.log("Updating labels");
+      proj = this.projection();
+      centerPos = proj.invert([sz / 2, sz / 2]);
+      width = stereonet.size();
+      return svg.selectAll(".label").attr("text-anchor", function(d) {
+        var x;
+        x = proj(d.geometry.coordinates)[0];
+        if (x < width / 2 - 20) {
+          return 'end';
+        }
+        if (x < width / 2 + 20) {
+          return 'middle';
+        }
+        return 'start';
+      }).attr("transform", function(d) {
+        var offset, x, y;
+        [x, y] = proj(d.geometry.coordinates);
+        offset = x < width / 2 ? -5 : 5;
+        return `translate(${x + offset},${y - 2})`;
+      }).style("display", function(d) {
+        d = geoDistance(centerPos, d.geometry.coordinates);
+        if (d > Math.PI / 2 + 0.0001) {
+          return 'none';
+        } else {
+          return 'inline';
+        }
+      });
+    };
+    svg.append("g.points").selectAll("path").data(labels).enter().append("path.point").attr("d", path);
+    svg.append("g.labels").selectAll("text").data(labels).enter().append("text.label").text(function(d) {
+      return d.name;
+    });
+    updateLabels.apply(stereonet);
+    return stereonet.on('rotate', updateLabels);
+  };
+};
+
 var chroma;
-var d3;
+var d3$2;
 var getterSetter;
-var opacityByCertainty;
 var opts;
 
-d3 = require('d3');
+d3$2 = require('d3');
 
 chroma = require('chroma-js');
 
@@ -644,8 +745,8 @@ getterSetter = function(main) {
   };
 };
 
-Stereonet = function() {
-  var _, __getSet, __redraw, __setScale, clipAngle, data, dataArea, drawEllipses, drawPlanes, el, ell, ellipses, f, graticule, margin, overlay, path, planes, proj, s, scale, setGraticule, shouldClip;
+exports.Stereonet = function() {
+  var _, __getSet, __redraw, __setScale, clipAngle, data, dataArea, dispatch, drawEllipses, drawPlanes, el, ell, ellipses, f, graticule, margin, overlay, path, planes, proj, s, scale, setGraticule, shouldClip;
   planes = null;
   ellipses = null;
   data = null;
@@ -657,9 +758,9 @@ Stereonet = function() {
   clipAngle = 90;
   s = 0.00001;
   shouldClip = true;
-  graticule = d3.geoGraticule().stepMinor([10, 10]).stepMajor([90, 10]).extentMinor([[-180, -80 - s], [180, 80 + s]]).extentMajor([[-180, -90 + s], [180, 90 - s]]);
-  proj = d3.geoOrthographic().clipAngle(clipAngle).precision(0.01).rotate([0, 0]).scale(300);
-  path = d3.geoPath().projection(proj);
+  graticule = d3$2.geoGraticule().stepMinor([10, 10]).stepMajor([90, 10]).extentMinor([[-180, -80 - s], [180, 80 + s]]).extentMajor([[-180, -90 + s], [180, 90 - s]]);
+  proj = d3$2.geoOrthographic().clipAngle(clipAngle).precision(0.01).rotate([0, 0]).scale(300);
+  path = d3$2.geoPath().projection(proj);
   drawPlanes = function(data, o = {}) {
     var con, fn, sel;
     if (o.color == null) {
@@ -677,7 +778,7 @@ Stereonet = function() {
       } else {
         color = o.color;
       }
-      e = d3.select(this);
+      e = d3$2.select(this);
       e.selectAll('path.error').attrs({
         fill: color
       });
@@ -698,7 +799,7 @@ Stereonet = function() {
     }
     fn = createErrorEllipse(opts);
     createEllipse = function(d) {
-      return d3.select(this).append('path').attr('class', 'error').datum(fn(d));
+      return d3$2.select(this).append('path').attr('class', 'error').datum(fn(d));
     };
     con = dataArea.append('g').attr('class', 'normal-vectors');
     sel = con.selectAll('g.normal').data(data).enter().append('g').classed('normal', true).each(createEllipse);
@@ -709,7 +810,7 @@ Stereonet = function() {
       } else {
         color = o.color;
       }
-      return e = d3.select(this).selectAll('path.error').attrs({
+      return e = d3$2.select(this).selectAll('path.error').attrs({
         fill: color
       });
     });
@@ -732,7 +833,7 @@ Stereonet = function() {
     } else {
       proj.scale(radius).translate([scale / 2, scale / 2]);
     }
-    path = d3.geoPath().projection(proj);
+    path = d3$2.geoPath().projection(proj);
     if (el != null) {
       return el.attrs({
         height: scale,
@@ -746,6 +847,7 @@ Stereonet = function() {
     }
     return el.selectAll('path').attr('d', path);
   };
+  dispatch = d3$2.dispatch('rotate', 'redraw');
   f = function(_el, opts = {}) {
     var drag, int;
     // This should be integrated into a reusable
@@ -785,8 +887,9 @@ Stereonet = function() {
       class: "overlay"
     });
     // Add dragging for debug purposes
-    drag = d3.drag().on('drag', () => {
-      proj.rotate([-d3.event.x, -d3.event.y]);
+    drag = d3$2.drag().on('drag', () => {
+      proj.rotate([-d3$2.event.x, -d3$2.event.y]);
+      dispatch.call('rotate', f);
       return __redraw();
     });
     el.call(drag);
@@ -822,11 +925,13 @@ Stereonet = function() {
   }, function(c) {
     return shouldClip = c;
   });
+  f.on = function(event, callback) {
+    return dispatch.on(event, callback);
+  };
   setGraticule = function(lon, lat) {
     //# Could also make this take a d3.geoGraticule object ##
     s = 0.00001;
-    console.log(lon, lat);
-    return graticule = d3.geoGraticule().stepMinor([lon, lat]).stepMajor([90, lat]).extentMinor([[-180, -90 + lat - s], [180, 90 - lat + s]]).extentMajor([[-180, -90 + s], [180, 90 - s]]);
+    return graticule = d3$2.geoGraticule().stepMinor([lon, lat]).stepMajor([90, lat]).extentMinor([[-180, -90 + lat - s], [180, 90 - lat + s]]).extentMajor([[-180, -90 + s], [180, 90 - s]]);
   };
   f.graticule = __getSet(function() {
     return graticule;
@@ -856,6 +961,10 @@ Stereonet = function() {
   f.draw = __redraw;
   f.path = function() {
     return path;
+  };
+  f.call = function(fn, ...args) {
+    fn(f, ...args);
+    return f;
   };
   ell = function() {
     var attrs, data_, fn, o, sel;
@@ -901,13 +1010,13 @@ Stereonet = function() {
   return f;
 };
 
-opacityByCertainty = function(colorFunc) {
+exports.opacityByCertainty = function(colorFunc) {
   var darkenStroke;
   darkenStroke = 0.2;
   return function(d, i) {
     var al, alphaScale, color, e, fill, stroke, v;
-    e = d3.select(this);
-    alphaScale = d3.scaleLinear().range([0.8, 0.1]).domain([0, 5]);
+    e = d3$2.select(this);
+    alphaScale = d3$2.scaleLinear().range([0.8, 0.1]).domain([0, 5]);
     alphaScale.clamp(true);
     al = alphaScale(d.max_angular_error);
     color = chroma(colorFunc(d));
@@ -917,14 +1026,9 @@ opacityByCertainty = function(colorFunc) {
   };
 };
 
-
-
-
-var stereonet = Object.freeze({
-	get Stereonet () { return Stereonet; },
-	get opacityByCertainty () { return opacityByCertainty; }
-});
-
 // Entrypoint for importing components
 // from node.js
-module.exports = Object.assign({}, stereonet, {functions, math});
+
+exports.functions = functions;
+exports.math = math;
+exports.positionLabels = labels$1;
