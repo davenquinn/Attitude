@@ -644,20 +644,11 @@ labels = [
     name: 'W',
     c: [-90,
   0]
-  },
-  {
-    name: 'Up',
-    c: [0,
-  90]
-  },
-  {
-    name: 'Down',
-    c: [0,
-  -90]
   }
 ];
 
-var labels$1 = function() {
+var labels$1 = function() {  //{name: 'Up', c: [0,90]}
+  //{name: 'Down', c: [0,-90]}
   var i, l, len;
   for (i = 0, len = labels.length; i < len; i++) {
     l = labels[i];
@@ -679,7 +670,7 @@ var labels$1 = function() {
       proj = this.projection();
       centerPos = proj.invert([sz / 2, sz / 2]);
       width = stereonet.size();
-      return svg.selectAll(".label").attr("text-anchor", function(d) {
+      return svg.selectAll(".label").attr('alignment-baseline', 'middle').style('text-shadow', "-2px -2px white, -2px 2px white, 2px 2px white, 2px -2px white, -2px 0 white, 0 2px white, 2px 0 white, 0 -2px white").attr("text-anchor", function(d) {
         var x;
         x = proj(d.geometry.coordinates)[0];
         if (x < width / 2 - 20) {
@@ -690,13 +681,20 @@ var labels$1 = function() {
         }
         return 'start';
       }).attr("transform", function(d) {
-        var offset, x, y;
+        var offset, offsetY, x, y;
         [x, y] = proj(d.geometry.coordinates);
         offset = x < width / 2 ? -5 : 5;
-        return `translate(${x + offset},${y - 2})`;
+        offsetY = 0;
+        if (y < width / 2 - 20) {
+          offsetY = -5;
+        }
+        if (y > width / 2 + 20) {
+          offsetY = 5;
+        }
+        return `translate(${x + offset},${y - 2 + offsetY})`;
       }).style("display", function(d) {
         d = geoDistance(centerPos, d.geometry.coordinates);
-        if (d > Math.PI / 2 + 0.0001) {
+        if (d > Math.PI / 2 + 0.01) {
           return 'none';
         } else {
           return 'inline';
