@@ -280,19 +280,18 @@ combinedErrors$1 = function(sv, ax, opts = {}) {
 };
 
 convolveAxes = function(axes, sv) {
-  var i, j, k, l, ref, ref1, residual;
+  var residual;
   // Convolve unit-length principal axes
   // with singular values to form vectors
   // representing the orientation and magnitude
   // of hyperbolic axes
   // In case we don't pass normalized axes
   [residual, axes] = deconvolveAxes(axes);
-  for (i = k = 0, ref = axes.length; 0 <= ref ? k < ref : k > ref; i = 0 <= ref ? ++k : --k) {
-    for (j = l = 0, ref1 = axes.length; 0 <= ref1 ? l < ref1 : l > ref1; j = 0 <= ref1 ? ++l : --l) {
-      axes[j][i] *= sv[i];
-    }
-  }
-  return axes;
+  return axes.map(function(row, i) {
+    return row.map(function(e) {
+      return e * sv[i];
+    });
+  });
 };
 
 deconvolveAxes = function(axes) {
@@ -314,6 +313,7 @@ deconvolveAxes = function(axes) {
 
 
 var math = Object.freeze({
+	get norm () { return norm; },
 	get planeErrors () { return planeErrors; },
 	get normalErrors () { return normalErrors; },
 	get combinedErrors () { return combinedErrors$1; },

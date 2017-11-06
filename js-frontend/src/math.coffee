@@ -170,10 +170,7 @@ convolveAxes = (axes, sv)->
   # of hyperbolic axes
   # In case we don't pass normalized axes
   [residual,axes] = deconvolveAxes(axes)
-  for i in [0...axes.length]
-    for j in [0...axes.length]
-      axes[j][i] *= sv[i]
-  axes
+  axes.map (row,i)->row.map (e)->e*sv[i]
 
 deconvolveAxes = (axes)->
   # Deconvolve unit-length principal axes and
@@ -187,6 +184,7 @@ deconvolveAxes = (axes)->
   [sv,axes]
 
 export {
+  norm
   planeErrors
   normalErrors
   combinedErrors
