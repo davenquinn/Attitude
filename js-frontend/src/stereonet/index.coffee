@@ -53,6 +53,7 @@ Stereonet = ->
 
   path = d3.geoPath()
     .projection proj
+    .pointRadius 2
 
   # Items to be added once DOM is available
   # (e.g. interaction)
@@ -147,7 +148,7 @@ Stereonet = ->
   __redraw = =>
     return unless el?
     el.selectAll 'path'
-      .attr 'd', path
+      .attr 'd', path.pointRadius(2)
 
   dispatch = d3.dispatch 'rotate', 'redraw'
 
@@ -356,9 +357,9 @@ opacityByCertainty = (colorFunc)->
     v = e.selectAll 'path.error'
       .attrs {fill, stroke}
 
-import positionLabels from './labels.coffee'
+import {globalLabels} from './labels.coffee'
 export {
-  positionLabels
+  globalLabels
   Stereonet
   opacityByCertainty
 }

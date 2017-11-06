@@ -673,8 +673,10 @@ Based heavily on http://bl.ocks.org/dwtkns/4686432
 TODO: integrate text halos
 http://bl.ocks.org/nitaku/aff4f425e7959290a1f7
 */
+var __horizontalLine;
 var geoDistance;
 var geoPath;
+var horizontalLine;
 var labels;
 
 ({geoPath, geoDistance} = require('d3'));
@@ -712,7 +714,20 @@ labels = [
   }
 ];
 
-var labels$1 = function() {
+__horizontalLine = {
+  type: 'Feature',
+  geometry: {
+    type: 'LineString',
+    coordinates: [[180, 0], [-90, 0], [0, 0], [90, 0], [180, 0]]
+  }
+};
+
+horizontalLine = function(stereonet) {
+  stereonet.overlay().append('g.horizontal').append('path').datum(__horizontalLine);
+  return stereonet.refresh();
+};
+
+exports.globalLabels = function() {
   var i, l, len;
   for (i = 0, len = labels.length; i < len; i++) {
     l = labels[i];
@@ -727,7 +742,7 @@ var labels$1 = function() {
     sz = stereonet.size();
     proj = stereonet.projection();
     svg = stereonet.overlay();
-    path = geoPath().pointRadius(2).projection(proj);
+    path = geoPath().projection(proj).pointRadius(1);
     updateLabels = function() {
       var centerPos, width;
       console.log("Updating labels");
@@ -765,7 +780,8 @@ var labels$1 = function() {
         }
       });
     };
-    svg.append("g.points").selectAll("path").data(labels).enter().append("path.point").attr("d", path);
+    stereonet.call(horizontalLine);
+    svg.append("g.points").selectAll("path").data(labels).enter().append("path.point");
     svg.append("g.labels").selectAll("text").data(labels).enter().append("text.label").text(function(d) {
       return d.name;
     });
@@ -822,7 +838,7 @@ exports.Stereonet = function() {
   shouldClip = true;
   graticule = d3$2.geoGraticule().stepMinor([10, 10]).stepMajor([90, 10]).extentMinor([[-180, -80 - s], [180, 80 + s]]).extentMajor([[-180, -90 + s], [180, 90 - s]]);
   proj = d3$2.geoOrthographic().clipAngle(clipAngle).precision(0.01).rotate([0, 0]).scale(300);
-  path = d3$2.geoPath().projection(proj);
+  path = d3$2.geoPath().projection(proj).pointRadius(2);
   // Items to be added once DOM is available
   // (e.g. interaction)
   callStack = [];
@@ -910,7 +926,7 @@ exports.Stereonet = function() {
     if (el == null) {
       return;
     }
-    return el.selectAll('path').attr('d', path);
+    return el.selectAll('path').attr('d', path.pointRadius(2));
   };
   dispatch = d3$2.dispatch('rotate', 'redraw');
   f = function(_el, opts = {}) {
@@ -1121,4 +1137,3 @@ exports.opacityByCertainty = function(colorFunc) {
 
 exports.functions = functions;
 exports.math = math;
-exports.positionLabels = labels$1;

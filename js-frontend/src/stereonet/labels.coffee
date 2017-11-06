@@ -16,7 +16,27 @@ labels = [
   {name: 'Down', c: [0,-90]}
 ]
 
-export default ->
+__horizontalLine =
+  type: 'Feature'
+  geometry:
+    type: 'LineString'
+    coordinates: [
+      [180,0]
+      [-90,0]
+      [0,0]
+      [90,0]
+      [180,0]
+    ]
+
+horizontalLine = (stereonet)->
+  stereonet
+    .overlay()
+    .append 'g.horizontal'
+    .append 'path'
+    .datum __horizontalLine
+  stereonet.refresh()
+
+globalLabels = ->
   for l in labels
     l.type = 'Feature'
     l.geometry = {type: 'Point', coordinates: l.c}
@@ -27,15 +47,15 @@ export default ->
     svg = stereonet.overlay()
 
     path = geoPath()
-      .pointRadius(2)
       .projection(proj)
-
+      .pointRadius(1)
 
     updateLabels = ->
       console.log "Updating labels"
       proj = @projection()
       centerPos = proj.invert([sz/2,sz/2])
       width = stereonet.size()
+
       svg.selectAll(".label")
         .attr 'alignment-baseline', 'middle'
         .style 'text-shadow',"
@@ -67,12 +87,13 @@ export default ->
           d = geoDistance(centerPos,d.geometry.coordinates)
           return if d > Math.PI/2+0.01 then 'none' else 'inline'
 
+    stereonet.call horizontalLine
+
     svg.append("g.points")
       .selectAll("path")
       .data(labels)
       .enter()
       .append("path.point")
-      .attr("d", path)
 
     svg.append("g.labels")
       .selectAll("text")
@@ -85,3 +106,4 @@ export default ->
 
     stereonet.on 'rotate', updateLabels
 
+export {globalLabels}
