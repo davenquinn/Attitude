@@ -141,8 +141,7 @@ Stereonet = ->
         .scale radius
         .translate [scale/2, scale/2]
 
-    path = d3.geoPath()
-      .projection proj
+    path = d3.geoPath().projection proj
 
     if el?
       el.attrs height: scale, width: scale
@@ -160,7 +159,6 @@ Stereonet = ->
     el = _el
 
     __setScale() # Scale the stereonet
-
 
     el.append "defs"
       .append "path"
@@ -244,6 +242,10 @@ Stereonet = ->
     proj.rotate coords
     dispatch.call 'rotate', f
     __redraw()
+
+  f.centerPosition = ->
+    centerPos = proj.invert([scale/2,scale/2])
+
 
   f.d3 = d3
 

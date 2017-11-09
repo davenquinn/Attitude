@@ -121,7 +121,7 @@ ellipse = function(opts) {
       for (k = 0, len = angles.length; k < len; k++) {
         i = angles[k];
         // This reversal of B and A is causing tests to fail
-        results.push([b * Math.cos(i), a * Math.sin(i)]);
+        results.push([a * Math.cos(i), b * Math.sin(i)]);
       }
       return results;
     })();
@@ -204,7 +204,7 @@ planeErrors = function(axesCovariance, axes, opts = {}) {
 };
 
 normalErrors = function(axesCovariance, axes, opts = {}) {
-  var c1, ell, i, k, s, scales, stepFunc, v0;
+  var c1, ell, s, scales, stepFunc, v0;
   // Get a single level of planar errors (or the
   // plane's nominal value) as a girdle
 
@@ -240,23 +240,19 @@ normalErrors = function(axesCovariance, axes, opts = {}) {
     c1 *= -1;
   }
   c1 *= opts.level;
-  if (axes[2][2] < 0) {
-    for (i = k = 0; k <= 2; i = ++k) {
-      axes[i] = axes[i].map(function(d) {
-        return d * -1;
-      });
-    }
-  }
-  //c1 *= -1
+  //if axes[2][2] < 0
+  //  for i in [0..2]
+  //    axes[i] = axes[i].map (d)->d*-1
+  //  c1 *= -1
   stepFunc = function(es) {
-    var e, l, len, results;
+    var e, i, k, len, results;
     e = es.map(function(d, i) {
       return -d * c1 * s[2] / s[i];
     });
     e.push(norm(es) * v0);
     results = [];
-    for (l = 0, len = axes.length; l < len; l++) {
-      i = axes[l];
+    for (k = 0, len = axes.length; k < len; k++) {
+      i = axes[k];
       results.push(sdot(e, i));
     }
     return results;
@@ -1026,6 +1022,10 @@ exports.Stereonet = function() {
     proj.rotate(coords);
     dispatch.call('rotate', f);
     return __redraw();
+  };
+  f.centerPosition = function() {
+    var centerPos;
+    return centerPos = proj.invert([scale / 2, scale / 2]);
   };
   f.d3 = d3$2;
   f.on = function(event, callback) {

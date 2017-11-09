@@ -52,7 +52,7 @@ ellipse = (opts)->
     step = 2*Math.PI/(opts.n-1)
     angles = (i*step for i in [0...opts.n])
     # This reversal of B and A is causing tests to fail
-    return ([b*Math.cos(i),a*Math.sin(i)] for i in angles)
+    return ([a*Math.cos(i),b*Math.sin(i)] for i in angles)
 
   return if opts.adaptive then ellAdaptive else ell
 
@@ -69,7 +69,6 @@ cart2sph = (opts)->
       x *= -1
     if not opts.upperHemisphere
       z *= -1
-
     # Converts xyz to lat lon
     [c*Math.atan2(y,x),c*Math.asin(z/r)]
 
@@ -135,10 +134,10 @@ normalErrors = (axesCovariance, axes, opts={})->
     c1 *= -1
   c1 *= opts.level
 
-  if axes[2][2] < 0
-    for i in [0..2]
-      axes[i] = axes[i].map (d)->d*-1
-    #c1 *= -1
+  #if axes[2][2] < 0
+  #  for i in [0..2]
+  #    axes[i] = axes[i].map (d)->d*-1
+  #  c1 *= -1
 
   stepFunc = (es)->
     e = es.map (d,i)->
