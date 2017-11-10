@@ -8,7 +8,9 @@ from scipy.stats import chi2
 
 from .plot.cov_types.regressions import hyperbola
 from ..orientation.test_pca import random_pca
-from ..geom import dot
+from ..geom.util import dot, augment_tensor, plane
+from ..error.axes import sampling_axes
+from ..geom.conics import conic
 
 def simple_hyperbola(cov, xvals, n=1, level=1):
     """
@@ -82,6 +84,36 @@ def test_sampling_covariance():
     for a,b in zip(res1,res3):
         assert N.allclose(a,b)
 
-def test_noise_covariance():
+def test_dual_conic():
     fit = random_pca()
+    angle = N.pi/8
+    # Hyperbolic axes
+    hyp_axes = N.array([100,10,0.02])#sampling_axes(fit)
+
+    arr = augment_tensor(N.diag(hyp_axes))
+    # Transform ellipsoid to dual hyperboloid
+    hyp = conic(arr).dual()
+
+    axes = N.array([[N.cos(angle),N.sin(angle),0],[0,0,1]])
+
+    n_ = N.cross(axes[0],axes[1])
+
+    # Create a plane containing the two axes specified
+    # in the function call
+    p = plane(n_) # no offset (goes through origin)
+    h1 = hyp.slice(p, axes=axes)[0]
+
+    # Major axes of the conic sliced in the requested viewing
+    # geometry
+    H = N.sqrt(h1.semiaxes())
+
+    ## Simple methods
+    h = N.sqrt(1/hyp_axes)
+    v = [h[0]*N.cos(angle),
+         h[1]*N.sin(angle),
+         h[2]]
+    a = 1/N.linalg.norm([v[0],v[1]])
+    b = 1/N.abs(v[2])
+    H1 = [a,b]
+    assert N.allclose(H,H1)
 
