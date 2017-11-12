@@ -1,0 +1,46 @@
+.background
+  fill: white
+
+path.graticule
+  stroke: #dddddd
+  fill: none
+
+.neatline
+  fill: none
+  stroke: black
+  stroke-width: 2px
+
+.horizontal
+  path
+    stroke: black
+    fill: none
+    stroke-width: 2px
+    stroke-dasharray: 2 4
+
+text.axis-label
+  fill: black
+  stroke: none
+  alignment-baseline: central
+
+.vertical
+  line
+    stroke: black
+    stroke-width: 2px
+
+.plane
+  .nominal
+    fill: transparent
+
+.azimuthLabels, .dipLabels
+  text, textPath
+    alignment-baseline: central
+    text-anchor: middle
+    &.outer textPath
+      text-anchor: start
+
+.dipLabels
+  text
+    fill: #666
+    font-size: 12pt
+    baseline-shift: 10px
+

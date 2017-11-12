@@ -1,3 +1,2 @@
 #!/bin/bash
-
-coffee -b -c -w -o lib src
+find src -name '*.*' | entr npm run-script build

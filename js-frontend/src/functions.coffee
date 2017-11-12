@@ -1,8 +1,8 @@
 d3 = require 'd3'
 require 'd3-selection-multi'
-rewind = require 'geojson-rewind'
-math = require './math'
-{cloneOptions} = require './util'
+import rewind from 'geojson-rewind'
+import * as math from './math.coffee'
+import {cloneOptions} from './util.coffee'
 
 combinedErrors = math.combinedErrors
 
@@ -28,6 +28,11 @@ createErrorSurface = (d)->
 createNominalPlane = (d)->
   createFeature 'LineString', d.nominal
 
+flipAxesIfNeeded = (axes)->
+  if axes[2][2] < 0
+    axes[2] = axes[2].map (e)-> -e
+  return axes
+
 createGroupedPlane = (opts)->
   opts.nominal ?= true
 
@@ -36,12 +41,16 @@ createGroupedPlane = (opts)->
     # To preserve compatibility
     hyperbolic_axes = covariance if not hyperbolic_axes?
 
+    # Make sure axes are not inverted
+    axes = flipAxesIfNeeded(axes)
+
     e = combinedErrors hyperbolic_axes, axes, opts
     el = d3.select @
     el.append "path"
       .datum createErrorSurface(e)
       .attr 'class', 'error'
     return if not opts.nominal
+    # Create nominal plane
     el.append "path"
       .datum createNominalPlane(e)
       .attr 'class', 'nominal'
@@ -94,8 +103,9 @@ createErrorEllipse = (opts)->
     # level
     return __fnAtLevel(levels)
 
-module.exports =
-  plane: createGroupedPlane
-  errorSurface: createErrorSurface
-  nominalPlane: createNominalPlane
-  errorEllipse: createErrorEllipse
+export {
+  createGroupedPlane as plane
+  createErrorSurface as errorSurface
+  createNominalPlane as nominalPlane
+  createErrorEllipse as errorEllipse
+}

@@ -1,27 +1,10 @@
-d3 = require 'd3'
-Stereonet = require './stereonet.coffee'
+# Entrypoint for importing components
+# from node.js
+import * as functions from './functions.coffee'
+import * as math from './math.coffee'
+export * from './stereonet'
 
-el = d3.select '.stereonet'
-
-d = el.attr 'data-curves'
-data = JSON.parse d
-el.attr 'data-curves', ''
-
-console.log data
-stereonet = new Stereonet el.node()
-
-addItem = (d, opts)->
-  for level in [1,2]
-    opts.level = level
-    stereonet.addGirdle d[level],opts
-    stereonet.addEllipse d[level].ellipse, opts
-  stereonet.addPath d.nominal, opts
-
-if data.components.length > 0
-  for i in data.components
-    addItem i, class: 'component'
-
-console.log data.main
-addItem data.main, class: 'main'
-
-stereonet.draw()
+export {
+  functions
+  math
+}
