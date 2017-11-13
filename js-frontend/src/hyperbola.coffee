@@ -124,7 +124,7 @@ hyperbolicErrors = (viewpoint, axes, lineGenerator, xScale,yScale)->
     #]
     #sign = if arr.get([0,1]) < 0 then -1 else 1
 
-    largeNumber = 400
+    largeNumber = 400/ratioX
     limit = b/a*largeNumber
 
     coords  = [
@@ -173,12 +173,12 @@ hyperbolicErrors = (viewpoint, axes, lineGenerator, xScale,yScale)->
     #__angle = 0
     ## Start DOM manipulation ###
     hyp = d3.select(@)
-      .attr 'transform', "translate(#{xScale(0)-center[0]},#{yScale(0)-center[1]})
+      .attr 'transform', "translate(#{-center[0]+xScale(0)},#{yScale(0)+center[1]})
                           rotate(#{v})"
 
     hyp.classed 'in_group', d.in_group
 
-    lim = 100
+    lim = largeNumber*ratioX
     masksz = {x:-lim,y:-lim,width:lim*2,height:lim*2}
 
     mask = hyp.select('mask')
@@ -205,8 +205,6 @@ hyperbolicErrors = (viewpoint, axes, lineGenerator, xScale,yScale)->
     hyp.on 'click', (d)->
       hyp.select 'path.hyperbola'
         .attr 'opacity', 1
-      console.log d
-      debugger
 
   dfunc.setupGradient = (el)->
     defs = el.append 'defs'
@@ -228,7 +226,7 @@ digitizedLine = (viewpoint, axes=M.eye(3))->(d)->
   angle = viewpoint
   ### Create a line from input points ###
   ### Put in axis-aligned coordinates ###
-  q = Q.fromAxisAngle [0,0,1], angle+Math.PI
+  q = Q.fromAxisAngle [0,0,1], angle
   #a0 = d.axes[0]
   #q1 = Q.fromBetweenVectors [1,0,0], [a0[1],a0[0],0]
   #q = q.add q1

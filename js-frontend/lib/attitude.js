@@ -4194,7 +4194,7 @@ exports.hyperbolicErrors = function(viewpoint, axes, lineGenerator, xScale, ySca
     //M.cos(angles).map (v)->b/v
     //]
     //sign = if arr.get([0,1]) < 0 then -1 else 1
-    largeNumber = 400;
+    largeNumber = 400 / ratioX;
     limit = b / a * largeNumber;
     coords = [[-largeNumber, limit], [0, b], [largeNumber, limit]];
     //coords.push [-largeNumber,limit]
@@ -4236,9 +4236,9 @@ exports.hyperbolicErrors = function(viewpoint, axes, lineGenerator, xScale, ySca
     //console.log 'Angle', __angle
     //__angle = 0
     //# Start DOM manipulation ###
-    hyp = d3$4.select(this).attr('transform', `translate(${xScale(0) - center[0]},${yScale(0) - center[1]}) rotate(${v})`);
+    hyp = d3$4.select(this).attr('transform', `translate(${-center[0] + xScale(0)},${yScale(0) + center[1]}) rotate(${v})`);
     hyp.classed('in_group', d.in_group);
-    lim = 100;
+    lim = largeNumber * ratioX;
     masksz = {
       x: -lim,
       y: -lim,
@@ -4264,9 +4264,7 @@ exports.hyperbolicErrors = function(viewpoint, axes, lineGenerator, xScale, ySca
       return internalLineGenerator(v) + "Z";
     }).each(oa).attr('mask', `url(#${mid})`);
     return hyp.on('click', function(d) {
-      hyp.select('path.hyperbola').attr('opacity', 1);
-      console.log(d);
-      debugger;
+      return hyp.select('path.hyperbola').attr('opacity', 1);
     });
   };
   dfunc.setupGradient = function(el) {
@@ -4298,7 +4296,7 @@ exports.digitizedLine = function(viewpoint, axes = M.eye(3)) {
     angle = viewpoint;
     /* Create a line from input points */
     /* Put in axis-aligned coordinates */
-    q = Q.fromAxisAngle([0, 0, 1], angle + Math.PI);
+    q = Q.fromAxisAngle([0, 0, 1], angle);
     //a0 = d.axes[0]
     //q1 = Q.fromBetweenVectors [1,0,0], [a0[1],a0[0],0]
     //q = q.add q1
