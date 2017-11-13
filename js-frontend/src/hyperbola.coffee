@@ -28,15 +28,26 @@ vecAngle = (a0,a1)->
   a1_ = M.divide(a1,M.norm(a1))
   return dot(a0_,a1_)
 
+fixAngle = (a)->
+  # Put an angle on the interval [-Pi,Pi]
+  while a > Math.PI
+    a -= 2*Math.PI
+  while a < -Math.PI
+    a += 2*Math.PI
+  return a
+
 apparentDipCorrection = (screenRatio=1)->
   (axes2d)->
     # Correct for apparent dip
     a0 = axes2d[1]
     a1 = [0,1]
-    a0 = M.divide(a0,M.norm(a0))
-    a1 = M.divide(a1,M.norm(a1))
+    #a0 = M.divide(a0,M.norm(a0))
+    #a1 = M.divide(a1,M.norm(a1))
     cosA = dot(a0,a1)
-    angle = Math.atan2(Math.tan(Math.acos(cosA)),screenRatio)
+    console.log "Axes",a0, cosA
+    angle = Math.atan2(
+      Math.tan(Math.acos(cosA/(M.norm(a0)*M.norm(a1))))
+      screenRatio)
     return angle*180/Math.PI
 
 hyperbolicErrors = (viewpoint, axes, lineGenerator, xScale,yScale)->
@@ -44,9 +55,20 @@ hyperbolicErrors = (viewpoint, axes, lineGenerator, xScale,yScale)->
   angle = viewpoint
   gradient = null
 
+  ratioX = xScale(1)-xScale(0)
+  ratioY = yScale(1)-yScale(0)
+  screenRatio = Math.abs(ratioX)/ratioY
+
+  internalLineGenerator = d3.line()
+    .x (d)->d[0]*ratioX
+    .y (d)->d[1]*ratioY
+
   dfunc = (d)->
     # Get a single level of planar errors (or the
     # plane's nominal value) as a girdle
+    rax = d.axes
+    if rax[2][2] < 0
+      rax = rax.map (row)->row.map (i)->-i
 
     q = Q.fromAxisAngle [0,0,1], angle+Math.PI
 
@@ -78,10 +100,10 @@ hyperbolicErrors = (viewpoint, axes, lineGenerator, xScale,yScale)->
     # Semiaxes of hyperbola
     cutAngle = Math.atan2(b,a)
     angularError = cutAngle*2*180/Math.PI
-    console.log "Error: ", angularError
+    #console.log "Error: ", angularError
 
-    angles = [0...n].map (d)->
-      cutAngle+(d/n*(Math.PI-cutAngle))+Math.PI/2
+    #angles = [0...n].map (d)->
+      #cutAngle+(d/n*(Math.PI-cutAngle))+Math.PI/2
 
     ## We will transform with svg functions
     ## so we can neglect some of the math
@@ -127,39 +149,56 @@ hyperbolicErrors = (viewpoint, axes, lineGenerator, xScale,yScale)->
       .max 10
 
     # Correct for apparent dip
-    screenRatio = Math.abs((xScale(1)-xScale(0))/(yScale(1)-yScale(0)))
     apparent = apparentDipCorrection(screenRatio)
 
     RQ =  dot(R,q1,q,T)
     # grouped transform
     aT = dot(M.transpose(RQ),ax,RQ).toArray()
-    console.log aT[1]
-
+    #if aT[1][1] < 0
+      #aT = aT.map (row)->
+        #row.map (d)-> d*-1
     __angle = apparent(aT)#+apparent(RQT) #apparent for grouped transform
-    if aT[1][0] > 0
-      __angle *= -1
+    v = d.apparentDip(-angle)*180/Math.PI
+    #if aT[1][0]*aT[1][1] < 0
+      #__angle *= -1
     #console.log 'Angle', __angle
     #__angle = 0
     ## Start DOM manipulation ###
     hyp = d3.select(@)
-      .attr 'transform', "translate(#{-center[0]},#{-center[1]})
-                          rotate(#{__angle},#{xScale(0)},#{yScale(0)})"
+      .attr 'transform', "translate(#{xScale(0)-center[0]},#{yScale(0)-center[1]})
+                          rotate(#{v})"
 
-    masksz = {x:0,y:0,width:400,height:400}
+    hyp.classed 'in_group', d.in_group
+
+    lim = 100
+    masksz = {x:-lim,y:-lim,width:lim*2,height:lim*2}
 
     mask = hyp.select('mask')
+    mid = null
     if not mask.node()
+      mid = uuid.v4()
       mask = hyp.append 'mask'
-        .attr 'id', uuid.v4()
+        .attr 'id', mid
         .attrs masksz
         .append 'rect'
-        .attrs {x: 200, y: 200, width: 400, height: 400, fill: "url(#gradient)"}
+        .attrs {masksz..., fill: "url(#gradient)"}
+    if not mid?
+      mid = mask.attr('id')
+
+    hyp.selectAppend 'circle'
+      .attrs r: 2, fill: 'black'
 
     hyp.selectAppend 'path.hyperbola'
       .datum poly
-      .attr 'd', (v)->lineGenerator(v)+"Z"
+      .attr 'd', (v)->internalLineGenerator(v)+"Z"
       .each oa
-      .attr 'mask', "url(##{mask.attr('id')})"
+      .attr 'mask', "url(##{mid})"
+
+    hyp.on 'click', (d)->
+      hyp.select 'path.hyperbola'
+        .attr 'opacity', 1
+      console.log d
+      debugger
 
   dfunc.setupGradient = (el)->
     defs = el.append 'defs'

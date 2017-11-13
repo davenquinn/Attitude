@@ -4050,6 +4050,7 @@ var T;
 var apparentDipCorrection;
 var d3$4;
 var dot;
+var fixAngle;
 var matrix;
 var transpose$1;
 var vecAngle;
@@ -4090,29 +4091,57 @@ vecAngle = function(a0, a1) {
   return dot(a0_, a1_);
 };
 
+fixAngle = function(a) {
+  // Put an angle on the interval [-Pi,Pi]
+  while (a > Math.PI) {
+    a -= 2 * Math.PI;
+  }
+  while (a < -Math.PI) {
+    a += 2 * Math.PI;
+  }
+  return a;
+};
+
 apparentDipCorrection = function(screenRatio = 1) {
   return function(axes2d) {
     var a0, a1, angle, cosA;
     // Correct for apparent dip
     a0 = axes2d[1];
     a1 = [0, 1];
-    a0 = M.divide(a0, M.norm(a0));
-    a1 = M.divide(a1, M.norm(a1));
+    //a0 = M.divide(a0,M.norm(a0))
+    //a1 = M.divide(a1,M.norm(a1))
     cosA = dot(a0, a1);
-    angle = Math.atan2(Math.tan(Math.acos(cosA)), screenRatio);
+    console.log("Axes", a0, cosA);
+    angle = Math.atan2(Math.tan(Math.acos(cosA / (M.norm(a0) * M.norm(a1)))), screenRatio);
     return angle * 180 / Math.PI;
   };
 };
 
 exports.hyperbolicErrors = function(viewpoint, axes, lineGenerator, xScale, yScale) {
-  var angle, dfunc, gradient, n;
+  var angle, dfunc, gradient, internalLineGenerator, n, ratioX, ratioY, screenRatio;
   n = 10;
   angle = viewpoint;
   gradient = null;
+  ratioX = xScale(1) - xScale(0);
+  ratioY = yScale(1) - yScale(0);
+  screenRatio = Math.abs(ratioX) / ratioY;
+  internalLineGenerator = d3$4.line().x(function(d) {
+    return d[0] * ratioX;
+  }).y(function(d) {
+    return d[1] * ratioY;
+  });
   dfunc = function(d) {
-    var R, RQ, __angle, a, a0, a1, aT, angles, angularError, apparent, ax, b, center, coords, cutAngle, hyp, i, largeNumber, limit, mask, masksz, oa, offs, poly, q, q1, results, s, screenRatio, top, v;
+    var R, RQ, __angle, a, a0, a1, aT, angularError, apparent, ax, b, center, coords, cutAngle, hyp, largeNumber, lim, limit, mask, masksz, mid, oa, offs, poly, q, q1, rax, s, top, v;
     // Get a single level of planar errors (or the
     // plane's nominal value) as a girdle
+    rax = d.axes;
+    if (rax[2][2] < 0) {
+      rax = rax.map(function(row) {
+        return row.map(function(i) {
+          return -i;
+        });
+      });
+    }
     q = Q.fromAxisAngle([0, 0, 1], angle + Math.PI);
     R = matrix(axes);
     ax = dot(M.transpose(R), d.axes, R);
@@ -4140,14 +4169,11 @@ exports.hyperbolicErrors = function(viewpoint, axes, lineGenerator, xScale, ySca
     // Semiaxes of hyperbola
     cutAngle = Math.atan2(b, a);
     angularError = cutAngle * 2 * 180 / Math.PI;
-    console.log("Error: ", angularError);
-    angles = (function() {
-      results = [];
-      for (var i = 0; 0 <= n ? i < n : i > n; 0 <= n ? i++ : i--){ results.push(i); }
-      return results;
-    }).apply(this).map(function(d) {
-      return cutAngle + (d / n * (Math.PI - cutAngle)) + Math.PI / 2;
-    });
+    //console.log "Error: ", angularError
+
+    //angles = [0...n].map (d)->
+    //cutAngle+(d/n*(Math.PI-cutAngle))+Math.PI/2
+
     //# We will transform with svg functions
     //# so we can neglect some of the math
     // for doing hyperbolae not aligned with the
@@ -4186,39 +4212,52 @@ exports.hyperbolicErrors = function(viewpoint, axes, lineGenerator, xScale, ySca
       return angularError;
     }).max(10);
     // Correct for apparent dip
-    screenRatio = Math.abs((xScale(1) - xScale(0)) / (yScale(1) - yScale(0)));
     apparent = apparentDipCorrection(screenRatio);
     RQ = dot(R, q1, q, T);
     // grouped transform
     aT = dot(M.transpose(RQ), ax, RQ).toArray();
-    console.log(aT[1]);
+    //if aT[1][1] < 0
+    //aT = aT.map (row)->
+    //row.map (d)-> d*-1
     __angle = apparent(aT); //+apparent(RQT) #apparent for grouped transform
-    if (aT[1][0] > 0) {
-      __angle *= -1;
-    }
+    v = d.apparentDip(-angle) * 180 / Math.PI;
+    //if aT[1][0]*aT[1][1] < 0
+    //__angle *= -1
     //console.log 'Angle', __angle
     //__angle = 0
     //# Start DOM manipulation ###
-    hyp = d3$4.select(this).attr('transform', `translate(${-center[0]},${-center[1]}) rotate(${__angle},${xScale(0)},${yScale(0)})`);
+    hyp = d3$4.select(this).attr('transform', `translate(${xScale(0) - center[0]},${yScale(0) - center[1]}) rotate(${v})`);
+    hyp.classed('in_group', d.in_group);
+    lim = 100;
     masksz = {
-      x: 0,
-      y: 0,
-      width: 400,
-      height: 400
+      x: -lim,
+      y: -lim,
+      width: lim * 2,
+      height: lim * 2
     };
     mask = hyp.select('mask');
+    mid = null;
     if (!mask.node()) {
-      mask = hyp.append('mask').attr('id', uuid_1.v4()).attrs(masksz).append('rect').attrs({
-        x: 200,
-        y: 200,
-        width: 400,
-        height: 400,
+      mid = uuid_1.v4();
+      mask = hyp.append('mask').attr('id', mid).attrs(masksz).append('rect').attrs(Object.assign({}, masksz, {
         fill: "url(#gradient)"
-      });
+      }));
     }
-    return hyp.selectAppend('path.hyperbola').datum(poly).attr('d', function(v) {
-      return lineGenerator(v) + "Z";
-    }).each(oa).attr('mask', `url(#${mask.attr('id')})`);
+    if (mid == null) {
+      mid = mask.attr('id');
+    }
+    hyp.selectAppend('circle').attrs({
+      r: 2,
+      fill: 'black'
+    });
+    hyp.selectAppend('path.hyperbola').datum(poly).attr('d', function(v) {
+      return internalLineGenerator(v) + "Z";
+    }).each(oa).attr('mask', `url(#${mid})`);
+    return hyp.on('click', function(d) {
+      hyp.select('path.hyperbola').attr('opacity', 1);
+      console.log(d);
+      debugger;
+    });
   };
   dfunc.setupGradient = function(el) {
     var defs, g;
