@@ -346,12 +346,11 @@ opacityByCertainty = (colorFunc, accessor=null)->
   angularError = (d)->d.max_angular_error
   darkenStroke = 0.2
   maxOpacity = 5
+  alphaScale = d3.scalePow(4)
+    .range [0.8,0.1]
+    .domain [0,maxOpacity]
+  alphaScale.clamp(true)
   f = (d,i)->
-    alphaScale = d3.scaleLinear()
-      .range [0.8,0.1]
-      .domain [0,maxOpacity]
-    alphaScale.clamp(true)
-
     angError = angularError(d)
     al = alphaScale(angError)
 

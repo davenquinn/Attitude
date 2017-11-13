@@ -158,18 +158,13 @@ hyperbolicErrors = (viewpoint, axes, lineGenerator, xScale,yScale)->
 
     oa = opacityByCertainty(->d.color)
       .angularError -> angularError
-      .max 10
+      .max 5
 
     # Correct for apparent dip
     apparent = apparentDipCorrection(screenRatio)
 
-    RQ =  dot(R,q1,q,T)
+    #RQ =  dot(R,q1,q,T)
     # grouped transform
-    aT = dot(M.transpose(RQ),ax,RQ).toArray()
-    #if aT[1][1] < 0
-      #aT = aT.map (row)->
-        #row.map (d)-> d*-1
-    __angle = apparent(aT)#+apparent(RQT) #apparent for grouped transform
     v = d.apparentDip(-angle+Math.PI/2)*180/Math.PI
     #if aT[1][0]*aT[1][1] < 0
       #__angle *= -1
@@ -234,9 +229,6 @@ digitizedLine = (viewpoint, axes=M.eye(3))->(d)->
   ### Create a line from input points ###
   ### Put in axis-aligned coordinates ###
   q = Q.fromAxisAngle [0,0,1], angle
-  #a0 = d.axes[0]
-  #q1 = Q.fromBetweenVectors [1,0,0], [a0[1],a0[0],0]
-  #q = q.add q1
 
   R = M.transpose matrix(axes)
   alignedWithGroup = dot(d.centered, R)
@@ -244,20 +236,41 @@ digitizedLine = (viewpoint, axes=M.eye(3))->(d)->
   v = alignedWithGroup.toArray()
     .map (row)-> M.add(row,offs)
 
-  a0 = R.toArray()[0]
-  a1 = [a0.slice(0,2)..., 0]
-  ### Apparent dip correction ###
-  A = Q.fromBetweenVectors a0, a1
-
   #R2 = q.mul(A).mul(N)
   a = dot(v, q)
 
   ### Map down to two dimensions (the x-z plane of the viewing geometry) ###
-
-  ## Rotation ###
-  #M.matrix(q.toMatrix(true))
-
   dot(a, T).toArray()
+
+apparentDip = (viewpoint, axes, lineGenerator, xScale, yScale)->
+  #if not axes?
+  axes = M.eye(3)
+  calculate = (d)->
+    angle = viewpoint
+    ### Create a line from input points ###
+    ### Put in axis-aligned coordinates ###
+    q = Q.fromAxisAngle [0,0,1], angle
+
+    qA = Q.fromAxisAngle [0,0,1], -angle
+
+    planeAxes = d.axes
+    #if d.group?
+    #  planeAxes = d.group.axes
+
+    R = M.transpose matrix(axes)
+    A = M.transpose matrix(planeAxes)
+    v = dot(d.centered, R, A)
+    offs = dot(d.offset,R,q).toArray()
+    center = [xScale(offs[0])-xScale(0),yScale(offs[2])-yScale(0)]
+
+    ### Apparent dip correction ###
+    lineData = dot(v, T).toArray()
+
+    v = d.apparentDip(-viewpoint+Math.PI/2)*180/Math.PI
+    d3.select @
+      .attr 'd',lineGenerator(lineData)
+      .attr 'transform', "translate(#{-center[0]+xScale(0)},#{yScale(0)+center[1]})
+                          rotate(#{v})"
 
 class PlaneData
   constructor: (data, mean=null)->
@@ -293,5 +306,5 @@ class PlaneData
     d = M.tan(dip)*M.cos(azimuth-dipDr)
     sign*Math.atan(d)
 
-export {hyperbolicErrors, digitizedLine, PlaneData, fixAngle}
+export {hyperbolicErrors, digitizedLine, PlaneData, fixAngle, apparentDip}
 

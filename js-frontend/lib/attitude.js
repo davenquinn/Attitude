@@ -1127,16 +1127,16 @@ exports.Stereonet = function() {
 };
 
 exports.opacityByCertainty = function(colorFunc, accessor = null) {
-  var __getSet, angularError, darkenStroke, f, maxOpacity;
+  var __getSet, alphaScale, angularError, darkenStroke, f, maxOpacity;
   angularError = function(d) {
     return d.max_angular_error;
   };
   darkenStroke = 0.2;
   maxOpacity = 5;
+  alphaScale = d3$2.scalePow(4).range([0.8, 0.1]).domain([0, maxOpacity]);
+  alphaScale.clamp(true);
   f = function(d, i) {
-    var al, alphaScale, angError, color, e, fill, stroke;
-    alphaScale = d3$2.scaleLinear().range([0.8, 0.1]).domain([0, maxOpacity]);
-    alphaScale.clamp(true);
+    var al, angError, color, e, fill, stroke;
     angError = angularError(d);
     al = alphaScale(angError);
     color = chroma(colorFunc(d));
@@ -4142,7 +4142,7 @@ exports.hyperbolicErrors = function(viewpoint, axes, lineGenerator, xScale, ySca
     return d[1] * ratioY;
   });
   dfunc = function(d) {
-    var R, RQ, __angle, a, a0, a1, aT, angularError, apparent, ax, b, center, coords, cutAngle, hyp, inPlaneLength, largeNumber, lengthShown, lim, limit, mask, masksz, mid, oa, offs, poly, q, q1, rax, s, top, v;
+    var R, a, a0, a1, angularError, apparent, ax, b, center, coords, cutAngle, hyp, inPlaneLength, largeNumber, lengthShown, lim, limit, mask, masksz, mid, oa, offs, poly, q, q1, rax, s, top, v;
     // Get a single level of planar errors (or the
     // plane's nominal value) as a girdle
     rax = d.axes;
@@ -4223,16 +4223,11 @@ exports.hyperbolicErrors = function(viewpoint, axes, lineGenerator, xScale, ySca
       return d.color;
     }).angularError(function() {
       return angularError;
-    }).max(10);
+    }).max(5);
     // Correct for apparent dip
     apparent = apparentDipCorrection(screenRatio);
-    RQ = dot(R, q1, q, T);
+    //RQ =  dot(R,q1,q,T)
     // grouped transform
-    aT = dot(M.transpose(RQ), ax, RQ).toArray();
-    //if aT[1][1] < 0
-    //aT = aT.map (row)->
-    //row.map (d)-> d*-1
-    __angle = apparent(aT); //+apparent(RQT) #apparent for grouped transform
     v = d.apparentDip(-angle + Math.PI / 2) * 180 / Math.PI;
     //if aT[1][0]*aT[1][1] < 0
     //__angle *= -1
@@ -4293,30 +4288,47 @@ exports.hyperbolicErrors = function(viewpoint, axes, lineGenerator, xScale, ySca
 
 exports.digitizedLine = function(viewpoint, axes = M.eye(3)) {
   return function(d) {
-    var A, R, a, a0, a1, alignedWithGroup, angle, offs, q, v;
+    var R, a, alignedWithGroup, angle, offs, q, v;
     angle = viewpoint;
     /* Create a line from input points */
     /* Put in axis-aligned coordinates */
     q = Q.fromAxisAngle([0, 0, 1], angle);
-    //a0 = d.axes[0]
-    //q1 = Q.fromBetweenVectors [1,0,0], [a0[1],a0[0],0]
-    //q = q.add q1
     R = M.transpose(matrix(axes));
     alignedWithGroup = dot(d.centered, R);
     offs = dot(d.offset, R);
     v = alignedWithGroup.toArray().map(function(row) {
       return M.add(row, offs);
     });
-    a0 = R.toArray()[0];
-    a1 = [...a0.slice(0, 2), 0];
-    /* Apparent dip correction */
-    A = Q.fromBetweenVectors(a0, a1);
     //R2 = q.mul(A).mul(N)
     a = dot(v, q);
     /* Map down to two dimensions (the x-z plane of the viewing geometry) */
-    //# Rotation ###
-    //M.matrix(q.toMatrix(true))
     return dot(a, T).toArray();
+  };
+};
+
+exports.apparentDip = function(viewpoint, axes, lineGenerator, xScale, yScale) {
+  var calculate;
+  //if not axes?
+  axes = M.eye(3);
+  return calculate = function(d) {
+    var A, R, angle, center, lineData, offs, planeAxes, q, qA, v;
+    angle = viewpoint;
+    /* Create a line from input points */
+    /* Put in axis-aligned coordinates */
+    q = Q.fromAxisAngle([0, 0, 1], angle);
+    qA = Q.fromAxisAngle([0, 0, 1], -angle);
+    planeAxes = d.axes;
+    //if d.group?
+    //  planeAxes = d.group.axes
+    R = M.transpose(matrix(axes));
+    A = M.transpose(matrix(planeAxes));
+    v = dot(d.centered, R, A);
+    offs = dot(d.offset, R, q).toArray();
+    center = [xScale(offs[0]) - xScale(0), yScale(offs[2]) - yScale(0)];
+    /* Apparent dip correction */
+    lineData = dot(v, T).toArray();
+    v = d.apparentDip(-viewpoint + Math.PI / 2) * 180 / Math.PI;
+    return d3$4.select(this).attr('d', lineGenerator(lineData)).attr('transform', `translate(${-center[0] + xScale(0)},${yScale(0) + center[1]}) rotate(${v})`);
   };
 };
 
