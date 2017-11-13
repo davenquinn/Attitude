@@ -5,6 +5,7 @@ require 'd3-jetpack'
 import chroma from 'chroma-js'
 import * as math from './math.coffee'
 import {opacityByCertainty} from './stereonet'
+import uuid from 'uuid'
 
 ## Matrix to map down to 2 dimensions
 T = M.matrix [[1,0],[0,0],[0,1]]
@@ -41,6 +42,8 @@ apparentDipCorrection = (screenRatio=1)->
 hyperbolicErrors = (viewpoint, axes, lineGenerator, xScale,yScale)->
   n = 10
   angle = viewpoint
+  gradient = null
+
   dfunc = (d)->
     # Get a single level of planar errors (or the
     # plane's nominal value) as a girdle
@@ -53,10 +56,8 @@ hyperbolicErrors = (viewpoint, axes, lineGenerator, xScale,yScale)->
     q1 = Q.fromBetweenVectors [1,0,0], [a0[0],a0[1],0]
     a1 = M.acos(vecAngle([a0[0],a0[1],0],[1,0,0]))
 
-
     ## Matrix to map down to 2 dimensions
     T = M.matrix [[1,0],[0,0],[0,1]]
-
 
     ### Project axes to 2d ###
     s = M.sqrt(d.lengths).map (d)->1/d
@@ -93,7 +94,7 @@ hyperbolicErrors = (viewpoint, axes, lineGenerator, xScale,yScale)->
     #]
     #sign = if arr.get([0,1]) < 0 then -1 else 1
 
-    largeNumber = 100000
+    largeNumber = 400
     limit = b/a*largeNumber
 
     coords  = [
@@ -125,7 +126,6 @@ hyperbolicErrors = (viewpoint, axes, lineGenerator, xScale,yScale)->
       .angularError -> angularError
       .max 10
 
-
     # Correct for apparent dip
     screenRatio = Math.abs((xScale(1)-xScale(0))/(yScale(1)-yScale(0)))
     apparent = apparentDipCorrection(screenRatio)
@@ -141,12 +141,41 @@ hyperbolicErrors = (viewpoint, axes, lineGenerator, xScale,yScale)->
     #console.log 'Angle', __angle
     #__angle = 0
     ## Start DOM manipulation ###
-    d3.select(@)
-      .selectAppend 'path.hyperbola'
+    hyp = d3.select(@)
+      .attr 'transform', "translate(#{-center[0]},#{-center[1]})
+                          rotate(#{__angle},#{xScale(0)},#{yScale(0)})"
+
+    masksz = {x:0,y:0,width:400,height:400}
+
+    mask = hyp.select('mask')
+    if not mask.node()
+      mask = hyp.append 'mask'
+        .attr 'id', uuid.v4()
+        .attrs masksz
+        .append 'rect'
+        .attrs {x: 200, y: 200, width: 400, height: 400, fill: "url(#gradient)"}
+
+    hyp.selectAppend 'path.hyperbola'
       .datum poly
       .attr 'd', (v)->lineGenerator(v)+"Z"
-      .attr 'transform', "translate(#{-center[0]},#{-center[1]})rotate(#{__angle},#{xScale(0)},#{yScale(0)})"
       .each oa
+      .attr 'mask', "url(##{mask.attr('id')})"
+
+  dfunc.setupGradient = (el)->
+    defs = el.append 'defs'
+
+    g = defs.append 'linearGradient'
+        .attr 'id', 'gradient'
+    g.append 'stop'
+     .attrs offset: 0, 'stop-color': 'white', 'stop-opacity': 0
+
+    g.append 'stop'
+      .attrs offset: 0.5, 'stop-color': 'white', 'stop-opacity': 1
+
+    g.append 'stop'
+      .attrs offset: 1, 'stop-color': 'white', 'stop-opacity': 0
+
+  return dfunc
 
 digitizedLine = (viewpoint, axes=M.eye(3))->(d)->
   angle = viewpoint
@@ -169,7 +198,7 @@ digitizedLine = (viewpoint, axes=M.eye(3))->(d)->
   A = Q.fromBetweenVectors a0, a1
 
   #R2 = q.mul(A).mul(N)
-  a =dot(v, q)
+  a = dot(v, q)
 
   ### Map down to two dimensions (the x-z plane of the viewing geometry) ###
 

@@ -6,7 +6,9 @@
   "dependencies": {
     "d3-selection-multi": "^1.0.0",
     "geojson-rewind": "^0.1.0",
-    "mathjs": "^3.16.5"
+    "mathjs": "^3.16.5",
+    "quaternion": "^2.0.0",
+    "uuid": "^3.1.0"
   },
   "peerDependencies": {
     "d3": "^4"
@@ -21,7 +23,7 @@
     "rollup-plugin-coffee2": "^0.1.10",
     "rollup-plugin-commonjs": "^8.2.6",
     "rollup-plugin-node-resolve": "^3.0.0",
-    "rollup-plugin-stylus": "^1.0.3",
+    "rollup-plugin-stylus": "^1.0.4",
     "stylus": "^0.54.5",
     "turf": "^3.0.14",
     "watchify": "^3.6.1"
