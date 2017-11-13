@@ -62,6 +62,7 @@ hyperbolicErrors = (viewpoint, axes, lineGenerator, xScale,yScale)->
   n = 10
   angle = viewpoint
   gradient = null
+  width = 400
 
   ratioX = xScale(1)-xScale(0)
   ratioY = yScale(1)-yScale(0)
@@ -109,6 +110,9 @@ hyperbolicErrors = (viewpoint, axes, lineGenerator, xScale,yScale)->
     cutAngle = Math.atan2(b,a)
     angularError = cutAngle*2*180/Math.PI
     #console.log "Error: ", angularError
+    # find length at which tangent is x long
+    lengthShown = width/2
+    inPlaneLength = lengthShown*b/a/screenRatio
 
     #angles = [0...n].map (d)->
       #cutAngle+(d/n*(Math.PI-cutAngle))+Math.PI/2
@@ -124,7 +128,7 @@ hyperbolicErrors = (viewpoint, axes, lineGenerator, xScale,yScale)->
     #]
     #sign = if arr.get([0,1]) < 0 then -1 else 1
 
-    largeNumber = 400/ratioX
+    largeNumber = width/ratioX
     limit = b/a*largeNumber
 
     coords  = [
@@ -178,7 +182,7 @@ hyperbolicErrors = (viewpoint, axes, lineGenerator, xScale,yScale)->
 
     hyp.classed 'in_group', d.in_group
 
-    lim = largeNumber*ratioX
+    lim = width/2
     masksz = {x:-lim,y:-lim,width:lim*2,height:lim*2}
 
     mask = hyp.select('mask')
@@ -211,14 +215,17 @@ hyperbolicErrors = (viewpoint, axes, lineGenerator, xScale,yScale)->
 
     g = defs.append 'linearGradient'
         .attr 'id', 'gradient'
-    g.append 'stop'
-     .attrs offset: 0, 'stop-color': 'white', 'stop-opacity': 0
 
-    g.append 'stop'
-      .attrs offset: 0.5, 'stop-color': 'white', 'stop-opacity': 1
+    stop = (ofs, op)->
+      g.append 'stop'
+       .attrs offset: ofs, 'stop-color': 'white', 'stop-opacity': op
 
-    g.append 'stop'
-      .attrs offset: 1, 'stop-color': 'white', 'stop-opacity': 0
+    stop(0,0)
+    stop(0.2,0.1)
+    stop(0.45,1)
+    stop(0.55,1)
+    stop(0.8,0.9)
+    stop(1,0)
 
   return dfunc
 

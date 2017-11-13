@@ -4128,10 +4128,11 @@ apparentDipCorrection = function(screenRatio = 1) {
 };
 
 exports.hyperbolicErrors = function(viewpoint, axes, lineGenerator, xScale, yScale) {
-  var angle, dfunc, gradient, internalLineGenerator, n, ratioX, ratioY, screenRatio;
+  var angle, dfunc, gradient, internalLineGenerator, n, ratioX, ratioY, screenRatio, width;
   n = 10;
   angle = viewpoint;
   gradient = null;
+  width = 400;
   ratioX = xScale(1) - xScale(0);
   ratioY = yScale(1) - yScale(0);
   screenRatio = Math.abs(ratioX) / ratioY;
@@ -4141,7 +4142,7 @@ exports.hyperbolicErrors = function(viewpoint, axes, lineGenerator, xScale, ySca
     return d[1] * ratioY;
   });
   dfunc = function(d) {
-    var R, RQ, __angle, a, a0, a1, aT, angularError, apparent, ax, b, center, coords, cutAngle, hyp, largeNumber, lim, limit, mask, masksz, mid, oa, offs, poly, q, q1, rax, s, top, v;
+    var R, RQ, __angle, a, a0, a1, aT, angularError, apparent, ax, b, center, coords, cutAngle, hyp, inPlaneLength, largeNumber, lengthShown, lim, limit, mask, masksz, mid, oa, offs, poly, q, q1, rax, s, top, v;
     // Get a single level of planar errors (or the
     // plane's nominal value) as a girdle
     rax = d.axes;
@@ -4180,7 +4181,9 @@ exports.hyperbolicErrors = function(viewpoint, axes, lineGenerator, xScale, ySca
     cutAngle = Math.atan2(b, a);
     angularError = cutAngle * 2 * 180 / Math.PI;
     //console.log "Error: ", angularError
-
+    // find length at which tangent is x long
+    lengthShown = width / 2;
+    inPlaneLength = lengthShown * b / a / screenRatio;
     //angles = [0...n].map (d)->
     //cutAngle+(d/n*(Math.PI-cutAngle))+Math.PI/2
 
@@ -4194,7 +4197,7 @@ exports.hyperbolicErrors = function(viewpoint, axes, lineGenerator, xScale, ySca
     //M.cos(angles).map (v)->b/v
     //]
     //sign = if arr.get([0,1]) < 0 then -1 else 1
-    largeNumber = 400 / ratioX;
+    largeNumber = width / ratioX;
     limit = b / a * largeNumber;
     coords = [[-largeNumber, limit], [0, b], [largeNumber, limit]];
     //coords.push [-largeNumber,limit]
@@ -4238,7 +4241,7 @@ exports.hyperbolicErrors = function(viewpoint, axes, lineGenerator, xScale, ySca
     //# Start DOM manipulation ###
     hyp = d3$4.select(this).attr('transform', `translate(${-center[0] + xScale(0)},${yScale(0) + center[1]}) rotate(${v})`);
     hyp.classed('in_group', d.in_group);
-    lim = largeNumber * ratioX;
+    lim = width / 2;
     masksz = {
       x: -lim,
       y: -lim,
@@ -4268,24 +4271,22 @@ exports.hyperbolicErrors = function(viewpoint, axes, lineGenerator, xScale, ySca
     });
   };
   dfunc.setupGradient = function(el) {
-    var defs, g;
+    var defs, g, stop;
     defs = el.append('defs');
     g = defs.append('linearGradient').attr('id', 'gradient');
-    g.append('stop').attrs({
-      offset: 0,
-      'stop-color': 'white',
-      'stop-opacity': 0
-    });
-    g.append('stop').attrs({
-      offset: 0.5,
-      'stop-color': 'white',
-      'stop-opacity': 1
-    });
-    return g.append('stop').attrs({
-      offset: 1,
-      'stop-color': 'white',
-      'stop-opacity': 0
-    });
+    stop = function(ofs, op) {
+      return g.append('stop').attrs({
+        offset: ofs,
+        'stop-color': 'white',
+        'stop-opacity': op
+      });
+    };
+    stop(0, 0);
+    stop(0.2, 0.1);
+    stop(0.45, 1);
+    stop(0.55, 1);
+    stop(0.8, 0.9);
+    return stop(1, 0);
   };
   return dfunc;
 };
