@@ -4050,7 +4050,6 @@ var T;
 var apparentDipCorrection;
 var d3$4;
 var dot;
-var fixAngle;
 var matrix;
 var transpose$1;
 var vecAngle;
@@ -4062,6 +4061,17 @@ Q = require('quaternion');
 d3$4 = require('d3');
 
 require('d3-jetpack');
+
+exports.fixAngle = function(a) {
+  // Put an angle on the interval [-Pi,Pi]
+  while (a > Math.PI) {
+    a -= 2 * Math.PI;
+  }
+  while (a < -Math.PI) {
+    a += 2 * Math.PI;
+  }
+  return a;
+};
 
 //# Matrix to map down to 2 dimensions
 T = M.matrix([[1, 0], [0, 0], [0, 1]]);
@@ -4091,7 +4101,7 @@ vecAngle = function(a0, a1) {
   return dot(a0_, a1_);
 };
 
-fixAngle = function(a) {
+exports.fixAngle = function(a) {
   // Put an angle on the interval [-Pi,Pi]
   while (a > Math.PI) {
     a -= 2 * Math.PI;
@@ -4220,7 +4230,7 @@ exports.hyperbolicErrors = function(viewpoint, axes, lineGenerator, xScale, ySca
     //aT = aT.map (row)->
     //row.map (d)-> d*-1
     __angle = apparent(aT); //+apparent(RQT) #apparent for grouped transform
-    v = d.apparentDip(-angle) * 180 / Math.PI;
+    v = d.apparentDip(-angle + Math.PI / 2) * 180 / Math.PI;
     //if aT[1][0]*aT[1][1] < 0
     //__angle *= -1
     //console.log 'Angle', __angle
@@ -4309,6 +4319,58 @@ exports.digitizedLine = function(viewpoint, axes = M.eye(3)) {
     //M.matrix(q.toMatrix(true))
     return dot(a, T).toArray();
   };
+};
+
+exports.PlaneData = class PlaneData {
+  constructor(data, mean = null) {
+    var axes, color, extracted, hyperbolic_axes;
+    this.dip = this.dip.bind(this);
+    this.apparentDip = this.apparentDip.bind(this);
+    ({axes, hyperbolic_axes, extracted, color} = data);
+    this.mean = mean;
+    this.axes = data.axes;
+    this.color = color;
+    this.lengths = hyperbolic_axes;
+    this.in_group = data.in_group;
+    this.array = extracted;
+    this.data = data;
+    //@pcaAxes = math.convolveAxes @axes, @lengths
+    // If we didn't pass a mean, we have to compute one
+    if (this.array == null) {
+      return;
+    }
+    //# Extract mean of data on each axis ##
+    this.mean = [0, 1, 2].map((i) => {
+      return d3$4.mean(this.array, function(d) {
+        return d[i];
+      });
+    });
+    this.centered = this.array.map((d) => {
+      return M.subtract(d, this.mean);
+    });
+  }
+
+  dip() {
+    var dip, dipDr, n, r;
+    n = this.axes[2];
+    r = M.norm(n);
+    dip = M.acos(n[2] / r);
+    dipDr = exports.fixAngle(Math.atan2(n[0], n[1]));
+    return [dip, dipDr];
+  }
+
+  apparentDip(azimuth) {
+    var a, d, dip, dipDr, n, r, sign;
+    n = this.axes[2];
+    r = M.norm(n);
+    [dip, dipDr] = this.dip();
+    dipDr = Math.atan2(n[0], n[1]);
+    a = exports.fixAngle(azimuth - dipDr);
+    sign = -Math.PI / 2 < a || Math.PI / 2 > a ? 1 : -1;
+    d = M.tan(dip) * M.cos(azimuth - dipDr);
+    return sign * Math.atan(d);
+  }
+
 };
 
 // Entrypoint for importing components

@@ -7,6 +7,14 @@ import * as math from './math.coffee'
 import {opacityByCertainty} from './stereonet'
 import uuid from 'uuid'
 
+fixAngle = (a)->
+  # Put an angle on the interval [-Pi,Pi]
+  while a > Math.PI
+    a -= 2*Math.PI
+  while a < -Math.PI
+    a += 2*Math.PI
+  return a
+
 ## Matrix to map down to 2 dimensions
 T = M.matrix [[1,0],[0,0],[0,1]]
 
@@ -158,7 +166,7 @@ hyperbolicErrors = (viewpoint, axes, lineGenerator, xScale,yScale)->
       #aT = aT.map (row)->
         #row.map (d)-> d*-1
     __angle = apparent(aT)#+apparent(RQT) #apparent for grouped transform
-    v = d.apparentDip(-angle)*180/Math.PI
+    v = d.apparentDip(-angle+Math.PI/2)*180/Math.PI
     #if aT[1][0]*aT[1][1] < 0
       #__angle *= -1
     #console.log 'Angle', __angle
@@ -246,5 +254,39 @@ digitizedLine = (viewpoint, axes=M.eye(3))->(d)->
 
   dot(a, T).toArray()
 
-export {hyperbolicErrors, digitizedLine}
+class PlaneData
+  constructor: (data, mean=null)->
+    {axes, hyperbolic_axes, extracted, color} = data
+    @mean = mean
+    @axes = data.axes
+    @color = color
+    @lengths = hyperbolic_axes
+    @in_group = data.in_group
+    @array = extracted
+    @data = data
+    #@pcaAxes = math.convolveAxes @axes, @lengths
+    # If we didn't pass a mean, we have to compute one
+    return unless @array?
+    ## Extract mean of data on each axis ##
+    @mean = [0..2].map (i)=> d3.mean @array, (d)->d[i]
+    @centered = @array.map (d)=>M.subtract(d,@mean)
+
+  dip: =>
+    n = @axes[2]
+    r = M.norm(n)
+    dip = M.acos(n[2]/r)
+    dipDr = fixAngle(Math.atan2(n[0],n[1]))
+    return [dip,dipDr]
+
+  apparentDip: (azimuth)=>
+    n = @axes[2]
+    r = M.norm(n)
+    [dip,dipDr] = @dip()
+    dipDr = Math.atan2(n[0],n[1])
+    a = fixAngle(azimuth-dipDr)
+    sign = if -Math.PI/2 < a or Math.PI/2 > a then 1 else -1
+    d = M.tan(dip)*M.cos(azimuth-dipDr)
+    sign*Math.atan(d)
+
+export {hyperbolicErrors, digitizedLine, PlaneData, fixAngle}
 
