@@ -4047,6 +4047,7 @@ var uuid_1 = uuid;
 var M;
 var Q;
 var T;
+var __planeAngle;
 var apparentDipCorrection;
 var d3$4;
 var dot;
@@ -4147,6 +4148,13 @@ getRatios = function(x, y) {
   return {ratioX, ratioY, screenRatio, lineGenerator};
 };
 
+__planeAngle = function(axes, angle) {
+  var a0;
+  // Get angle of the plane from the major axes
+  a0 = axes.toArray()[0];
+  return angle - M.acos(vecAngle([a0[0], a0[1], 0], [1, 0, 0]));
+};
+
 exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
   var angle, centerPoint, dfunc, gradient, lineGenerator, n, nCoords, nominal, ratioX, ratioY, screenRatio, width;
   n = 10;
@@ -4162,7 +4170,7 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
   nCoords = 3;
   ({ratioX, ratioY, screenRatio, lineGenerator} = getRatios(xScale, yScale));
   dfunc = function(d) {
-    var R, a, a0, a1, angles, angularError, arr, ax, b, center, coords, cutAngle, hyp, inPlaneLength, j, largeNumber, lengthShown, lim, limit, mask, masksz, mid, oa, offs, poly, q, rax, results, s, top, v;
+    var R, a, a1, angles, angularError, arr, ax, b, center, coords, cutAngle, hyp, inPlaneLength, j, largeNumber, lengthShown, lim, limit, mask, masksz, mid, oa, offs, poly, q, rax, results, s, top, v;
     // Get a single level of planar errors (or the
     // plane's nominal value) as a girdle
     rax = d.axes;
@@ -4176,15 +4184,14 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     q = Q.fromAxisAngle([0, 0, 1], angle + Math.PI);
     R = matrix(axes);
     ax = dot(M.transpose(R), d.axes, R);
-    a0 = ax.toArray()[0];
-    a1 = M.acos(vecAngle([a0[0], a0[1], 0], [1, 0, 0]));
+    a1 = __planeAngle(ax, angle);
     //# Matrix to map down to 2 dimensions
     T = M.matrix([[1, 0], [0, 0], [0, 1]]);
     /* Project axes to 2d */
     s = M.sqrt(d.lengths).map(function(d) {
       return 1 / d;
     });
-    v = [s[0] * Math.cos(angle - a1), s[1] * Math.sin(angle - a1), s[2]];
+    v = [s[0] * Math.cos(a1), s[1] * Math.sin(a1), s[2]];
     a = 1 / M.norm([v[0], v[1]]);
     b = 1 / M.abs(v[2]);
     //a = M.norm([e[0],e[1]])
@@ -4351,28 +4358,40 @@ exports.digitizedLine = function(viewpoint, lineGenerator) {
 };
 
 exports.apparentDip = function(viewpoint, xScale, yScale) {
-  var axes, f, lineGenerator;
+  var axes, f, lineGenerator, ratioX, ratioY, screenRatio;
   axes = M.eye(3);
-  ({lineGenerator} = getRatios(xScale, yScale));
+  ({ratioX, ratioY, screenRatio, lineGenerator} = getRatios(xScale, yScale));
   //if not axes?
   f = function(d) {
-    var A, R, angle, center, lineData, offs, planeAxes, q, qA, v;
+    var A, R, a1, angle, ax, center, lineData, offs, planeAxes, q, q1, rax, v;
     angle = viewpoint;
     /* Create a line from input points */
     /* Put in axis-aligned coordinates */
-    q = Q.fromAxisAngle([0, 0, 1], -angle);
-    qA = Q.fromAxisAngle([0, 0, 1], -angle);
+    q = Q.fromAxisAngle([0, 0, 1], angle);
     planeAxes = d.axes;
-    //if d.group?
-    //  planeAxes = d.group.axes
-    R = M.transpose(matrix(axes));
-    A = M.transpose(matrix(planeAxes));
-    v = dot(d.centered, R, A, q);
+    if (d.group != null) {
+      planeAxes = d.group.axes;
+    }
+    rax = planeAxes;
+    if (rax[2][2] < 0) {
+      rax = rax.map(function(row) {
+        return row.map(function(i) {
+          return -i;
+        });
+      });
+    }
+    R = matrix(axes);
+    A = M.transpose(rax);
+    ax = dot(M.transpose(R), A, R);
+    a1 = __planeAngle(ax, angle);
+    q1 = Q.fromAxisAngle([0, 0, 1], a1);
+    v = dot(d.centered, ax, q1);
     offs = dot(d.offset, R, q).toArray();
     center = [xScale(offs[0]) - xScale(0), yScale(offs[2]) - yScale(0)];
     /* Apparent dip correction */
     lineData = dot(v, T).toArray();
-    v = d.apparentDip(-viewpoint + Math.PI / 2) * 180 / Math.PI;
+    v = d.apparentDip(-angle + Math.PI / 2);
+    v = -Math.atan2(Math.tan(v), screenRatio) * 180 / Math.PI;
     return d3$4.select(this).attr('d', lineGenerator(lineData)).attr('transform', `translate(${xScale(offs[0])},${yScale(offs[2])})rotate(${v})`);
   };
   f.axes = function(o) {

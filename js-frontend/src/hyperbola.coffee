@@ -73,6 +73,11 @@ getRatios = (x,y)->
 
   {ratioX, ratioY, screenRatio, lineGenerator}
 
+__planeAngle = (axes, angle)->
+  # Get angle of the plane from the major axes
+  a0 = axes.toArray()[0]
+  angle - M.acos(vecAngle([a0[0],a0[1],0],[1,0,0]))
+
 hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
   n = 10
   angle = viewpoint
@@ -99,16 +104,15 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
 
     R = matrix(axes)
     ax = dot(M.transpose(R), d.axes, R)
-    a0 = ax.toArray()[0]
-    a1 = M.acos(vecAngle([a0[0],a0[1],0],[1,0,0]))
+    a1 = __planeAngle(ax,angle)
 
     ## Matrix to map down to 2 dimensions
     T = M.matrix [[1,0],[0,0],[0,1]]
 
     ### Project axes to 2d ###
     s = M.sqrt(d.lengths).map (d)->1/d
-    v = [s[0]*Math.cos(angle - a1)
-         s[1]*Math.sin(angle - a1)
+    v = [s[0]*Math.cos(a1)
+         s[1]*Math.sin(a1)
          s[2]]
     a = 1/M.norm([v[0],v[1]])
     b = 1/M.abs(v[2])
@@ -268,34 +272,42 @@ digitizedLine = (viewpoint, lineGenerator)->
 
   return f
 
-apparentDip = (viewpoint, xScale, yScale)->
+apparentDip = (viewpoint, xScale,yScale)->
   axes = M.eye(3)
-
-  {lineGenerator} = getRatios(xScale,yScale)
+  {ratioX,ratioY,screenRatio, lineGenerator} = getRatios(xScale, yScale)
 
   #if not axes?
   f = (d)->
     angle = viewpoint
     ### Create a line from input points ###
     ### Put in axis-aligned coordinates ###
-    q = Q.fromAxisAngle [0,0,1], -angle
-
-    qA = Q.fromAxisAngle [0,0,1], -angle
+    q = Q.fromAxisAngle [0,0,1], angle
 
     planeAxes = d.axes
-    #if d.group?
-    #  planeAxes = d.group.axes
+    if d.group?
+      planeAxes = d.group.axes
 
-    R = M.transpose matrix(axes)
-    A = M.transpose matrix(planeAxes)
-    v = dot(d.centered, R, A, q)
+
+    rax = planeAxes
+    if rax[2][2] < 0
+      rax = rax.map (row)->row.map (i)->-i
+
+    R = matrix(axes)
+    A = M.transpose rax
+    ax = dot(M.transpose(R), A, R)
+    a1 = __planeAngle(ax,angle)
+    q1 = Q.fromAxisAngle [0,0,1], a1
+
+    v = dot(d.centered, ax, q1)
     offs = dot(d.offset,R,q).toArray()
     center = [xScale(offs[0])-xScale(0),yScale(offs[2])-yScale(0)]
 
     ### Apparent dip correction ###
     lineData = dot(v, T).toArray()
 
-    v = d.apparentDip(-viewpoint+Math.PI/2)*180/Math.PI
+    v = d.apparentDip(-angle+Math.PI/2)
+    v = -Math.atan2(Math.tan(v),screenRatio)*180/Math.PI
+
     d3.select @
       .attr 'd',lineGenerator(lineData)
       .attr 'transform', "translate(#{xScale(offs[0])},#{yScale(offs[2])})rotate(#{v})"
