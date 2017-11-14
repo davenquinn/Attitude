@@ -58,19 +58,35 @@ apparentDipCorrection = (screenRatio=1)->
       screenRatio)
     return angle*180/Math.PI
 
-hyperbolicErrors = (viewpoint, axes, lineGenerator, xScale,yScale)->
+scaleRatio = (scale)->
+  scale(1)-scale(0)
+
+getRatios = (x,y)->
+  # Ratios for x and y axes
+  ratioX = scaleRatio(x)
+  ratioY = scaleRatio(y)
+  screenRatio = Math.abs(ratioX)/ratioY
+
+  lineGenerator = d3.line()
+    .x (d)->d[0]*ratioX
+    .y (d)->d[1]*ratioY
+
+  {ratioX, ratioY, screenRatio, lineGenerator}
+
+hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
   n = 10
   angle = viewpoint
   gradient = null
   width = 400
+  nominal = false
+  centerPoint = false
 
-  ratioX = xScale(1)-xScale(0)
-  ratioY = yScale(1)-yScale(0)
-  screenRatio = Math.abs(ratioX)/ratioY
-
-  internalLineGenerator = d3.line()
-    .x (d)->d[0]*ratioX
-    .y (d)->d[1]*ratioY
+  # For 3 coordinates on each half of the hyperbola, we collapse down to
+  # a special case where no trigonometry outside of tangents have to be calculated
+  # at each step. This is much more efficient, at the cost of the fine structure
+  # of the hyperbola near the origin
+  nCoords = 3
+  {ratioX,ratioY,screenRatio, lineGenerator} = getRatios(xScale, yScale)
 
   dfunc = (d)->
     # Get a single level of planar errors (or the
@@ -84,7 +100,6 @@ hyperbolicErrors = (viewpoint, axes, lineGenerator, xScale,yScale)->
     R = matrix(axes)
     ax = dot(M.transpose(R), d.axes, R)
     a0 = ax.toArray()[0]
-    q1 = Q.fromBetweenVectors [1,0,0], [a0[0],a0[1],0]
     a1 = M.acos(vecAngle([a0[0],a0[1],0],[1,0,0]))
 
     ## Matrix to map down to 2 dimensions
@@ -97,9 +112,6 @@ hyperbolicErrors = (viewpoint, axes, lineGenerator, xScale,yScale)->
          s[2]]
     a = 1/M.norm([v[0],v[1]])
     b = 1/M.abs(v[2])
-    #if b > a
-    #  [a,b] = [b,a]
-    #console.log a,b
 
     #a = M.norm([e[0],e[1]])
     #b = e[2]
@@ -114,34 +126,30 @@ hyperbolicErrors = (viewpoint, axes, lineGenerator, xScale,yScale)->
     lengthShown = width/2
     inPlaneLength = lengthShown*b/a/screenRatio
 
-    #angles = [0...n].map (d)->
-      #cutAngle+(d/n*(Math.PI-cutAngle))+Math.PI/2
 
     ## We will transform with svg functions
     ## so we can neglect some of the math
-    # for doing hyperbolae not aligned with the
+    # for hyperbolae not aligned with the
     # coordinate plane.
+    if nCoords > 3
+      angles = [0...n].map (d)->
+        cutAngle+(d/n*(Math.PI-cutAngle))+Math.PI/2
 
-    #arr = transpose [
-      #M.multiply(M.tan(angles),a)
-      #M.cos(angles).map (v)->b/v
-    #]
-    #sign = if arr.get([0,1]) < 0 then -1 else 1
+      arr = transpose [
+        M.multiply(M.tan(angles),a)
+        M.cos(angles).map (v)->b/v
+      ]
+    else
+      arr = [[0,b]]
 
     largeNumber = width/ratioX
     limit = b/a*largeNumber
 
     coords  = [
       [-largeNumber,limit]
-      [0,b]
+      arr...
       [largeNumber,limit]
     ]
-    #coords.push [-largeNumber,limit]
-
-    #__angles = [M.cos(a),M.sin(a)]
-    #for c in coords
-      #c[0] *= __angles[0]
-      #c[1] *= __angles[1]
 
     # Correction for angle and means go here
     # unless managed by SVG transforms
@@ -161,9 +169,8 @@ hyperbolicErrors = (viewpoint, axes, lineGenerator, xScale,yScale)->
       .max 5
 
     # Correct for apparent dip
-    apparent = apparentDipCorrection(screenRatio)
+    #apparent = apparentDipCorrection(screenRatio)
 
-    #RQ =  dot(R,q1,q,T)
     # grouped transform
     v = d.apparentDip(-angle+Math.PI/2)*180/Math.PI
     #if aT[1][0]*aT[1][1] < 0
@@ -192,18 +199,20 @@ hyperbolicErrors = (viewpoint, axes, lineGenerator, xScale,yScale)->
     if not mid?
       mid = mask.attr('id')
 
-    hyp.selectAppend 'circle'
-      .attrs r: 2, fill: 'black'
+    if centerPoint
+      hyp.selectAppend 'circle'
+        .attrs r: 2, fill: 'black'
 
     hyp.selectAppend 'path.hyperbola'
       .datum poly
-      .attr 'd', (v)->internalLineGenerator(v)+"Z"
+      .attr 'd', (v)->lineGenerator(v)+"Z"
       .each oa
       .attr 'mask', "url(##{mid})"
 
-    hyp.on 'click', (d)->
-      hyp.select 'path.hyperbola'
-        .attr 'opacity', 1
+    #if nominal
+      #hyp.selectAppend 'line.nominal'
+        #.attrs x1: -largeNumber, x2: largeNumber
+        #.attr 'stroke', '#000000'
 
   dfunc.setupGradient = (el)->
     defs = el.append 'defs'
@@ -222,34 +231,53 @@ hyperbolicErrors = (viewpoint, axes, lineGenerator, xScale,yScale)->
     stop(0.8,0.9)
     stop(1,0)
 
+  dfunc.width = (o)->
+    return width unless o?
+    width = o
+    return dfunc
+
+  dfunc.nominal = (o)->
+    return nominal unless o?
+    nominal = o
+    return dfunc
+
   return dfunc
 
-digitizedLine = (viewpoint, axes=M.eye(3))->(d)->
-  angle = viewpoint
-  ### Create a line from input points ###
-  ### Put in axis-aligned coordinates ###
-  q = Q.fromAxisAngle [0,0,1], angle
+digitizedLine = (viewpoint, lineGenerator)->
+  axes=M.eye(3)
+  f = (d)->
+    ### Create a line from input points ###
+    ### Put in axis-aligned coordinates ###
+    q = Q.fromAxisAngle [0,0,1], viewpoint
+    R = M.transpose matrix(axes)
+    alignedWithGroup = dot(d.centered, R)
+    offs = dot(d.offset,R)
+    v = alignedWithGroup.toArray()
+      .map (row)-> M.add(row,offs)
+    a = dot(v, q)
+    ### Map down to two dimensions (the x-z plane of the viewing geometry) ###
+    data = dot(a, T).toArray()
 
-  R = M.transpose matrix(axes)
-  alignedWithGroup = dot(d.centered, R)
-  offs = dot(d.offset,R)
-  v = alignedWithGroup.toArray()
-    .map (row)-> M.add(row,offs)
+    d3.select(@).attr 'd', lineGenerator(data)
 
-  #R2 = q.mul(A).mul(N)
-  a = dot(v, q)
+  f.axes = (o)->
+    return axes unless o?
+    axes = o
+    return f
 
-  ### Map down to two dimensions (the x-z plane of the viewing geometry) ###
-  dot(a, T).toArray()
+  return f
 
-apparentDip = (viewpoint, axes, lineGenerator, xScale, yScale)->
-  #if not axes?
+apparentDip = (viewpoint, xScale, yScale)->
   axes = M.eye(3)
-  calculate = (d)->
+
+  {lineGenerator} = getRatios(xScale,yScale)
+
+  #if not axes?
+  f = (d)->
     angle = viewpoint
     ### Create a line from input points ###
     ### Put in axis-aligned coordinates ###
-    q = Q.fromAxisAngle [0,0,1], angle
+    q = Q.fromAxisAngle [0,0,1], -angle
 
     qA = Q.fromAxisAngle [0,0,1], -angle
 
@@ -259,7 +287,7 @@ apparentDip = (viewpoint, axes, lineGenerator, xScale, yScale)->
 
     R = M.transpose matrix(axes)
     A = M.transpose matrix(planeAxes)
-    v = dot(d.centered, R, A)
+    v = dot(d.centered, R, A, q)
     offs = dot(d.offset,R,q).toArray()
     center = [xScale(offs[0])-xScale(0),yScale(offs[2])-yScale(0)]
 
@@ -269,8 +297,14 @@ apparentDip = (viewpoint, axes, lineGenerator, xScale, yScale)->
     v = d.apparentDip(-viewpoint+Math.PI/2)*180/Math.PI
     d3.select @
       .attr 'd',lineGenerator(lineData)
-      .attr 'transform', "translate(#{-center[0]+xScale(0)},#{yScale(0)+center[1]})
-                          rotate(#{v})"
+      .attr 'transform', "translate(#{xScale(offs[0])},#{yScale(offs[2])})rotate(#{v})"
+
+  f.axes = (o)->
+    return axes unless o?
+    axes = o
+    return f
+
+  return f
 
 class PlaneData
   constructor: (data, mean=null)->

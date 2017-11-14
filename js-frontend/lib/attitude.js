@@ -4050,7 +4050,9 @@ var T;
 var apparentDipCorrection;
 var d3$4;
 var dot;
+var getRatios;
 var matrix;
+var scaleRatio;
 var transpose$1;
 var vecAngle;
 
@@ -4127,22 +4129,40 @@ apparentDipCorrection = function(screenRatio = 1) {
   };
 };
 
-exports.hyperbolicErrors = function(viewpoint, axes, lineGenerator, xScale, yScale) {
-  var angle, dfunc, gradient, internalLineGenerator, n, ratioX, ratioY, screenRatio, width;
-  n = 10;
-  angle = viewpoint;
-  gradient = null;
-  width = 400;
-  ratioX = xScale(1) - xScale(0);
-  ratioY = yScale(1) - yScale(0);
+scaleRatio = function(scale) {
+  return scale(1) - scale(0);
+};
+
+getRatios = function(x, y) {
+  var lineGenerator, ratioX, ratioY, screenRatio;
+  // Ratios for x and y axes
+  ratioX = scaleRatio(x);
+  ratioY = scaleRatio(y);
   screenRatio = Math.abs(ratioX) / ratioY;
-  internalLineGenerator = d3$4.line().x(function(d) {
+  lineGenerator = d3$4.line().x(function(d) {
     return d[0] * ratioX;
   }).y(function(d) {
     return d[1] * ratioY;
   });
+  return {ratioX, ratioY, screenRatio, lineGenerator};
+};
+
+exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
+  var angle, centerPoint, dfunc, gradient, lineGenerator, n, nCoords, nominal, ratioX, ratioY, screenRatio, width;
+  n = 10;
+  angle = viewpoint;
+  gradient = null;
+  width = 400;
+  nominal = false;
+  centerPoint = false;
+  // For 3 coordinates on each half of the hyperbola, we collapse down to
+  // a special case where no trigonometry outside of tangents have to be calculated
+  // at each step. This is much more efficient, at the cost of the fine structure
+  // of the hyperbola near the origin
+  nCoords = 3;
+  ({ratioX, ratioY, screenRatio, lineGenerator} = getRatios(xScale, yScale));
   dfunc = function(d) {
-    var R, a, a0, a1, angularError, apparent, ax, b, center, coords, cutAngle, hyp, inPlaneLength, largeNumber, lengthShown, lim, limit, mask, masksz, mid, oa, offs, poly, q, q1, rax, s, top, v;
+    var R, a, a0, a1, angles, angularError, arr, ax, b, center, coords, cutAngle, hyp, inPlaneLength, j, largeNumber, lengthShown, lim, limit, mask, masksz, mid, oa, offs, poly, q, rax, results, s, top, v;
     // Get a single level of planar errors (or the
     // plane's nominal value) as a girdle
     rax = d.axes;
@@ -4157,7 +4177,6 @@ exports.hyperbolicErrors = function(viewpoint, axes, lineGenerator, xScale, ySca
     R = matrix(axes);
     ax = dot(M.transpose(R), d.axes, R);
     a0 = ax.toArray()[0];
-    q1 = Q.fromBetweenVectors([1, 0, 0], [a0[0], a0[1], 0]);
     a1 = M.acos(vecAngle([a0[0], a0[1], 0], [1, 0, 0]));
     //# Matrix to map down to 2 dimensions
     T = M.matrix([[1, 0], [0, 0], [0, 1]]);
@@ -4168,10 +4187,6 @@ exports.hyperbolicErrors = function(viewpoint, axes, lineGenerator, xScale, ySca
     v = [s[0] * Math.cos(angle - a1), s[1] * Math.sin(angle - a1), s[2]];
     a = 1 / M.norm([v[0], v[1]]);
     b = 1 / M.abs(v[2]);
-    //if b > a
-    //  [a,b] = [b,a]
-    //console.log a,b
-
     //a = M.norm([e[0],e[1]])
     //b = e[2]
 
@@ -4184,29 +4199,31 @@ exports.hyperbolicErrors = function(viewpoint, axes, lineGenerator, xScale, ySca
     // find length at which tangent is x long
     lengthShown = width / 2;
     inPlaneLength = lengthShown * b / a / screenRatio;
-    //angles = [0...n].map (d)->
-    //cutAngle+(d/n*(Math.PI-cutAngle))+Math.PI/2
-
     //# We will transform with svg functions
     //# so we can neglect some of the math
-    // for doing hyperbolae not aligned with the
+    // for hyperbolae not aligned with the
     // coordinate plane.
-
-    //arr = transpose [
-    //M.multiply(M.tan(angles),a)
-    //M.cos(angles).map (v)->b/v
-    //]
-    //sign = if arr.get([0,1]) < 0 then -1 else 1
+    if (nCoords > 3) {
+      angles = (function() {
+        results = [];
+        for (var j = 0; 0 <= n ? j < n : j > n; 0 <= n ? j++ : j--){ results.push(j); }
+        return results;
+      }).apply(this).map(function(d) {
+        return cutAngle + (d / n * (Math.PI - cutAngle)) + Math.PI / 2;
+      });
+      arr = transpose$1([
+        M.multiply(M.tan(angles),
+        a),
+        M.cos(angles).map(function(v) {
+          return b / v;
+        })
+      ]);
+    } else {
+      arr = [[0, b]];
+    }
     largeNumber = width / ratioX;
     limit = b / a * largeNumber;
-    coords = [[-largeNumber, limit], [0, b], [largeNumber, limit]];
-    //coords.push [-largeNumber,limit]
-
-    //__angles = [M.cos(a),M.sin(a)]
-    //for c in coords
-    //c[0] *= __angles[0]
-    //c[1] *= __angles[1]
-
+    coords = [[-largeNumber, limit], ...arr, [largeNumber, limit]];
     // Correction for angle and means go here
     // unless managed by SVG transforms
     top = coords.map(function([x, y]) {
@@ -4225,8 +4242,8 @@ exports.hyperbolicErrors = function(viewpoint, axes, lineGenerator, xScale, ySca
       return angularError;
     }).max(5);
     // Correct for apparent dip
-    apparent = apparentDipCorrection(screenRatio);
-    //RQ =  dot(R,q1,q,T)
+    //apparent = apparentDipCorrection(screenRatio)
+
     // grouped transform
     v = d.apparentDip(-angle + Math.PI / 2) * 180 / Math.PI;
     //if aT[1][0]*aT[1][1] < 0
@@ -4254,17 +4271,20 @@ exports.hyperbolicErrors = function(viewpoint, axes, lineGenerator, xScale, ySca
     if (mid == null) {
       mid = mask.attr('id');
     }
-    hyp.selectAppend('circle').attrs({
-      r: 2,
-      fill: 'black'
-    });
-    hyp.selectAppend('path.hyperbola').datum(poly).attr('d', function(v) {
-      return internalLineGenerator(v) + "Z";
+    if (centerPoint) {
+      hyp.selectAppend('circle').attrs({
+        r: 2,
+        fill: 'black'
+      });
+    }
+    return hyp.selectAppend('path.hyperbola').datum(poly).attr('d', function(v) {
+      return lineGenerator(v) + "Z";
     }).each(oa).attr('mask', `url(#${mid})`);
-    return hyp.on('click', function(d) {
-      return hyp.select('path.hyperbola').attr('opacity', 1);
-    });
   };
+  //if nominal
+  //hyp.selectAppend 'line.nominal'
+  //.attrs x1: -largeNumber, x2: largeNumber
+  //.attr 'stroke', '#000000'
   dfunc.setupGradient = function(el) {
     var defs, g, stop;
     defs = el.append('defs');
@@ -4283,53 +4303,85 @@ exports.hyperbolicErrors = function(viewpoint, axes, lineGenerator, xScale, ySca
     stop(0.8, 0.9);
     return stop(1, 0);
   };
+  dfunc.width = function(o) {
+    if (o == null) {
+      return width;
+    }
+    width = o;
+    return dfunc;
+  };
+  dfunc.nominal = function(o) {
+    if (o == null) {
+      return nominal;
+    }
+    nominal = o;
+    return dfunc;
+  };
   return dfunc;
 };
 
-exports.digitizedLine = function(viewpoint, axes = M.eye(3)) {
-  return function(d) {
-    var R, a, alignedWithGroup, angle, offs, q, v;
-    angle = viewpoint;
+exports.digitizedLine = function(viewpoint, lineGenerator) {
+  var axes, f;
+  axes = M.eye(3);
+  f = function(d) {
+    var R, a, alignedWithGroup, data, offs, q, v;
     /* Create a line from input points */
     /* Put in axis-aligned coordinates */
-    q = Q.fromAxisAngle([0, 0, 1], angle);
+    q = Q.fromAxisAngle([0, 0, 1], viewpoint);
     R = M.transpose(matrix(axes));
     alignedWithGroup = dot(d.centered, R);
     offs = dot(d.offset, R);
     v = alignedWithGroup.toArray().map(function(row) {
       return M.add(row, offs);
     });
-    //R2 = q.mul(A).mul(N)
     a = dot(v, q);
     /* Map down to two dimensions (the x-z plane of the viewing geometry) */
-    return dot(a, T).toArray();
+    data = dot(a, T).toArray();
+    return d3$4.select(this).attr('d', lineGenerator(data));
   };
+  f.axes = function(o) {
+    if (o == null) {
+      return axes;
+    }
+    axes = o;
+    return f;
+  };
+  return f;
 };
 
-exports.apparentDip = function(viewpoint, axes, lineGenerator, xScale, yScale) {
-  var calculate;
-  //if not axes?
+exports.apparentDip = function(viewpoint, xScale, yScale) {
+  var axes, f, lineGenerator;
   axes = M.eye(3);
-  return calculate = function(d) {
+  ({lineGenerator} = getRatios(xScale, yScale));
+  //if not axes?
+  f = function(d) {
     var A, R, angle, center, lineData, offs, planeAxes, q, qA, v;
     angle = viewpoint;
     /* Create a line from input points */
     /* Put in axis-aligned coordinates */
-    q = Q.fromAxisAngle([0, 0, 1], angle);
+    q = Q.fromAxisAngle([0, 0, 1], -angle);
     qA = Q.fromAxisAngle([0, 0, 1], -angle);
     planeAxes = d.axes;
     //if d.group?
     //  planeAxes = d.group.axes
     R = M.transpose(matrix(axes));
     A = M.transpose(matrix(planeAxes));
-    v = dot(d.centered, R, A);
+    v = dot(d.centered, R, A, q);
     offs = dot(d.offset, R, q).toArray();
     center = [xScale(offs[0]) - xScale(0), yScale(offs[2]) - yScale(0)];
     /* Apparent dip correction */
     lineData = dot(v, T).toArray();
     v = d.apparentDip(-viewpoint + Math.PI / 2) * 180 / Math.PI;
-    return d3$4.select(this).attr('d', lineGenerator(lineData)).attr('transform', `translate(${-center[0] + xScale(0)},${yScale(0) + center[1]}) rotate(${v})`);
+    return d3$4.select(this).attr('d', lineGenerator(lineData)).attr('transform', `translate(${xScale(offs[0])},${yScale(offs[2])})rotate(${v})`);
   };
+  f.axes = function(o) {
+    if (o == null) {
+      return axes;
+    }
+    axes = o;
+    return f;
+  };
+  return f;
 };
 
 exports.PlaneData = class PlaneData {
