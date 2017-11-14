@@ -65,7 +65,7 @@ getRatios = (x,y)->
   # Ratios for x and y axes
   ratioX = scaleRatio(x)
   ratioY = scaleRatio(y)
-  screenRatio = Math.abs(ratioX)/ratioY
+  screenRatio = ratioX/ratioY
 
   lineGenerator = d3.line()
     .x (d)->d[0]*ratioX
@@ -172,7 +172,8 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
     #apparent = apparentDipCorrection(screenRatio)
 
     # grouped transform
-    v = d.apparentDip(-angle+Math.PI/2)*180/Math.PI
+    v = d.apparentDip(-angle+Math.PI/2)
+    v = -Math.atan2(Math.tan(v),screenRatio)*180/Math.PI
     #if aT[1][0]*aT[1][1] < 0
       #__angle *= -1
     #console.log 'Angle', __angle

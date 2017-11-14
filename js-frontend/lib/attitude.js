@@ -4138,7 +4138,7 @@ getRatios = function(x, y) {
   // Ratios for x and y axes
   ratioX = scaleRatio(x);
   ratioY = scaleRatio(y);
-  screenRatio = Math.abs(ratioX) / ratioY;
+  screenRatio = ratioX / ratioY;
   lineGenerator = d3$4.line().x(function(d) {
     return d[0] * ratioX;
   }).y(function(d) {
@@ -4245,7 +4245,8 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     //apparent = apparentDipCorrection(screenRatio)
 
     // grouped transform
-    v = d.apparentDip(-angle + Math.PI / 2) * 180 / Math.PI;
+    v = d.apparentDip(-angle + Math.PI / 2);
+    v = -Math.atan2(Math.tan(v), screenRatio) * 180 / Math.PI;
     //if aT[1][0]*aT[1][1] < 0
     //__angle *= -1
     //console.log 'Angle', __angle
