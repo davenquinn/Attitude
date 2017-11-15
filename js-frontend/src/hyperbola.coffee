@@ -278,39 +278,49 @@ apparentDip = (viewpoint, xScale,yScale)->
 
   #if not axes?
   f = (d)->
-    angle = viewpoint
-    ### Create a line from input points ###
-    ### Put in axis-aligned coordinates ###
-    q = Q.fromAxisAngle [0,0,1], angle
+
+    #d3.select @
+      #.attr 'd',lineGenerator(lineData)
+      #.attr 'transform', "translate(#{xScale(offs[0])},#{yScale(offs[2])})rotate(#{v})"
 
     planeAxes = d.axes
+    g = d
     if d.group?
       planeAxes = d.group.axes
+      g = d.group
+    ### Create a line from input points ###
+    ### Put in axis-aligned coordinates ###
+    q = Q.fromAxisAngle [0,0,1], viewpoint
+    R = M.transpose matrix(axes)
+
+    A = planeAxes
+    # Find fit normal in new coordinates
+    normal = dot(A[2],R,q)
+    # Get transform that puts normal in xz plane
+    n = normal.toArray()
+    n[1] = Math.abs(n[1])
+    n1 = [n[0],0,n[2]]
+    n1 = n1.map (d)->d/M.norm(n1)
+    console.log n,n1
+    qR = Q.fromBetweenVectors(n,n1)
+
+    # Without adding this other quaternion, it is the same as just showing
+    # digitized lines
+    qA = q.mul qR
+
+    v = dot(d.centered, R)
+    a = dot(v, qA)
+    ### Map down to two dimensions (the x-z plane of the viewing geometry) ###
+    data = dot(a, T).toArray()
 
 
-    rax = planeAxes
-    if rax[2][2] < 0
-      rax = rax.map (row)->row.map (i)->-i
+    # Get offset of angles
+    offs = dot(d.offset,R,q,T).toArray()
 
-    R = matrix(axes)
-    A = M.transpose rax
-    ax = dot(M.transpose(R), A, R)
-    a1 = __planeAngle(ax,angle)
-    q1 = Q.fromAxisAngle [0,0,1], a1
+    d3.select(@)
+      .attr 'd', lineGenerator(data)
+      .attr 'transform', "translate(#{xScale(offs[0])},#{yScale(offs[1])})"
 
-    v = dot(d.centered, ax, q1)
-    offs = dot(d.offset,R,q).toArray()
-    center = [xScale(offs[0])-xScale(0),yScale(offs[2])-yScale(0)]
-
-    ### Apparent dip correction ###
-    lineData = dot(v, T).toArray()
-
-    v = d.apparentDip(-angle+Math.PI/2)
-    v = -Math.atan2(Math.tan(v),screenRatio)*180/Math.PI
-
-    d3.select @
-      .attr 'd',lineGenerator(lineData)
-      .attr 'transform', "translate(#{xScale(offs[0])},#{yScale(offs[2])})rotate(#{v})"
 
   f.axes = (o)->
     return axes unless o?
