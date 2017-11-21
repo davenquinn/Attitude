@@ -4170,7 +4170,7 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
   nCoords = 3;
   ({ratioX, ratioY, screenRatio, lineGenerator} = getRatios(xScale, yScale));
   dfunc = function(d) {
-    var R, a, a1, angles, angularError, arr, ax, b, center, coords, cutAngle, hyp, inPlaneLength, j, largeNumber, lengthShown, lim, limit, mask, masksz, mid, oa, offs, poly, q, rax, results, s, top, v;
+    var R, a, a1, angles, angularError, arr, ax, b, center, coords, cutAngle, cutAngle2, hyp, inPlaneLength, j, largeNumber, lengthShown, lim, limit, mask, masksz, mid, oa, offs, poly, q, rax, results, s, top, v;
     // Get a single level of planar errors (or the
     // plane's nominal value) as a girdle
     rax = d.axes;
@@ -4205,7 +4205,8 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     //console.log "Error: ", angularError
     // find length at which tangent is x long
     lengthShown = width / 2;
-    inPlaneLength = lengthShown * b / a / screenRatio;
+    cutAngle2 = Math.atan2(b, a * screenRatio);
+    inPlaneLength = lengthShown * Math.cos(cutAngle2);
     //# We will transform with svg functions
     //# so we can neglect some of the math
     // for hyperbolae not aligned with the
@@ -4262,6 +4263,7 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     hyp = d3$4.select(this).attr('transform', `translate(${-center[0] + xScale(0)},${yScale(0) + center[1]}) rotate(${v})`);
     hyp.classed('in_group', d.in_group);
     lim = width / 2;
+    lim = Math.abs(inPlaneLength);
     masksz = {
       x: -lim,
       y: -lim,
@@ -4308,7 +4310,7 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     stop(0.2, 0.1);
     stop(0.45, 1);
     stop(0.55, 1);
-    stop(0.8, 0.9);
+    stop(0.8, 0.1);
     return stop(1, 0);
   };
   dfunc.width = function(o) {
@@ -4363,15 +4365,13 @@ exports.apparentDip = function(viewpoint, xScale, yScale) {
   ({ratioX, ratioY, screenRatio, lineGenerator} = getRatios(xScale, yScale));
   //if not axes?
   f = function(d) {
-    var A, R, a, data, g, n, n1, normal, offs, planeAxes, q, qA, qR, v;
+    var A, R, a, data, n, n1, normal, offs, planeAxes, q, qA, qR, v;
     //d3.select @
     //.attr 'd',lineGenerator(lineData)
     //.attr 'transform', "translate(#{xScale(offs[0])},#{yScale(offs[2])})rotate(#{v})"
     planeAxes = d.axes;
-    g = d;
     if (d.group != null) {
       planeAxes = d.group.axes;
-      g = d.group;
     }
     /* Create a line from input points */
     /* Put in axis-aligned coordinates */
@@ -4416,7 +4416,7 @@ exports.PlaneData = class PlaneData {
     this.dip = this.dip.bind(this);
     this.apparentDip = this.apparentDip.bind(this);
     ({axes, hyperbolic_axes, extracted, color} = data);
-    this.mean = mean;
+    this.mean = mean || data.mean;
     this.axes = data.axes;
     this.color = color;
     this.lengths = hyperbolic_axes;
@@ -4429,11 +4429,13 @@ exports.PlaneData = class PlaneData {
       return;
     }
     //# Extract mean of data on each axis ##
-    this.mean = [0, 1, 2].map((i) => {
-      return d3$4.mean(this.array, function(d) {
-        return d[i];
+    if (this.mean == null) {
+      this.mean = [0, 1, 2].map((i) => {
+        return d3$4.mean(this.array, function(d) {
+          return d[i];
+        });
       });
-    });
+    }
     this.centered = this.array.map((d) => {
       return M.subtract(d, this.mean);
     });

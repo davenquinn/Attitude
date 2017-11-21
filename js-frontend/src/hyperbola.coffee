@@ -128,8 +128,10 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
     #console.log "Error: ", angularError
     # find length at which tangent is x long
     lengthShown = width/2
-    inPlaneLength = lengthShown*b/a/screenRatio
 
+    cutAngle2 = Math.atan2(b,a*screenRatio)
+
+    inPlaneLength = lengthShown * Math.cos cutAngle2
 
     ## We will transform with svg functions
     ## so we can neglect some of the math
@@ -190,6 +192,7 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
     hyp.classed 'in_group', d.in_group
 
     lim = width/2
+    lim = Math.abs inPlaneLength
     masksz = {x:-lim,y:-lim,width:lim*2,height:lim*2}
 
     mask = hyp.select('mask')
@@ -233,7 +236,7 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
     stop(0.2,0.1)
     stop(0.45,1)
     stop(0.55,1)
-    stop(0.8,0.9)
+    stop(0.8,0.1)
     stop(1,0)
 
   dfunc.width = (o)->
@@ -284,10 +287,8 @@ apparentDip = (viewpoint, xScale,yScale)->
       #.attr 'transform', "translate(#{xScale(offs[0])},#{yScale(offs[2])})rotate(#{v})"
 
     planeAxes = d.axes
-    g = d
     if d.group?
       planeAxes = d.group.axes
-      g = d.group
     ### Create a line from input points ###
     ### Put in axis-aligned coordinates ###
     q = Q.fromAxisAngle [0,0,1], viewpoint
@@ -332,7 +333,7 @@ apparentDip = (viewpoint, xScale,yScale)->
 class PlaneData
   constructor: (data, mean=null)->
     {axes, hyperbolic_axes, extracted, color} = data
-    @mean = mean
+    @mean = mean or data.mean
     @axes = data.axes
     @color = color
     @lengths = hyperbolic_axes
@@ -343,7 +344,8 @@ class PlaneData
     # If we didn't pass a mean, we have to compute one
     return unless @array?
     ## Extract mean of data on each axis ##
-    @mean = [0..2].map (i)=> d3.mean @array, (d)->d[i]
+    if not @mean?
+      @mean = [0..2].map (i)=> d3.mean @array, (d)->d[i]
     @centered = @array.map (d)=>M.subtract(d,@mean)
 
   dip: =>
