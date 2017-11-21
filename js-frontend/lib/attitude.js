@@ -1155,6 +1155,9 @@ exports.opacityByCertainty = function(colorFunc, accessor = null) {
   f.max = __getSet(maxOpacity, function(v) {
     return maxOpacity = v;
   });
+  f.scale = __getSet(alphaScale, function(v) {
+    return alphaScale = v;
+  });
   return f;
 };
 
@@ -4052,6 +4055,7 @@ var apparentDipCorrection;
 var d3$4;
 var dot;
 var getRatios;
+var gradientHelper;
 var matrix;
 var scaleRatio;
 var transpose$1;
@@ -4064,6 +4068,24 @@ Q = require('quaternion');
 d3$4 = require('d3');
 
 require('d3-jetpack');
+
+gradientHelper = function(defs, color = 'white', uid = 'gradient') {
+  var g, stop;
+  g = defs.append('linearGradient').attr('id', uid);
+  stop = function(ofs, op) {
+    return g.append('stop').attrs({
+      offset: ofs,
+      'stop-color': color,
+      'stop-opacity': op
+    });
+  };
+  stop(0, 0);
+  stop(0.2, 0.1);
+  stop(0.45, 1);
+  stop(0.55, 1);
+  stop(0.8, 0.1);
+  return stop(1, 0);
+};
 
 exports.fixAngle = function(a) {
   // Put an angle on the interval [-Pi,Pi]
@@ -4170,7 +4192,7 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
   nCoords = 3;
   ({ratioX, ratioY, screenRatio, lineGenerator} = getRatios(xScale, yScale));
   dfunc = function(d) {
-    var R, a, a1, angles, angularError, arr, ax, b, center, coords, cutAngle, cutAngle2, hyp, inPlaneLength, j, largeNumber, lengthShown, lim, limit, mask, masksz, mid, oa, offs, poly, q, rax, results, s, top, v;
+    var R, a, a1, angles, angularError, arr, ax, b, center, coords, cutAngle, cutAngle2, hyp, inPlaneLength, j, largeNumber, lengthShown, lim, limit, mask, masksz, mid, oa, offs, poly, q, rax, results, s, sfn, top, v;
     // Get a single level of planar errors (or the
     // plane's nominal value) as a girdle
     rax = d.axes;
@@ -4206,7 +4228,7 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     // find length at which tangent is x long
     lengthShown = width / 2;
     cutAngle2 = Math.atan2(b, a * screenRatio);
-    inPlaneLength = lengthShown * Math.cos(cutAngle2);
+    inPlaneLength = Math.abs(lengthShown * Math.cos(cutAngle2));
     //# We will transform with svg functions
     //# so we can neglect some of the math
     // for hyperbolae not aligned with the
@@ -4270,13 +4292,11 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
       width: lim * 2,
       height: lim * 2
     };
-    mask = hyp.select('mask');
+    mask = hyp.select('defs');
     mid = null;
     if (!mask.node()) {
       mid = uuid_1.v4();
-      mask = hyp.append('mask').attr('id', mid).attrs(masksz).append('rect').attrs(Object.assign({}, masksz, {
-        fill: "url(#gradient)"
-      }));
+      mask = hyp.append('defs').call(gradientHelper, d.color, mid);
     }
     if (mid == null) {
       mid = mask.attr('id');
@@ -4287,31 +4307,19 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
         fill: 'black'
       });
     }
+    sfn = d3$4.scalePow(2).domain([0, 5]).range([1, 0.2]);
     return hyp.selectAppend('path.hyperbola').datum(poly).attr('d', function(v) {
       return lineGenerator(v) + "Z";
-    }).each(oa).attr('mask', `url(#${mid})`);
+    }).attr('fill', `url(#${mid})`).attr('stroke', 'transparent').attr('opacity', sfn(angularError));
   };
   //if nominal
   //hyp.selectAppend 'line.nominal'
   //.attrs x1: -largeNumber, x2: largeNumber
   //.attr 'stroke', '#000000'
   dfunc.setupGradient = function(el) {
-    var defs, g, stop;
+    var defs;
     defs = el.append('defs');
-    g = defs.append('linearGradient').attr('id', 'gradient');
-    stop = function(ofs, op) {
-      return g.append('stop').attrs({
-        offset: ofs,
-        'stop-color': 'white',
-        'stop-opacity': op
-      });
-    };
-    stop(0, 0);
-    stop(0.2, 0.1);
-    stop(0.45, 1);
-    stop(0.55, 1);
-    stop(0.8, 0.1);
-    return stop(1, 0);
+    return defs.call(gradientHelper);
   };
   dfunc.width = function(o) {
     if (o == null) {

@@ -368,6 +368,9 @@ opacityByCertainty = (colorFunc, accessor=null)->
   f.angularError = __getSet angularError, (v)->angularError = v
   f.max = __getSet maxOpacity, (v)->maxOpacity=v
 
+  f.scale = __getSet alphaScale, (v)->
+    alphaScale = v
+
   return f
 
 import {globalLabels} from './labels.coffee'

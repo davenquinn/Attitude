@@ -7,6 +7,21 @@ import * as math from './math.coffee'
 import {opacityByCertainty} from './stereonet'
 import uuid from 'uuid'
 
+gradientHelper = (defs, color='white', uid='gradient')->
+  g = defs.append 'linearGradient'
+      .attr 'id', uid
+
+  stop = (ofs, op)->
+    g.append 'stop'
+     .attrs offset: ofs, 'stop-color': color, 'stop-opacity': op
+
+  stop(0,0)
+  stop(0.2,0.1)
+  stop(0.45,1)
+  stop(0.55,1)
+  stop(0.8,0.1)
+  stop(1,0)
+
 fixAngle = (a)->
   # Put an angle on the interval [-Pi,Pi]
   while a > Math.PI
@@ -131,7 +146,7 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
 
     cutAngle2 = Math.atan2(b,a*screenRatio)
 
-    inPlaneLength = lengthShown * Math.cos cutAngle2
+    inPlaneLength = Math.abs(lengthShown * Math.cos cutAngle2)
 
     ## We will transform with svg functions
     ## so we can neglect some of the math
@@ -195,15 +210,12 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
     lim = Math.abs inPlaneLength
     masksz = {x:-lim,y:-lim,width:lim*2,height:lim*2}
 
-    mask = hyp.select('mask')
+    mask = hyp.select('defs')
     mid = null
     if not mask.node()
       mid = uuid.v4()
-      mask = hyp.append 'mask'
-        .attr 'id', mid
-        .attrs masksz
-        .append 'rect'
-        .attrs {masksz..., fill: "url(#gradient)"}
+      mask = hyp.append 'defs'
+        .call gradientHelper, d.color, mid
     if not mid?
       mid = mask.attr('id')
 
@@ -211,11 +223,16 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
       hyp.selectAppend 'circle'
         .attrs r: 2, fill: 'black'
 
+    sfn = d3.scalePow(2)
+      .domain [0,5]
+      .range [1,0.2]
+
     hyp.selectAppend 'path.hyperbola'
       .datum poly
       .attr 'd', (v)->lineGenerator(v)+"Z"
-      .each oa
-      .attr 'mask', "url(##{mid})"
+      .attr 'fill', "url(##{mid})"
+      .attr 'stroke', 'transparent'
+      .attr 'opacity', sfn(angularError)
 
     #if nominal
       #hyp.selectAppend 'line.nominal'
@@ -224,20 +241,7 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
 
   dfunc.setupGradient = (el)->
     defs = el.append 'defs'
-
-    g = defs.append 'linearGradient'
-        .attr 'id', 'gradient'
-
-    stop = (ofs, op)->
-      g.append 'stop'
-       .attrs offset: ofs, 'stop-color': 'white', 'stop-opacity': op
-
-    stop(0,0)
-    stop(0.2,0.1)
-    stop(0.45,1)
-    stop(0.55,1)
-    stop(0.8,0.1)
-    stop(1,0)
+    defs.call gradientHelper
 
   dfunc.width = (o)->
     return width unless o?
