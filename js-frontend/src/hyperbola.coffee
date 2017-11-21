@@ -223,15 +223,15 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
       hyp.selectAppend 'circle'
         .attrs r: 2, fill: 'black'
 
-    sfn = d3.scalePow(2)
+    sfn = d3.scalePow(0.5)
       .domain [0,5]
-      .range [1,0.2]
+      .range [1,0.5]
+
+    poly__ = lineGenerator(poly)
 
     hyp.selectAppend 'path.hyperbola'
-      .datum poly
-      .attr 'd', (v)->lineGenerator(v)+"Z"
+      .attr 'd', poly__+"Z"
       .attr 'fill', "url(##{mid})"
-      .attr 'stroke', 'transparent'
       .attr 'opacity', sfn(angularError)
 
     #if nominal

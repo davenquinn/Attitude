@@ -4192,7 +4192,7 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
   nCoords = 3;
   ({ratioX, ratioY, screenRatio, lineGenerator} = getRatios(xScale, yScale));
   dfunc = function(d) {
-    var R, a, a1, angles, angularError, arr, ax, b, center, coords, cutAngle, cutAngle2, hyp, inPlaneLength, j, largeNumber, lengthShown, lim, limit, mask, masksz, mid, oa, offs, poly, q, rax, results, s, sfn, top, v;
+    var R, a, a1, angles, angularError, arr, ax, b, center, coords, cutAngle, cutAngle2, hyp, inPlaneLength, j, largeNumber, lengthShown, lim, limit, mask, masksz, mid, oa, offs, poly, poly__, q, rax, results, s, sfn, top, v;
     // Get a single level of planar errors (or the
     // plane's nominal value) as a girdle
     rax = d.axes;
@@ -4307,10 +4307,9 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
         fill: 'black'
       });
     }
-    sfn = d3$4.scalePow(2).domain([0, 5]).range([1, 0.2]);
-    return hyp.selectAppend('path.hyperbola').datum(poly).attr('d', function(v) {
-      return lineGenerator(v) + "Z";
-    }).attr('fill', `url(#${mid})`).attr('stroke', 'transparent').attr('opacity', sfn(angularError));
+    sfn = d3$4.scalePow(0.5).domain([0, 5]).range([1, 0.5]);
+    poly__ = lineGenerator(poly);
+    return hyp.selectAppend('path.hyperbola').attr('d', poly__ + "Z").attr('fill', `url(#${mid})`).attr('opacity', sfn(angularError));
   };
   //if nominal
   //hyp.selectAppend 'line.nominal'
