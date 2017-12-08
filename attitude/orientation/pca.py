@@ -243,6 +243,9 @@ class PCAOrientation(BaseOrientation):
 
     @property
     def eigenvalues(self):
+        """
+        Eigenvalues of the data covariance matrix
+        """
         return self.singular_values**2/(self.n-1)
 
     def rotated(self):
@@ -298,6 +301,11 @@ class PCAOrientation(BaseOrientation):
 
     @property
     def covariance_matrix(self):
+        """
+        The data covariance matrix is related to the
+        cross-product matrix M^T M but scaled by the number of
+        samples.
+        """
         return self._covariance_matrix()
 
     @property

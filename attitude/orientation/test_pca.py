@@ -117,6 +117,25 @@ def test_hyperbola_axes():
 
         assert N.allclose(v1,v2, atol=0.0001)
 
+def test_pca_regression_variable():
+    """
+    The $\hat\beta$ regression variable is considered the canonical
+    representation of the regressor for OLS. This is also defined for
+    TLS/unweighted PCA regression.
+    """
+    fit = random_pca()
+    X = fit.arr[:,:2]
+    y = fit.arr[:,-1]
+    # Eigenvectors of the cross-product matrix
+    sigma = fit.singular_values**2
+    # B_hat from the formal definition
+    B_hat = N.linalg.inv(X.T@X-N.eye(2)*sigma[2])@X.T@y
+    # B_hat from SVD
+    beta = -fit.axes[-1,:-1]/fit.axes[-1,-1]
+
+    assert N.allclose(B_hat, beta)
+
+
 def test_pca_recovery():
     for i in range(10):
         pca = random_pca()
@@ -148,9 +167,7 @@ def test_builtin_recovery():
 def __do_component_planes(fit,component):
     ax = fit.axes
     rotated_axes = dot(component.axes,ax.T)
-    assert False
 
-@pytest.mark.xfail(reason="Not fully implemented")
 def test_component_planes():
     components = [centered(a) for a in
               load_test_plane('grouped-plane')]
