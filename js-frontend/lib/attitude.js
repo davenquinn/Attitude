@@ -4300,9 +4300,11 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     defs = el.append('defs');
     g = defs.append('linearGradient').attr('id', 'gradient');
     stop = function(ofs, op) {
+      var a;
+      a = Math.round(op * 255);
       return g.append('stop').attrs({
         offset: ofs,
-        'stop-color': 'white',
+        'stop-color': `rgb(${a},${a},${a})`,
         'stop-opacity': op
       });
     };

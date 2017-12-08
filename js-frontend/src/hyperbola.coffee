@@ -229,8 +229,9 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
         .attr 'id', 'gradient'
 
     stop = (ofs, op)->
+      a = Math.round(op*255)
       g.append 'stop'
-       .attrs offset: ofs, 'stop-color': 'white', 'stop-opacity': op
+       .attrs offset: ofs, 'stop-color': "rgb(#{a},#{a},#{a})", 'stop-opacity': op
 
     stop(0,0)
     stop(0.2,0.1)
