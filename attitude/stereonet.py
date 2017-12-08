@@ -45,17 +45,19 @@ def normal_errors(axes, covariance_matrix, **kwargs):
     """
     level = kwargs.pop('level',1)
     traditional_layout = kwargs.pop('traditional_layout',True)
-    d = N.sqrt(N.diagonal(covariance_matrix))
-
+    d = N.diagonal(covariance_matrix)
     ell = ellipse(**kwargs)
 
     if axes[2,2] < 0:
         axes *= -1
 
-    c1 = -1
-
+    # Not sure where this factor comes from but it
+    # seems to make things work better
+    c1 = 2
+    axis_lengths = d[:2]
     f = N.linalg.norm(
-        ell*d[:2],axis=1)
+        ell*axis_lengths,axis=1)
+
     e0 = -ell.T*d[2]*c1
     e = N.vstack((e0,f))
 
@@ -95,7 +97,10 @@ def iterative_normal_errors(axes, covariance_matrix, **kwargs):
             N.linalg.norm(f)]
         d = [sdot(e,i)
             for i in axes.T]
-        x,y,z = d[2],d[0],d[1]
+        if traditional_layout:
+            x,y,z = d[2],d[0],d[1]
+        else:
+            x,y,z = -d[1],d[0],d[2]
         r = N.sqrt(x**2 + y**2 + z**2)
         lon = N.arctan2(y, x)
         lat = N.arcsin(z/r)

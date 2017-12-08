@@ -32,25 +32,30 @@ createGroupedPlane = (opts)->
   opts.nominal ?= true
 
   (p)->
-    e = combinedErrors p.covariance, p.axes, opts
+    {hyperbolic_axes, axes, covariance} = p
+    # To preserve compatibility
+    hyperbolic_axes = covariance if not hyperbolic_axes?
+
+    e = combinedErrors hyperbolic_axes, axes, opts
     el = d3.select @
     el.append "path"
       .datum createErrorSurface(e)
-      .attrs
-        class: 'error'
+      .attr 'class', 'error'
     return if not opts.nominal
     el.append "path"
       .datum createNominalPlane(e)
-      .attrs
-        class: 'nominal'
+      .attr 'class', 'nominal'
 
 __createErrorEllipse = (opts)->
   #Function generator to create error ellipse
   #for a single error level
   createEllipse = (p)->
+    {hyperbolic_axes, axes, covariance} = p
+    # To preserve compatibility
+    hyperbolic_axes = covariance if not hyperbolic_axes?
     f_ = (sheet)->
       opts.sheet = sheet
-      e = math.normalErrors p.covariance, p.axes, opts
+      e = math.normalErrors hyperbolic_axes, axes, opts
       f = createFeature("Polygon", [e])
 
       # Check winding (note: only an issue with non-traditional

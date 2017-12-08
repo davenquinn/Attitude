@@ -62,10 +62,12 @@ class ReconstructedPlane(ErrorShell):
         max_angle = vec(ll)
         min_angle = N.cross(self.normal, max_angle)
 
-
         # These axes have the correct length but need to be
         # rotated into the correct reference frame.
         ax = N.vstack((min_angle, max_angle, self.normal))
+
+        # Apply right-hand rule
+        #ax[0:],ax[1:]
 
         #T = N.eye(3)
         #T[:-1,:-1] = rotate_2D(N.radians(rake))
@@ -77,3 +79,14 @@ class ReconstructedPlane(ErrorShell):
 
         lengths = 1/N.tan(errors[::-1])
         self.covariance_matrix = N.diag(list(lengths)+[1])
+
+# def reconstruct2():
+
+    # N.cos(rake) = dot(self.dip_dr, self.axes[0])
+
+    # n = self.axes[2]
+    # r = N.linalg.norm(n)
+    # N.tan(strike+N.pi/2) = n[0]/n[1]
+    # N.cos(dip)*r = n[2]
+
+    # N.linalg.norm(n) == 1

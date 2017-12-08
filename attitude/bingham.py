@@ -5,6 +5,9 @@ from scipy.special import gamma
 from itertools import product
 from .geom.util import dot
 from .stereonet import sph2cart
+from .error.axes import sampling_covariance
+
+from mplstereonet.stereonet_math import _rotate
 
 def confluent_hypergeometric_function(k1, k2, n=10):
     val = 0
@@ -25,6 +28,9 @@ def bingham_pdf(fit):
     """
     # Uses eigenvectors of the covariance matrix
     e = fit.eigenvalues #singular_values
+    e = sampling_covariance(fit) # not sure
+    e = e[2]**2/e
+
     kappa = (e-e[2])[:-1]
     kappa /= kappa[-1]
     F = N.sqrt(N.pi)*confluent_hypergeometric_function(*kappa)
@@ -33,11 +39,24 @@ def bingham_pdf(fit):
         ax *= -1
     e1, e2 = ax[:-1]
 
-    def pdf(I, D):
-        # Given in spherical coordinates of inclination
+    def pdf(lon, lat):
+
+        I = lat
+        D = lon + N.pi/2
+        #D,I = _rotate(N.degrees(D),N.degrees(I),90)
+
+        # Bingham is given in spherical coordinates of inclination
         # and declination in radians
 
-        xhat = sph2cart(I,D).T
+        # From USGS bingham statistics reference
+        xhat = N.dstack((
+            N.cos(I)*N.cos(D),
+            N.cos(I)*N.sin(D),
+            -N.sin(I)))
+
+        xhat = N.roll(xhat,-1,axis=2)
+
+        #xhat = sph2cart(I,D).T
 
         return 1/F*N.exp(
               kappa[0]*dot(xhat,e1)**2

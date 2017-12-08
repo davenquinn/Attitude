@@ -2,25 +2,28 @@
   "name": "attitude",
   "version": "0.0.0",
   "description": "Attitude computes the orientations of planes from point data",
-  "main": "index.js",
+  "main": "lib/attitude.js",
   "dependencies": {
-    "coffee-script": "^1",
     "d3": "^4",
     "d3-selection-multi": "^1.0.0",
     "geojson-rewind": "^0.1.0"
   },
   "devDependencies": {
+    "babel-core": "^6.25.0",
     "browserify": "^12.0.1",
     "chai": "^3.5.0",
     "coffeeify": "^1.2.0",
     "mocha": "^3.1.2",
-    "node-sass": "^3.4.2",
+    "rollup": "^0.46.2",
+    "rollup-plugin-babel": "^3.0.1",
+    "rollup-plugin-coffee2": "^0.1.10",
     "stylus": "^0.54.5",
     "turf": "^3.0.14",
     "watchify": "^3.6.1"
   },
   "scripts": {
-    "test": "./run-tests"
+    "test": "./run-tests",
+    "build": "rollup -c -o lib/attitude.js"
   },
   "repository": {
     "type": "git",

@@ -5,7 +5,7 @@ from .error_comparison import error_comparison
 from .pca_aligned import plot_aligned
 from .stereonet import girdle_error, pole_error, uncertain_plane
 from ..stereonet import plane_errors, normal_errors
-from ..error.axes import sampling_axes
+from ..error.axes import sampling_axes,noise_axes, francq_axes
 
 def cartopy_girdle(fit, **kw):
     from cartopy import crs, feature
