@@ -1,4 +1,5 @@
-d3 = require 'd3'
+import d3 from 'd3'
+
 ## Stereonet Dragging
 export default (stereonet)->
   # modified from http://bl.ocks.org/1392560

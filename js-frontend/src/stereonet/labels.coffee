@@ -5,7 +5,7 @@ Based heavily on http://bl.ocks.org/dwtkns/4686432
 TODO: integrate text halos
 http://bl.ocks.org/nitaku/aff4f425e7959290a1f7
 ###
-{geoPath, geoDistance} = require 'd3'
+import {geoPath, geoDistance} from 'd3'
 
 labels = [
   {name: 'N', c: [180,0]}

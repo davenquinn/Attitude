@@ -1,5 +1,5 @@
-d3 = require 'd3'
-require 'd3-selection-multi'
+import d3 from 'd3'
+import * from 'd3-selection-multi'
 import rewind from 'geojson-rewind'
 import * as math from './math.coffee'
 import {cloneOptions} from './util.coffee'
