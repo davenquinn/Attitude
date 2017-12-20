@@ -467,3 +467,25 @@ class PCAOrientation(BaseOrientation):
         #if spherical:
         #    return e + N.array([self.azimuth+N.pi/2,0])
         return (trend,plunge)
+
+    def __repr__(self):
+        return ("Orientation:: strike: {0:.2f} dip: {1:.2f}\n"
+                "      error:: min: {3:.2f} max: {4:.2f} rake: {2:.2f}"
+                .format(*self.strike_dip_rake(), *self.angular_errors()))
+
+    def to_mapping(self):
+        """
+        Create a JSON-serializable representation of the plane that is usable with the
+        javascript frontend
+        """
+        strike, dip, rake = self.strike_dip_rake()
+        min, max = self.angular_errors()
+
+        return dict(
+            principal_axes=self.principal_axes.tolist(),
+            hyperbolic_axes=list(sampling_axes(self)),
+            strike=strike,
+            dip=dip,
+            rake=rake
+        )
+
