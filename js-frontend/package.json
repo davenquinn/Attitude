@@ -6,7 +6,7 @@
   "dependencies": {
     "d3-selection-multi": "^1.0.0",
     "geojson-rewind": "^0.1.0",
-    "mathjs": "^3.16.5",
+    "mathjs": "^3.17.0",
     "quaternion": "^2.0.0",
     "uuid": "^3.1.0"
   },

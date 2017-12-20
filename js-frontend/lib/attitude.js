@@ -4056,6 +4056,7 @@ var matrix;
 var scaleRatio;
 var transpose$1;
 var vecAngle;
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 M = require('mathjs');
 
@@ -4170,6 +4171,7 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
   nCoords = 3;
   ({ratioX, ratioY, screenRatio, lineGenerator} = getRatios(xScale, yScale));
   dfunc = function(d) {
+    /* Project axes to 2d */
     var R, a, a1, angles, angularError, arr, ax, b, center, coords, cutAngle, cutAngle2, hyp, inPlaneLength, j, largeNumber, lengthShown, lim, limit, mask, masksz, mid, oa, offs, poly, q, rax, results, s, top, v;
     // Get a single level of planar errors (or the
     // plane's nominal value) as a girdle
@@ -4187,7 +4189,6 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     a1 = __planeAngle(ax, angle);
     //# Matrix to map down to 2 dimensions
     T = M.matrix([[1, 0], [0, 0], [0, 1]]);
-    /* Project axes to 2d */
     s = M.sqrt(d.lengths).map(function(d) {
       return 1 / d;
     });
@@ -4274,7 +4275,7 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     mid = null;
     if (!mask.node()) {
       mid = uuid_1.v4();
-      mask = hyp.append('mask').attr('id', mid).attrs(masksz).append('rect').attrs(Object.assign({}, masksz, {
+      mask = hyp.append('mask').attr('id', mid).attrs(masksz).append('rect').attrs(_extends({}, masksz, {
         fill: "url(#gradient)"
       }));
     }
@@ -4336,9 +4337,10 @@ exports.digitizedLine = function(viewpoint, lineGenerator) {
   var axes, f;
   axes = M.eye(3);
   f = function(d) {
-    var R, a, alignedWithGroup, data, offs, q, v;
+    /* Map down to two dimensions (the x-z plane of the viewing geometry) */
     /* Create a line from input points */
     /* Put in axis-aligned coordinates */
+    var R, a, alignedWithGroup, data, offs, q, v;
     q = Q.fromAxisAngle([0, 0, 1], viewpoint);
     R = M.transpose(matrix(axes));
     alignedWithGroup = dot(d.centered, R);
@@ -4347,7 +4349,6 @@ exports.digitizedLine = function(viewpoint, lineGenerator) {
       return M.add(row, offs);
     });
     a = dot(v, q);
-    /* Map down to two dimensions (the x-z plane of the viewing geometry) */
     data = dot(a, T).toArray();
     return d3$4.select(this).attr('d', lineGenerator(data));
   };
@@ -4367,6 +4368,9 @@ exports.apparentDip = function(viewpoint, xScale, yScale) {
   ({ratioX, ratioY, screenRatio, lineGenerator} = getRatios(xScale, yScale));
   //if not axes?
   f = function(d) {
+    /* Map down to two dimensions (the x-z plane of the viewing geometry) */
+    /* Create a line from input points */
+    /* Put in axis-aligned coordinates */
     var A, R, a, data, n, n1, normal, offs, planeAxes, q, qA, qR, v;
     //d3.select @
     //.attr 'd',lineGenerator(lineData)
@@ -4375,8 +4379,6 @@ exports.apparentDip = function(viewpoint, xScale, yScale) {
     if (d.group != null) {
       planeAxes = d.group.axes;
     }
-    /* Create a line from input points */
-    /* Put in axis-aligned coordinates */
     q = Q.fromAxisAngle([0, 0, 1], viewpoint);
     R = M.transpose(matrix(axes));
     A = planeAxes;
@@ -4396,7 +4398,6 @@ exports.apparentDip = function(viewpoint, xScale, yScale) {
     qA = q.mul(qR);
     v = dot(d.centered, R);
     a = dot(v, qA);
-    /* Map down to two dimensions (the x-z plane of the viewing geometry) */
     data = dot(a, T).toArray();
     // Get offset of angles
     offs = dot(d.offset, R, q, T).toArray();
