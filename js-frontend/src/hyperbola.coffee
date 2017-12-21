@@ -1,11 +1,12 @@
-import M from 'mathjs'
+import create from 'mathjs/core'
 import Q from 'quaternion'
-import d3 from 'd3'
-import * from 'd3-jetpack'
+import * as d3 from 'd3'
 import chroma from 'chroma-js'
 import * as math from './math.coffee'
 import {opacityByCertainty} from './stereonet'
-import uuid from 'uuid'
+import uuid from 'js-uuid'
+
+M = create()
 
 fixAngle = (a)->
   # Put an angle on the interval [-Pi,Pi]

@@ -8,7 +8,10 @@ let plugins = [
   coffee2({version: 2}),
   stylus({output: 'lib/styles.css'}),
   nodeResolve({jsnext:true,main:true}),
-  commonJS({extensions: [ '.js', '.coffee' ]})
+  commonJS({
+    extensions: [ '.js', '.coffee' ],
+    include: 'node_modules/**'
+  })
 ];
 
 export default {

@@ -1,6 +1,6 @@
-import d3 from 'd3'
+import * as d3 from 'd3'
 import chroma from 'chroma-js'
-import * from 'd3-selection-multi'
+import 'd3-selection-multi'
 import * as functions from '../functions.coffee'
 import * as math from '../math.coffee'
 import style from './module.styl'
