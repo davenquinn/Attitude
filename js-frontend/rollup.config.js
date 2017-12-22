@@ -18,7 +18,7 @@ export default {
   entry: "src/index.coffee",
   dest: "lib/attitude.js",
   extend: true,
-  format: "cjs",
+  format: "umd",
   moduleName: "attitude",
   plugins: plugins
 }

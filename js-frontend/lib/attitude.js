@@ -1,6 +1,8 @@
-'use strict';
-
-Object.defineProperty(exports, '__esModule', { value: true });
+(function (global, factory) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+	typeof define === 'function' && define.amd ? define(['exports'], factory) :
+	(factory((global.attitude = global.attitude || {})));
+}(this, (function (exports) { 'use strict';
 
 var version = "4.12.0";
 
@@ -25978,3 +25980,7 @@ exports.PlaneData = class PlaneData {
 
 exports.functions = functions;
 exports.math = math;
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+})));
