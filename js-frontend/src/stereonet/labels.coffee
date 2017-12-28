@@ -31,7 +31,8 @@ __horizontalLine =
 horizontalLine = (stereonet)->
   stereonet
     .overlay()
-    .append 'g.horizontal'
+    .append 'g'
+    .attr("class","horizontal")
     .append 'path'
     .datum __horizontalLine
   stereonet.refresh()
@@ -89,17 +90,21 @@ globalLabels = ->
 
     stereonet.call horizontalLine
 
-    svg.append("g.points")
+    svg.append("g")
+      .attr("class", "points")
       .selectAll("path")
       .data(labels)
       .enter()
-      .append("path.point")
+      .append("path")
+      .attr("class", "point")
 
-    svg.append("g.labels")
+    svg.append("g")
+      .attr("class","labels")
       .selectAll("text")
       .data(labels)
       .enter()
-      .append("text.label")
+      .append("text")
+      .attr("class","label")
       .text (d)-> d.name
 
     updateLabels.apply stereonet

@@ -18,6 +18,10 @@ export default {
   entry: "src/index.coffee",
   dest: "lib/attitude.js",
   extend: true,
+  external: ["d3"],
+  globals: {
+    "d3": "d3"
+  },
   format: "umd",
   moduleName: "attitude",
   plugins: plugins

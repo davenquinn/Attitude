@@ -482,8 +482,10 @@ class PCAOrientation(BaseOrientation):
         min, max = self.angular_errors()
 
         return dict(
-            principal_axes=self.principal_axes.tolist(),
+            axes=self.axes.tolist(),
             hyperbolic_axes=list(sampling_axes(self)),
+            max_angular_error=max,
+            min_angular_error=min,
             strike=strike,
             dip=dip,
             rake=rake

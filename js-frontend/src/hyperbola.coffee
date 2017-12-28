@@ -6,7 +6,11 @@ import * as math from './math.coffee'
 import {opacityByCertainty} from './stereonet'
 import uuid from 'js-uuid'
 
-M = create()
+# We don't bundle mathjs right now but can if we figure out how
+if window.math?
+  M = window.math
+else
+  M = create()
 
 fixAngle = (a)->
   # Put an angle on the interval [-Pi,Pi]
