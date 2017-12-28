@@ -268,6 +268,11 @@ class PCAOrientation(BaseOrientation):
         _ = N.dot(_,self.axes)
         return self.arr - _
 
+    @property
+    def hyperbolic_axes(self):
+        method = sampling_axes
+        return method(self)
+
     def angular_error(self, axis_length, method=sampling_axes):
         """
         The angular error for an in-plane axis of
@@ -473,22 +478,4 @@ class PCAOrientation(BaseOrientation):
                 "      error:: min: {3:.2f} max: {4:.2f} rake: {2:.2f}"
                 .format(*self.strike_dip_rake(), *self.angular_errors()))
 
-    def to_mapping(self,**values):
-        """
-        Create a JSON-serializable representation of the plane that is usable with the
-        javascript frontend
-        """
-        strike, dip, rake = self.strike_dip_rake()
-        min, max = self.angular_errors()
-
-        return dict(
-            axes=self.axes.tolist(),
-            hyperbolic_axes=list(sampling_axes(self)),
-            max_angular_error=max,
-            min_angular_error=min,
-            strike=strike,
-            dip=dip,
-            rake=rake,
-            **values
-        )
 

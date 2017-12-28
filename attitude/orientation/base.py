@@ -24,7 +24,11 @@ def ellipse(center,covariance_matrix,level=1, n=1000):
     return N.dot(data, rotation_matrix)+ center
 
 class BaseOrientation(object):
-
+    """
+    Abstract class to define common methods used by
+    other orientation classes (e.g. reconstructed
+    orientations, pca orientations)
+    """
     def dip_direction(self, uncertainties=False):
         s,d = self.strike_dip()
         s+=90
@@ -61,3 +65,24 @@ class BaseOrientation(object):
                 azimuth = azimuth + N.pi/2
             return (N.pi+azimuth,N.pi/2-slope)
         return (e[:,1],e[:,0])
+
+    def to_mapping(self,**values):
+        """
+        Create a JSON-serializable representation of the plane that is usable with the
+        javascript frontend
+        """
+        from ..error.axes import noise_axes
+        strike, dip, rake = self.strike_dip_rake()
+        min, max = self.angular_errors()
+
+        return dict(
+            axes=self.axes.tolist(),
+            hyperbolic_axes=self.hyperbolic_axes.tolist(),
+            max_angular_error=max,
+            min_angular_error=min,
+            strike=strike,
+            dip=dip,
+            rake=rake,
+            **values
+        )
+
