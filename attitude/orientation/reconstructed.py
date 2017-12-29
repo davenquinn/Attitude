@@ -2,7 +2,7 @@ import numpy as N
 import mplstereonet.stereonet_math as M
 
 from ..geom import dot
-from .base import BaseOrientation
+from .base import BaseOrientation, hash_array
 from ..coordinates.rotations import transform
 from ..stereonet import plane_errors, normal_errors
 

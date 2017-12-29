@@ -2,6 +2,10 @@ from __future__ import division, print_function
 import numpy as N
 from ..geom.util import dot
 from ..error.ellipse import ellipse
+from hashlib import sha1
+
+def hash_array(a):
+    return sha1(a.data.tobytes()).hexdigest()[:8]
 
 def rotation(angle):
     """Rotation about the Z axis (in the XY plane)"""
@@ -66,6 +70,14 @@ class BaseOrientation(object):
             return (N.pi+azimuth,N.pi/2-slope)
         return (e[:,1],e[:,0])
 
+    @property
+    def principal_axes(self):
+        return self.hyperbolic_axes*self.axes
+
+    @property
+    def hash(self):
+        return hash_array(self.principal_axes)
+
     def to_mapping(self,**values):
         """
         Create a JSON-serializable representation of the plane that is usable with the
@@ -76,6 +88,7 @@ class BaseOrientation(object):
         min, max = self.angular_errors()
 
         return dict(
+            uid=self.hash,
             axes=self.axes.tolist(),
             hyperbolic_axes=self.hyperbolic_axes.tolist(),
             max_angular_error=max,
