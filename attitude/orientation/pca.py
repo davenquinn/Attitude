@@ -268,6 +268,19 @@ class PCAOrientation(BaseOrientation):
         _ = N.dot(_,self.axes)
         return self.arr - _
 
+    @property
+    def center(self):
+        return self.mean
+
+    @property
+    def centered_array(self):
+        return self.arr
+
+    @property
+    def hyperbolic_axes(self):
+        method = sampling_axes
+        return method(self)
+
     def angular_error(self, axis_length, method=sampling_axes):
         """
         The angular error for an in-plane axis of
@@ -322,10 +335,6 @@ class PCAOrientation(BaseOrientation):
     @property
     def coefficients(self):
         return self.axes[2]
-
-    @property
-    def principal_axes(self):
-        return self.singular_values*self.axes
 
     @property
     def azimuth(self):
@@ -473,19 +482,4 @@ class PCAOrientation(BaseOrientation):
                 "      error:: min: {3:.2f} max: {4:.2f} rake: {2:.2f}"
                 .format(*self.strike_dip_rake(), *self.angular_errors()))
 
-    def to_mapping(self):
-        """
-        Create a JSON-serializable representation of the plane that is usable with the
-        javascript frontend
-        """
-        strike, dip, rake = self.strike_dip_rake()
-        min, max = self.angular_errors()
-
-        return dict(
-            principal_axes=self.principal_axes.tolist(),
-            hyperbolic_axes=list(sampling_axes(self)),
-            strike=strike,
-            dip=dip,
-            rake=rake
-        )
 

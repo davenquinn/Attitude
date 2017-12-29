@@ -1,5 +1,4 @@
-d3 = require 'd3'
-require 'd3-selection-multi'
+import {geoArea,select} from 'd3'
 import rewind from 'geojson-rewind'
 import * as math from './math.coffee'
 import {cloneOptions} from './util.coffee'
@@ -18,7 +17,7 @@ createErrorSurface = (d)->
   e = [d.lower,d.upper.reverse()]
 
   f = createFeature "Polygon", e
-  a = d3.geoArea(f)
+  a = geoArea(f)
   if a > 2*Math.PI
     f = createFeature("Polygon",e.map (d)->d.reverse())
   f.properties ?= {}
@@ -45,7 +44,7 @@ createGroupedPlane = (opts)->
     axes = flipAxesIfNeeded(axes)
 
     e = combinedErrors hyperbolic_axes, axes, opts
-    el = d3.select @
+    el = select @
     el.append "path"
       .datum createErrorSurface(e)
       .attr 'class', 'error'
@@ -69,7 +68,7 @@ __createErrorEllipse = (opts)->
 
       # Check winding (note: only an issue with non-traditional
       # stereonet axes)
-      a = d3.geoArea(f)
+      a = geoArea(f)
       if a > 2*Math.PI
         f = createFeature("Polygon",[e.reverse()])
         a = d3.geoArea(f)

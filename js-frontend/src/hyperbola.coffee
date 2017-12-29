@@ -1,11 +1,16 @@
-M = require 'mathjs'
-Q = require 'quaternion'
-d3 = require 'd3'
-require 'd3-jetpack'
+import create from 'mathjs/core'
+import Q from 'quaternion'
+import * as d3 from 'd3'
 import chroma from 'chroma-js'
 import * as math from './math.coffee'
 import {opacityByCertainty} from './stereonet'
-import uuid from 'uuid'
+import uuid from 'js-uuid'
+
+# We don't bundle mathjs right now but can if we figure out how
+if window.math?
+  M = window.math
+else
+  M = create()
 
 fixAngle = (a)->
   # Put an angle on the interval [-Pi,Pi]
@@ -334,14 +339,14 @@ apparentDip = (viewpoint, xScale,yScale)->
 class PlaneData
   constructor: (data, mean=null)->
     {axes, hyperbolic_axes, extracted, color} = data
-    @mean = mean or data.mean
+    @mean = mean or data.mean or data.center
     @axes = data.axes
     @color = color
     @lengths = hyperbolic_axes
     @in_group = data.in_group
     @array = extracted
     @data = data
-    #@pcaAxes = math.convolveAxes @axes, @lengths
+
     # If we didn't pass a mean, we have to compute one
     return unless @array?
     ## Extract mean of data on each axis ##

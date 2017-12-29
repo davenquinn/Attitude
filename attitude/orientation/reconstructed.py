@@ -2,6 +2,7 @@ import numpy as N
 import mplstereonet.stereonet_math as M
 
 from ..geom import dot
+from .base import BaseOrientation, hash_array
 from ..coordinates.rotations import transform
 from ..stereonet import plane_errors, normal_errors
 
@@ -35,7 +36,7 @@ class ErrorShell(object):
         geometries = [geom]
         return feature.ShapelyFeature(geometries, crs.PlateCarree())
 
-class ReconstructedPlane(ErrorShell):
+class ReconstructedPlane(ErrorShell, BaseOrientation):
     """
     This class represents a plane with errors on two axes.
     This error is presumably the result of some statistical
@@ -50,6 +51,11 @@ class ReconstructedPlane(ErrorShell):
             val = N.array(_).flatten()
             val = N.roll(val,-1)
             return val * _trans_arr
+
+        self.__strike = strike
+        self.__dip = dip
+        self.__angular_errors = angular_errors
+        self.__rake = rake
 
         errors = N.radians(angular_errors)/2
         pole = M.pole(strike, dip)
@@ -78,15 +84,12 @@ class ReconstructedPlane(ErrorShell):
             self.axes *= -1
 
         lengths = 1/N.tan(errors[::-1])
-        self.covariance_matrix = N.diag(list(lengths)+[1])
+        self.hyperbolic_axes = N.array(list(lengths)+[1])
+        self.covariance_matrix = N.diag(self.hyperbolic_axes)
 
-# def reconstruct2():
+    def strike_dip_rake(self):
+        return self.__strike, self.__dip, self.__rake
 
-    # N.cos(rake) = dot(self.dip_dr, self.axes[0])
+    def angular_errors(self):
+        return self.__angular_errors
 
-    # n = self.axes[2]
-    # r = N.linalg.norm(n)
-    # N.tan(strike+N.pi/2) = n[0]/n[1]
-    # N.cos(dip)*r = n[2]
-
-    # N.linalg.norm(n) == 1
