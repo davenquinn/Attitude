@@ -376,5 +376,5 @@ class PlaneData
     sign*Math.atan(d)
 
 export {hyperbolicErrors, digitizedLine, PlaneData, fixAngle,
-        apparentDip, dot}
+        apparentDip, dot, chroma}
 

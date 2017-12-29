@@ -65,11 +65,12 @@ Stereonet = ->
     o.color ?= '#aaaaaa'
     if not el?
       throw "Stereonet must be initialized to an element before adding data"
+    if not o.selector?
+      o.selector = 'g.planes'
+
+    con = dataArea.selectAppend o.selector
 
     fn = functions.plane opts
-
-    con = dataArea.append 'g'
-      .attr 'class','planes'
 
     sel = con.selectAll 'g.plane'
           .data data

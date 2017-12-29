@@ -11,7 +11,7 @@ createFeature = (type, coordinates)->
     type: type
     coordinates: coordinates
 
-createErrorSurface = (d)->
+createErrorSurface = (d, baseData=null)->
   # Function that turns orientation
   # objects into error surface
   e = [d.lower,d.upper.reverse()]
@@ -22,10 +22,15 @@ createErrorSurface = (d)->
     f = createFeature("Polygon",e.map (d)->d.reverse())
   f.properties ?= {}
   f.properties.area = a
+  if baseData?
+    f.data = baseData
   f
 
-createNominalPlane = (d)->
-  createFeature 'LineString', d.nominal
+createNominalPlane = (d, baseData=null)->
+  obj = createFeature 'LineString', d.nominal
+  if baseData?
+    obj.data = baseData
+  return obj
 
 flipAxesIfNeeded = (axes)->
   if axes[2][2] < 0
@@ -46,12 +51,12 @@ createGroupedPlane = (opts)->
     e = combinedErrors hyperbolic_axes, axes, opts
     el = select @
     el.append "path"
-      .datum createErrorSurface(e)
+      .datum createErrorSurface(e, p)
       .attr 'class', 'error'
     return if not opts.nominal
     # Create nominal plane
     el.append "path"
-      .datum createNominalPlane(e)
+      .datum createNominalPlane(e, p)
       .attr 'class', 'nominal'
 
 __createErrorEllipse = (opts)->
@@ -76,6 +81,7 @@ __createErrorEllipse = (opts)->
         area: a
         level: opts.level
         sheet: sheet
+      f.data = p
       f
 
     v = ['upper','lower'].map f_

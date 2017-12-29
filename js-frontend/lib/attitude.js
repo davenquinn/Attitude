@@ -349,7 +349,7 @@ createFeature = function(type, coordinates) {
   };
 };
 
-createErrorSurface = function(d) {
+createErrorSurface = function(d, baseData = null) {
   var a, e, f;
   // Function that turns orientation
   // objects into error surface
@@ -365,11 +365,19 @@ createErrorSurface = function(d) {
     f.properties = {};
   }
   f.properties.area = a;
+  if (baseData != null) {
+    f.data = baseData;
+  }
   return f;
 };
 
-createNominalPlane = function(d) {
-  return createFeature('LineString', d.nominal);
+createNominalPlane = function(d, baseData = null) {
+  var obj;
+  obj = createFeature('LineString', d.nominal);
+  if (baseData != null) {
+    obj.data = baseData;
+  }
+  return obj;
 };
 
 flipAxesIfNeeded = function(axes) {
@@ -396,12 +404,12 @@ createGroupedPlane = function(opts) {
     axes = flipAxesIfNeeded(axes);
     e = combinedErrors(hyperbolic_axes, axes, opts);
     el = d3$1.select(this);
-    el.append("path").datum(createErrorSurface(e)).attr('class', 'error');
+    el.append("path").datum(createErrorSurface(e, p)).attr('class', 'error');
     if (!opts.nominal) {
       return;
     }
     // Create nominal plane
-    return el.append("path").datum(createNominalPlane(e)).attr('class', 'nominal');
+    return el.append("path").datum(createNominalPlane(e, p)).attr('class', 'nominal');
   };
 };
 
@@ -433,6 +441,7 @@ __createErrorEllipse = function(opts) {
         level: opts.level,
         sheet: sheet
       };
+      f.data = p;
       return f;
     };
     v = ['upper', 'lower'].map(f_);
@@ -6355,8 +6364,11 @@ exports.Stereonet = function() {
     if (el == null) {
       throw "Stereonet must be initialized to an element before adding data";
     }
+    if (o.selector == null) {
+      o.selector = 'g.planes';
+    }
+    con = dataArea.selectAppend(o.selector);
     fn = createGroupedPlane(opts);
-    con = dataArea.append('g').attr('class', 'planes');
     sel = con.selectAll('g.plane').data(data).enter().append('g').classed('plane', true).each(fn).each(function(d) {
       var color, e;
       if (typeof o.color === 'function') {
@@ -11507,6 +11519,7 @@ exports.PlaneData = class PlaneData {
 
 exports.functions = functions;
 exports.math = math;
+exports.chroma = chroma;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
