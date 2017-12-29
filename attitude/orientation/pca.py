@@ -11,7 +11,7 @@ from ..coordinates import centered
 from .base import BaseOrientation, rotation
 from ..error.ellipse import ellipse
 from ..stereonet import plane_errors, error_coords
-from ..error.axes import sampling_axes, sampling_covariance, angular_errors
+from ..error.axes import sampling_axes, sampling_covariance, angular_errors, noise_axes
 from ..test import scattered_plane
 from ..geom.util import dot, vector
 from ..geom.util import angle as vector_angle
@@ -148,7 +148,7 @@ class PCAOrientation(BaseOrientation):
         """
         # For principal components, data needs
         # to be pre-processed to have zero mean
-        self.method = sampling_axes
+        self.method = noise_axes
 
         self.mean = arr.mean(axis=0)
         self.arr = centered(arr)
@@ -278,25 +278,24 @@ class PCAOrientation(BaseOrientation):
 
     @property
     def hyperbolic_axes(self):
-        method = sampling_axes
-        return method(self)
+        return self.method(self)
 
-    def angular_error(self, axis_length, method=sampling_axes):
+    def angular_error(self, axis_length):
         """
         The angular error for an in-plane axis of
         given length (either a PCA major axis or
         an intermediate direction).
         """
-        hyp_axes = method(self)
+        hyp_axes = self.method(self)
         return N.arctan2(hyp_axes[-1],axis_length)
 
-    def angular_errors(self, method=sampling_axes, degrees=True):
+    def angular_errors(self, degrees=True):
         """
         Minimum and maximum angular errors
         corresponding to 1st and 2nd axes
         of PCA distribution.
         """
-        hyp_axes = method(self)
+        hyp_axes = self.method(self)
         v = angular_errors(hyp_axes)
         if degrees:
             v = N.degrees(v)

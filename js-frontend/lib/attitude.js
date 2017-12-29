@@ -11425,7 +11425,6 @@ exports.apparentDip = function(viewpoint, xScale, yScale) {
     n1 = n1.map(function(d) {
       return d / M.norm(n1);
     });
-    console.log(n, n1);
     qR = quaternion.fromBetweenVectors(n, n1);
     // Without adding this other quaternion, it is the same as just showing
     // digitized lines
@@ -11460,7 +11459,7 @@ exports.PlaneData = class PlaneData {
     this.in_group = data.in_group;
     this.array = extracted;
     this.data = data;
-    this.centered = data.centered;
+    this.centered = data.centered_array;
     // If we didn't pass a mean, we have to compute one
     if (this.array == null) {
       return;

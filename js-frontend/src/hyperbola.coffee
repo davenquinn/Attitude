@@ -135,7 +135,6 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
     lengthShown = width/2
 
     cutAngle2 = Math.atan2(b,a*screenRatio)
-
     inPlaneLength = lengthShown * Math.cos cutAngle2
 
     ## We will transform with svg functions
@@ -198,7 +197,7 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
 
     lim = width/2
     lim = Math.abs inPlaneLength
-    masksz = {x:-lim,y:-lim,width:lim*2,height:lim*2}
+    masksz = {x:-lim,y:-lim,width:lim*2,height: lim*2}
 
     mask = hyp.select('mask')
     mid = null
@@ -236,7 +235,11 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
     stop = (ofs, op)->
       a = Math.round(op*255)
       g.append 'stop'
-       .attrs offset: ofs, 'stop-color': "rgb(#{a},#{a},#{a})", 'stop-opacity': op
+        .attrs {
+          offset: ofs
+          'stop-color': "rgb(#{a},#{a},#{a})"
+          'stop-opacity': op
+         }
 
     stop(0,0)
     stop(0.2,0.1)
@@ -308,7 +311,6 @@ apparentDip = (viewpoint, xScale,yScale)->
     n[1] = Math.abs(n[1])
     n1 = [n[0],0,n[2]]
     n1 = n1.map (d)->d/M.norm(n1)
-    console.log n,n1
     qR = Q.fromBetweenVectors(n,n1)
 
     # Without adding this other quaternion, it is the same as just showing
@@ -346,8 +348,7 @@ class PlaneData
     @in_group = data.in_group
     @array = extracted
     @data = data
-
-    @centered = data.centered
+    @centered = data.centered_array
 
     # If we didn't pass a mean, we have to compute one
     return unless @array?
