@@ -329,10 +329,6 @@ class PCAOrientation(BaseOrientation):
         return self.axes[2]
 
     @property
-    def principal_axes(self):
-        return self.singular_values*self.axes
-
-    @property
     def azimuth(self):
         c = self.coefficients
         return N.arctan2(c[0],c[1])
