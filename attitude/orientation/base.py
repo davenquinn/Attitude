@@ -113,6 +113,7 @@ class BaseOrientation(object):
 
         # Add in user-provided-values, overwriting if
         # necessary
-        mapping.update(values)
+        for k,v in values.items():
+            mapping[k] = v
         return mapping
 
