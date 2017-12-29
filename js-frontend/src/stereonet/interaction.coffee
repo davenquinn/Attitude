@@ -26,7 +26,8 @@ export default (stereonet)->
         o0[0] + (m1[0] - (m0[0])) / 3
         o0[1] + (m0[1] - (m1[1])) / 3
       ]
-      o1[1] = if o1[1] > 60 then 60 else if o1[1] < -60 then -60 else o1[1]
+      limit = 90
+      o1[1] = if o1[1] > limit then limit else if o1[1] < -limit then -limit else o1[1]
       stereonet.rotate o1
 
   mouseup = ->

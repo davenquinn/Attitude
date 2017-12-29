@@ -269,6 +269,14 @@ class PCAOrientation(BaseOrientation):
         return self.arr - _
 
     @property
+    def center(self):
+        return self.mean
+
+    @property
+    def centered_array(self):
+        return self.arr
+
+    @property
     def hyperbolic_axes(self):
         method = sampling_axes
         return method(self)

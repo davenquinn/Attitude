@@ -78,16 +78,23 @@ class BaseOrientation(object):
     def hash(self):
         return hash_array(self.principal_axes)
 
+    @property
+    def center(self):
+        return None
+
+    @property
+    def centered_array(self):
+        return None
+
     def to_mapping(self,**values):
         """
         Create a JSON-serializable representation of the plane that is usable with the
         javascript frontend
         """
-        from ..error.axes import noise_axes
         strike, dip, rake = self.strike_dip_rake()
         min, max = self.angular_errors()
 
-        return dict(
+        mapping = dict(
             uid=self.hash,
             axes=self.axes.tolist(),
             hyperbolic_axes=self.hyperbolic_axes.tolist(),
@@ -95,7 +102,17 @@ class BaseOrientation(object):
             min_angular_error=min,
             strike=strike,
             dip=dip,
-            rake=rake,
-            **values
-        )
+            rake=rake)
+
+        try:
+            mapping.update(dict(
+                centered_array=self.centered_array.tolist(),
+                center=self.center.tolist()))
+        except AttributeError:
+            pass
+
+        # Add in user-provided-values, overwriting if
+        # necessary
+        mapping.update(values)
+        return mapping
 

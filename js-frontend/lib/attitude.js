@@ -386,11 +386,8 @@ createGroupedPlane = function(opts) {
     opts.nominal = true;
   }
   return function(p) {
-    var axes, covariance, e, el, hyperbolic_axes, principal_axes;
-    ({hyperbolic_axes, axes, principal_axes, covariance} = p);
-    if (axes == null) {
-      axes = principal_axes;
-    }
+    var axes, covariance, e, el, hyperbolic_axes;
+    ({hyperbolic_axes, axes, covariance} = p);
     if (hyperbolic_axes == null) {
       // To preserve compatibility
       hyperbolic_axes = covariance;
@@ -6161,11 +6158,12 @@ var interaction = function(stereonet) {
     return d3$1.event.preventDefault();
   };
   mousemove = function() {
-    var m1, o1;
+    var limit, m1, o1;
     if (m0) {
       m1 = [d3$1.event.pageX, d3$1.event.pageY];
       o1 = [o0[0] + (m1[0] - m0[0]) / 3, o0[1] + (m0[1] - m1[1]) / 3];
-      o1[1] = o1[1] > 60 ? 60 : o1[1] < -60 ? -60 : o1[1];
+      limit = 90;
+      o1[1] = o1[1] > limit ? limit : o1[1] < -limit ? -limit : o1[1];
       return stereonet.rotate(o1);
     }
   };
@@ -11456,14 +11454,13 @@ exports.PlaneData = class PlaneData {
     this.dip = this.dip.bind(this);
     this.apparentDip = this.apparentDip.bind(this);
     ({axes, hyperbolic_axes, extracted, color} = data);
-    this.mean = mean$$1 || data.mean;
+    this.mean = mean$$1 || data.mean || data.center;
     this.axes = data.axes;
     this.color = color;
     this.lengths = hyperbolic_axes;
     this.in_group = data.in_group;
     this.array = extracted;
     this.data = data;
-    //@pcaAxes = math.convolveAxes @axes, @lengths
     // If we didn't pass a mean, we have to compute one
     if (this.array == null) {
       return;

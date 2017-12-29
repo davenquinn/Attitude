@@ -339,14 +339,14 @@ apparentDip = (viewpoint, xScale,yScale)->
 class PlaneData
   constructor: (data, mean=null)->
     {axes, hyperbolic_axes, extracted, color} = data
-    @mean = mean or data.mean
+    @mean = mean or data.mean or data.center
     @axes = data.axes
     @color = color
     @lengths = hyperbolic_axes
     @in_group = data.in_group
     @array = extracted
     @data = data
-    #@pcaAxes = math.convolveAxes @axes, @lengths
+
     # If we didn't pass a mean, we have to compute one
     return unless @array?
     ## Extract mean of data on each axis ##
