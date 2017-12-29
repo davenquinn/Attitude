@@ -347,12 +347,15 @@ class PlaneData
     @array = extracted
     @data = data
 
+    @centered = data.centered
+
     # If we didn't pass a mean, we have to compute one
     return unless @array?
     ## Extract mean of data on each axis ##
     if not @mean?
       @mean = [0..2].map (i)=> d3.mean @array, (d)->d[i]
-    @centered = @array.map (d)=>M.subtract(d,@mean)
+    if not @centered?
+      @centered = @array.map (d)=>M.subtract(d,@mean)
 
   dip: =>
     n = @axes[2]
@@ -371,5 +374,6 @@ class PlaneData
     d = M.tan(dip)*M.cos(azimuth-dipDr)
     sign*Math.atan(d)
 
-export {hyperbolicErrors, digitizedLine, PlaneData, fixAngle, apparentDip}
+export {hyperbolicErrors, digitizedLine, PlaneData, fixAngle,
+        apparentDip, dot}
 

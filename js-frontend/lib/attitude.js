@@ -11086,7 +11086,6 @@ var M;
 var T;
 var __planeAngle;
 var apparentDipCorrection;
-var dot;
 var getRatios;
 var matrix;
 var scaleRatio;
@@ -11124,7 +11123,7 @@ matrix = function(obj) {
   return M.matrix(obj);
 };
 
-dot = function(...args) {
+exports.dot = function(...args) {
   // Multiply matrices, ensuring matrix form
   return M.multiply(...args.map(matrix));
 };
@@ -11137,7 +11136,7 @@ vecAngle = function(a0, a1) {
   var a0_, a1_;
   a0_ = M.divide(a0, M.norm(a0));
   a1_ = M.divide(a1, M.norm(a1));
-  return dot(a0_, a1_);
+  return exports.dot(a0_, a1_);
 };
 
 exports.fixAngle = function(a) {
@@ -11159,7 +11158,7 @@ apparentDipCorrection = function(screenRatio = 1) {
     a1 = [0, 1];
     //a0 = M.divide(a0,M.norm(a0))
     //a1 = M.divide(a1,M.norm(a1))
-    cosA = dot(a0, a1);
+    cosA = exports.dot(a0, a1);
     console.log("Axes", a0, cosA);
     angle = Math.atan2(Math.tan(Math.acos(cosA / (M.norm(a0) * M.norm(a1)))), screenRatio);
     return angle * 180 / Math.PI;
@@ -11220,7 +11219,7 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     }
     q = quaternion.fromAxisAngle([0, 0, 1], angle + Math.PI);
     R = matrix(axes);
-    ax = dot(M.transpose(R), d.axes, R);
+    ax = exports.dot(M.transpose(R), d.axes, R);
     a1 = __planeAngle(ax, angle);
     //# Matrix to map down to 2 dimensions
     T = M.matrix([[1, 0], [0, 0], [0, 1]]);
@@ -11276,7 +11275,7 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     top.reverse();
     poly = coords.concat(top);
     // Translate
-    offs = dot(d.offset, R, q).toArray();
+    offs = exports.dot(d.offset, R, q).toArray();
     center = [xScale(offs[0]) - xScale(0), yScale(offs[2]) - yScale(0)];
     // Used for positioning, but later
     d.__z = offs[1];
@@ -11378,13 +11377,13 @@ exports.digitizedLine = function(viewpoint, lineGenerator) {
     var R, a, alignedWithGroup, data, offs, q, v;
     q = quaternion.fromAxisAngle([0, 0, 1], viewpoint);
     R = M.transpose(matrix(axes));
-    alignedWithGroup = dot(d.centered, R);
-    offs = dot(d.offset, R);
+    alignedWithGroup = exports.dot(d.centered, R);
+    offs = exports.dot(d.offset, R);
     v = alignedWithGroup.toArray().map(function(row) {
       return M.add(row, offs);
     });
-    a = dot(v, q);
-    data = dot(a, T).toArray();
+    a = exports.dot(v, q);
+    data = exports.dot(a, T).toArray();
     return d3$1.select(this).attr('d', lineGenerator(data));
   };
   f.axes = function(o) {
@@ -11418,7 +11417,7 @@ exports.apparentDip = function(viewpoint, xScale, yScale) {
     R = M.transpose(matrix(axes));
     A = planeAxes;
     // Find fit normal in new coordinates
-    normal = dot(A[2], R, q);
+    normal = exports.dot(A[2], R, q);
     // Get transform that puts normal in xz plane
     n = normal.toArray();
     n[1] = Math.abs(n[1]);
@@ -11431,11 +11430,11 @@ exports.apparentDip = function(viewpoint, xScale, yScale) {
     // Without adding this other quaternion, it is the same as just showing
     // digitized lines
     qA = q.mul(qR);
-    v = dot(d.centered, R);
-    a = dot(v, qA);
-    data = dot(a, T).toArray();
+    v = exports.dot(d.centered, R);
+    a = exports.dot(v, qA);
+    data = exports.dot(a, T).toArray();
     // Get offset of angles
-    offs = dot(d.offset, R, q, T).toArray();
+    offs = exports.dot(d.offset, R, q, T).toArray();
     return d3$1.select(this).attr('d', lineGenerator(data)).attr('transform', `translate(${xScale(offs[0])},${yScale(offs[1])})`);
   };
   f.axes = function(o) {
@@ -11461,6 +11460,7 @@ exports.PlaneData = class PlaneData {
     this.in_group = data.in_group;
     this.array = extracted;
     this.data = data;
+    this.centered = data.centered;
     // If we didn't pass a mean, we have to compute one
     if (this.array == null) {
       return;
@@ -11473,9 +11473,11 @@ exports.PlaneData = class PlaneData {
         });
       });
     }
-    this.centered = this.array.map((d) => {
-      return M.subtract(d, this.mean);
-    });
+    if (this.centered == null) {
+      this.centered = this.array.map((d) => {
+        return M.subtract(d, this.mean);
+      });
+    }
   }
 
   dip() {
