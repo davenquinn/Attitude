@@ -104,13 +104,6 @@ class BaseOrientation(object):
             dip=dip,
             rake=rake)
 
-        try:
-            mapping.update(dict(
-                centered_array=self.centered_array.tolist(),
-                center=self.center.tolist()))
-        except AttributeError:
-            pass
-
         # Add in user-provided-values, overwriting if
         # necessary
         for k,v in values.items():
