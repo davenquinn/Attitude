@@ -355,12 +355,12 @@ createErrorSurface = function(d, baseData = null) {
   // objects into error surface
   e = [d.lower, d.upper.reverse()];
   f = createFeature("Polygon", e);
-  a = d3$1.geoArea(f);
-  if (a > 2 * Math.PI) {
+  if (!d3.geoContains(f, d.nominal[0])) {
     f = createFeature("Polygon", e.map(function(d) {
       return d.reverse();
     }));
   }
+  a = d3$1.geoArea(f);
   if (f.properties == null) {
     f.properties = {};
   }
@@ -404,7 +404,7 @@ createGroupedPlane = function(opts) {
     axes = flipAxesIfNeeded(axes);
     e = combinedErrors(hyperbolic_axes, axes, opts);
     el = d3$1.select(this);
-    el.append("path").datum(createErrorSurface(e, p)).attr('class', 'error');
+    el.append("path").datum(createErrorSurface(e, p)).attr('class', 'error').classed('unconstrained', hyperbolic_axes[2] > hyperbolic_axes[1]);
     if (!opts.nominal) {
       return;
     }

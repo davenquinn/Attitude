@@ -18,6 +18,9 @@ class GroupedOrientation(PCAOrientation):
         for o in orientations:
             if hasattr(o,'members'):
                 raise GroupedPlaneError("Cannot group already-grouped planes")
+            if o.member_of:
+                raise GroupedPlaneError("{} is already in a group."
+                                            .format(o.hash))
             o.member_of = self
 
         self.members = orientations

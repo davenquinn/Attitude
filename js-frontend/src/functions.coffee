@@ -17,9 +17,10 @@ createErrorSurface = (d, baseData=null)->
   e = [d.lower,d.upper.reverse()]
 
   f = createFeature "Polygon", e
-  a = geoArea(f)
-  if a > 2*Math.PI
+  if not d3.geoContains f, d.nominal[0]
     f = createFeature("Polygon",e.map (d)->d.reverse())
+
+  a = geoArea(f)
   f.properties ?= {}
   f.properties.area = a
   if baseData?
@@ -53,6 +54,8 @@ createGroupedPlane = (opts)->
     el.append "path"
       .datum createErrorSurface(e, p)
       .attr 'class', 'error'
+      .classed 'unconstrained', hyperbolic_axes[2] > hyperbolic_axes[1]
+
     return if not opts.nominal
     # Create nominal plane
     el.append "path"
