@@ -130,6 +130,12 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
     # Semiaxes of hyperbola
     cutAngle = Math.atan2(b,a)
     angularError = cutAngle*2*180/Math.PI
+    if angularError > 90
+      ## This plane has undefined errors
+      hyp = d3.select(@)
+        .attr('visibility','hidden')
+      return
+
     #console.log "Error: ", angularError
     # find length at which tangent is x long
     lengthShown = width/2
@@ -190,6 +196,7 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
     #__angle = 0
     ## Start DOM manipulation ###
     hyp = d3.select(@)
+      .attr 'visibility','visible'
       .attr 'transform', "translate(#{-center[0]+xScale(0)},#{yScale(0)+center[1]})
                           rotate(#{v})"
 
