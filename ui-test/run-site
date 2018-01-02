@@ -16,6 +16,5 @@ echo "-----"
 (cd $ATTITUDE && ./watch) & \
 ls $ATTITUDE/lib/*.* | entr $BASE/scripts/copy-files & \
 echo $script | entr $cmd & \
-find . -name '*.coffee' | entr coffee -c -b -o lib *.coffee & \
 browser-sync start --server --files "**/*.*"
 

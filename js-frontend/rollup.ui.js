@@ -17,7 +17,7 @@ export default {
   entry: "ui-src/index.coffee",
   dest: "lib/attitude-ui.js",
   extend: true,
-  external: ['d3','d3-selection-multi','d3-jetpack','mathjs'],
+  external: ['d3','d3-selection-multi','d3-jetpack'],
   globals: {
     "d3": "d3",
     "mathjs": "math"

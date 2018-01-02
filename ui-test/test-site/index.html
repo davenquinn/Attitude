@@ -9,11 +9,17 @@
 
         <link rel="stylesheet" href="/lib/styles.css">
         <link rel="stylesheet" href="/lib/ui-styles.css">
-        <script src="/lib-stable/d3v4-jetpack.js"></script>
-        <script src="/lib-stable/d3-selection-multi.min.js"></script>
+        <script src="/lib/d3v4+jetpack.js"></script>
+        <script src="/lib/d3-selection-multi.min.js"></script>
         <script src="/lib/math.min.js"></script>
         <script type="text/javascript" src="/lib/attitude-ui.js"></script>
-        <script type="text/javascript" src="/lib/index.js"></script>
+        <script type="text/javascript">
+          d3.json('/data.json', function (data) {
+            d3.select(".attitude-area")
+              .datum(data)
+              .call(attitudeUI.createUI);
+          });
+        </script>
     </head>
     <body>
       <h1>Collection</h1>

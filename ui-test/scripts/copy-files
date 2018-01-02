@@ -2,6 +2,5 @@
 
 dir=.
 
-rm -f $dir/lib/attitude.js $dir/lib/math.* $dir/lib/styles.css
-cp $ATTITUDE/node_modules/mathjs/dist/math.min.* $dir/lib
+rm -f $dir/lib/*.*
 cp $ATTITUDE/lib/* $dir/lib

@@ -40,7 +40,7 @@
   },
   "scripts": {
     "test": "./run-tests",
-    "build": "rollup -c rollup.config.js; rollup -c rollup.node.js; rollup -c rollup.ui.js"
+    "build": "./build"
   },
   "repository": {
     "type": "git",
