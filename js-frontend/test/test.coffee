@@ -10,5 +10,6 @@ describe '`Attitude` python module', ->
 
 describe 'math module', ->
   it 'should be importable', ->
-    o = require '../src/math'
+    {math} = require '..'
+    assert math?
 
