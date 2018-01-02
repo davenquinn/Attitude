@@ -355,12 +355,12 @@ createErrorSurface = function(d, baseData = null) {
   // objects into error surface
   e = [d.lower, d.upper.reverse()];
   f = createFeature("Polygon", e);
-  a = d3$1.geoArea(f);
-  if (a > 2 * Math.PI) {
+  if (!d3.geoContains(f, d.nominal[0])) {
     f = createFeature("Polygon", e.map(function(d) {
       return d.reverse();
     }));
   }
+  a = d3$1.geoArea(f);
   if (f.properties == null) {
     f.properties = {};
   }
@@ -404,7 +404,7 @@ createGroupedPlane = function(opts) {
     axes = flipAxesIfNeeded(axes);
     e = combinedErrors(hyperbolic_axes, axes, opts);
     el = d3$1.select(this);
-    el.append("path").datum(createErrorSurface(e, p)).attr('class', 'error');
+    el.append("path").datum(createErrorSurface(e, p)).attr('class', 'error').classed('unconstrained', hyperbolic_axes[2] > hyperbolic_axes[1]);
     if (!opts.nominal) {
       return;
     }
@@ -6484,13 +6484,6 @@ exports.Stereonet = function() {
     overlay = el.append("g").attrs({
       class: "overlay"
     });
-    // Add dragging for debug purposes
-    //drag = d3.drag()
-    //.on 'drag', =>
-    //proj.rotate [d3.event.x, -d3.event.y]
-    //dispatch.call 'rotate', f
-    //__redraw()
-    //el.call drag
     for (j = 0, len = callStack.length; j < len; j++) {
       item = callStack[j];
       item();
@@ -11249,6 +11242,11 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     // Semiaxes of hyperbola
     cutAngle = Math.atan2(b, a);
     angularError = cutAngle * 2 * 180 / Math.PI;
+    if (angularError > 90) {
+      //# This plane has undefined errors
+      hyp = d3$1.select(this).attr('visibility', 'hidden');
+      return;
+    }
     //console.log "Error: ", angularError
     // find length at which tangent is x long
     lengthShown = width / 2;
@@ -11307,7 +11305,7 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     //console.log 'Angle', __angle
     //__angle = 0
     //# Start DOM manipulation ###
-    hyp = d3$1.select(this).attr('transform', `translate(${-center[0] + xScale(0)},${yScale(0) + center[1]}) rotate(${v})`);
+    hyp = d3$1.select(this).attr('visibility', 'visible').attr('transform', `translate(${-center[0] + xScale(0)},${yScale(0) + center[1]}) rotate(${v})`);
     hyp.classed('in_group', d.in_group);
     lim = width / 2;
     lim = Math.abs(inPlaneLength);

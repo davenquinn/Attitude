@@ -204,14 +204,6 @@ Stereonet = ->
     overlay = el.append "g"
       .attrs class: "overlay"
 
-    # Add dragging for debug purposes
-    #drag = d3.drag()
-      #.on 'drag', =>
-        #proj.rotate [d3.event.x, -d3.event.y]
-        #dispatch.call 'rotate', f
-        #__redraw()
-    #el.call drag
-
     for item in callStack
       item()
     # Finally, draw all the paths at once

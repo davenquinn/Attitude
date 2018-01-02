@@ -148,7 +148,10 @@ class PCAOrientation(BaseOrientation):
         """
         # For principal components, data needs
         # to be pre-processed to have zero mean
+        self.member_of = None
+
         self.method = noise_axes
+        self.array = arr
 
         self.mean = arr.mean(axis=0)
         self.arr = centered(arr)
@@ -468,13 +471,15 @@ class PCAOrientation(BaseOrientation):
         plunge = N.arcsin(data[:,2]/r)
         trend = N.arctan2(data[:,0],data[:,1])
 
-        #m = N.linalg.norm(axs,axis=1)
-        #c = N.linalg.norm(center)
-        #a_dist = [N.degrees(N.arctan2(i,c)) for i in m]
-
-        #if spherical:
-        #    return e + N.array([self.azimuth+N.pi/2,0])
         return (trend,plunge)
+
+    def to_mapping(self,**values):
+        values.setdefault('centered_array',self.centered_array.tolist())
+        values.setdefault('center',self.center.tolist())
+        if self.member_of is not None:
+            values['member_of'] = self.member_of.hash
+
+        return super().to_mapping(**values)
 
     def __repr__(self):
         return ("Orientation:: strike: {0:.2f} dip: {1:.2f}\n"
