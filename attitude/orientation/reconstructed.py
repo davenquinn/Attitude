@@ -93,3 +93,7 @@ class ReconstructedPlane(ErrorShell, BaseOrientation):
     def angular_errors(self):
         return self.__angular_errors
 
+    @property
+    def hash(self):
+        return hash_array(self.hyperbolic_axes*self.axes)
+
