@@ -72,7 +72,7 @@ class BaseOrientation(object):
 
     @property
     def principal_axes(self):
-        return self.hyperbolic_axes*self.axes
+        return self.singular_values*self.axes
 
     @property
     def hash(self):
