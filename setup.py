@@ -8,7 +8,8 @@ install_requires = [
     'matplotlib',
     'mplstereonet',
     'jinja2',
-    'colour'
+    'colour',
+    'pytest'
     ]
 
 setup(
