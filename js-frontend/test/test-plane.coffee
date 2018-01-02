@@ -1,6 +1,4 @@
 d3 = require 'd3'
-turf = require 'turf'
-window = null
 {errorSurface,nominalPlane, math} = require '../lib/attitude.node.js'
 
 # Test implementations of plane functions in javascript
@@ -40,7 +38,7 @@ modeFunctions =
       }
 
     pt = points[0]
-    ins = turf.inside pt, polygon
+    ins = d3.geoContains polygon, pt
     return ins
 
 fn = modeFunctions[mode]

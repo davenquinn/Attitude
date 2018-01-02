@@ -7,6 +7,7 @@ from json import dumps, loads
 from os import path
 from itertools import product
 from codecs import getreader
+from sys import argv
 
 from attitude.test import random_plane
 from attitude import Orientation
@@ -114,7 +115,6 @@ def test_axis_deconvolution():
     assert N.allclose(sv,pca.singular_values)
     assert N.allclose(ax,pca.axes)
 
-@pytest.mark.xfail(reason="Turf.js tests cartesian geometry, not spherical")
 def test_polygon_winding():
     """
     Points on nominal surface should be within
@@ -125,4 +125,10 @@ def test_polygon_winding():
         intersects = get_coffeescript(
             'intersection', pca.principal_axes.tolist())
         assert intersects
+
+if __name__ == '__main__':
+    if argv[1] == 'random_pca':
+        pca = random_pca()
+        print(dumps(pca.principal_axes.tolist()))
+
 

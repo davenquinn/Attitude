@@ -357,7 +357,7 @@ createErrorSurface = function(d, baseData = null) {
   // objects into error surface
   e = [d.lower, d.upper.reverse()];
   f = createFeature("Polygon", e);
-  if (!d3.geoContains(f, d.nominal[0])) {
+  if (!d3$1.geoContains(f, d.nominal[0])) {
     f = createFeature("Polygon", e.map(function(d) {
       return d.reverse();
     }));

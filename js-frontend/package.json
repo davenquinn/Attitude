@@ -4,6 +4,7 @@
   "description": "Attitude computes the orientations of planes from point data",
   "main": "lib/attitude.node.js",
   "dependencies": {
+    "bluebird": "^3.5.1",
     "chroma-js": "^1.3.5",
     "d3": "^4.12.0",
     "d3-jetpack": "^2.0.16",

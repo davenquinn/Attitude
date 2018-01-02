@@ -1,4 +1,4 @@
-import {geoArea,select} from 'd3'
+import {geoArea,geoContains,select} from 'd3'
 import rewind from 'geojson-rewind'
 import * as math from './math.coffee'
 import {cloneOptions} from './util.coffee'
@@ -17,7 +17,7 @@ createErrorSurface = (d, baseData=null)->
   e = [d.lower,d.upper.reverse()]
 
   f = createFeature "Polygon", e
-  if not d3.geoContains f, d.nominal[0]
+  if not geoContains f, d.nominal[0]
     f = createFeature("Polygon",e.map (d)->d.reverse())
 
   a = geoArea(f)
