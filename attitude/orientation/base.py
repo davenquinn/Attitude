@@ -2,6 +2,10 @@ from __future__ import division, print_function
 import numpy as N
 from ..geom.util import dot
 from ..error.ellipse import ellipse
+from hashlib import sha1
+
+def hash_array(a):
+    return sha1(a.data.tobytes()).hexdigest()[:8]
 
 def rotation(angle):
     """Rotation about the Z axis (in the XY plane)"""
@@ -24,7 +28,11 @@ def ellipse(center,covariance_matrix,level=1, n=1000):
     return N.dot(data, rotation_matrix)+ center
 
 class BaseOrientation(object):
-
+    """
+    Abstract class to define common methods used by
+    other orientation classes (e.g. reconstructed
+    orientations, pca orientations)
+    """
     def dip_direction(self, uncertainties=False):
         s,d = self.strike_dip()
         s+=90
@@ -61,3 +69,44 @@ class BaseOrientation(object):
                 azimuth = azimuth + N.pi/2
             return (N.pi+azimuth,N.pi/2-slope)
         return (e[:,1],e[:,0])
+
+    @property
+    def principal_axes(self):
+        return self.hyperbolic_axes*self.axes
+
+    @property
+    def hash(self):
+        return hash_array(self.principal_axes)
+
+    @property
+    def center(self):
+        return None
+
+    @property
+    def centered_array(self):
+        return None
+
+    def to_mapping(self,**values):
+        """
+        Create a JSON-serializable representation of the plane that is usable with the
+        javascript frontend
+        """
+        strike, dip, rake = self.strike_dip_rake()
+        min, max = self.angular_errors()
+
+        mapping = dict(
+            uid=self.hash,
+            axes=self.axes.tolist(),
+            hyperbolic_axes=self.hyperbolic_axes.tolist(),
+            max_angular_error=max,
+            min_angular_error=min,
+            strike=strike,
+            dip=dip,
+            rake=rake)
+
+        # Add in user-provided-values, overwriting if
+        # necessary
+        for k,v in values.items():
+            mapping[k] = v
+        return mapping
+

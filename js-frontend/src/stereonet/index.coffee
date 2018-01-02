@@ -1,6 +1,6 @@
-d3 = require 'd3'
-chroma = require 'chroma-js'
-require 'd3-selection-multi'
+import * as d3 from 'd3'
+import chroma from 'chroma-js'
+import 'd3-selection-multi'
 import * as functions from '../functions.coffee'
 import * as math from '../math.coffee'
 import style from './module.styl'
@@ -65,11 +65,12 @@ Stereonet = ->
     o.color ?= '#aaaaaa'
     if not el?
       throw "Stereonet must be initialized to an element before adding data"
+    if not o.selector?
+      o.selector = 'g.planes'
+
+    con = dataArea.selectAppend o.selector
 
     fn = functions.plane opts
-
-    con = dataArea.append 'g'
-      .attr 'class','planes'
 
     sel = con.selectAll 'g.plane'
           .data data
@@ -202,14 +203,6 @@ Stereonet = ->
 
     overlay = el.append "g"
       .attrs class: "overlay"
-
-    # Add dragging for debug purposes
-    #drag = d3.drag()
-      #.on 'drag', =>
-        #proj.rotate [d3.event.x, -d3.event.y]
-        #dispatch.call 'rotate', f
-        #__redraw()
-    #el.call drag
 
     for item in callStack
       item()

@@ -11,7 +11,7 @@ from ..coordinates import centered
 from .base import BaseOrientation, rotation
 from ..error.ellipse import ellipse
 from ..stereonet import plane_errors, error_coords
-from ..error.axes import sampling_axes, sampling_covariance, angular_errors
+from ..error.axes import sampling_axes, sampling_covariance, angular_errors, noise_axes
 from ..test import scattered_plane
 from ..geom.util import dot, vector
 from ..geom.util import angle as vector_angle
@@ -148,7 +148,10 @@ class PCAOrientation(BaseOrientation):
         """
         # For principal components, data needs
         # to be pre-processed to have zero mean
-        self.method = sampling_axes
+        self.member_of = None
+
+        self.method = noise_axes
+        self.array = arr
 
         self.mean = arr.mean(axis=0)
         self.arr = centered(arr)
@@ -268,22 +271,34 @@ class PCAOrientation(BaseOrientation):
         _ = N.dot(_,self.axes)
         return self.arr - _
 
-    def angular_error(self, axis_length, method=sampling_axes):
+    @property
+    def center(self):
+        return self.mean
+
+    @property
+    def centered_array(self):
+        return self.arr
+
+    @property
+    def hyperbolic_axes(self):
+        return self.method(self)
+
+    def angular_error(self, axis_length):
         """
         The angular error for an in-plane axis of
         given length (either a PCA major axis or
         an intermediate direction).
         """
-        hyp_axes = method(self)
+        hyp_axes = self.method(self)
         return N.arctan2(hyp_axes[-1],axis_length)
 
-    def angular_errors(self, method=sampling_axes, degrees=True):
+    def angular_errors(self, degrees=True):
         """
         Minimum and maximum angular errors
         corresponding to 1st and 2nd axes
         of PCA distribution.
         """
-        hyp_axes = method(self)
+        hyp_axes = self.method(self)
         v = angular_errors(hyp_axes)
         if degrees:
             v = N.degrees(v)
@@ -322,10 +337,6 @@ class PCAOrientation(BaseOrientation):
     @property
     def coefficients(self):
         return self.axes[2]
-
-    @property
-    def principal_axes(self):
-        return self.singular_values*self.axes
 
     @property
     def azimuth(self):
@@ -460,10 +471,19 @@ class PCAOrientation(BaseOrientation):
         plunge = N.arcsin(data[:,2]/r)
         trend = N.arctan2(data[:,0],data[:,1])
 
-        #m = N.linalg.norm(axs,axis=1)
-        #c = N.linalg.norm(center)
-        #a_dist = [N.degrees(N.arctan2(i,c)) for i in m]
-
-        #if spherical:
-        #    return e + N.array([self.azimuth+N.pi/2,0])
         return (trend,plunge)
+
+    def to_mapping(self,**values):
+        values.setdefault('centered_array',self.centered_array.tolist())
+        values.setdefault('center',self.center.tolist())
+        if self.member_of is not None:
+            values['member_of'] = self.member_of.hash
+
+        return super().to_mapping(**values)
+
+    def __repr__(self):
+        return ("Orientation:: strike: {0:.2f} dip: {1:.2f}\n"
+                "      error:: min: {3:.2f} max: {4:.2f} rake: {2:.2f}"
+                .format(*self.strike_dip_rake(), *self.angular_errors()))
+
+

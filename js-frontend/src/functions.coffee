@@ -1,5 +1,4 @@
-d3 = require 'd3'
-require 'd3-selection-multi'
+import {geoArea,select} from 'd3'
 import rewind from 'geojson-rewind'
 import * as math from './math.coffee'
 import {cloneOptions} from './util.coffee'
@@ -12,21 +11,27 @@ createFeature = (type, coordinates)->
     type: type
     coordinates: coordinates
 
-createErrorSurface = (d)->
+createErrorSurface = (d, baseData=null)->
   # Function that turns orientation
   # objects into error surface
   e = [d.lower,d.upper.reverse()]
 
   f = createFeature "Polygon", e
-  a = d3.geoArea(f)
-  if a > 2*Math.PI
+  if not d3.geoContains f, d.nominal[0]
     f = createFeature("Polygon",e.map (d)->d.reverse())
+
+  a = geoArea(f)
   f.properties ?= {}
   f.properties.area = a
+  if baseData?
+    f.data = baseData
   f
 
-createNominalPlane = (d)->
-  createFeature 'LineString', d.nominal
+createNominalPlane = (d, baseData=null)->
+  obj = createFeature 'LineString', d.nominal
+  if baseData?
+    obj.data = baseData
+  return obj
 
 flipAxesIfNeeded = (axes)->
   if axes[2][2] < 0
@@ -45,14 +50,16 @@ createGroupedPlane = (opts)->
     axes = flipAxesIfNeeded(axes)
 
     e = combinedErrors hyperbolic_axes, axes, opts
-    el = d3.select @
+    el = select @
     el.append "path"
-      .datum createErrorSurface(e)
+      .datum createErrorSurface(e, p)
       .attr 'class', 'error'
+      .classed 'unconstrained', hyperbolic_axes[2] > hyperbolic_axes[1]
+
     return if not opts.nominal
     # Create nominal plane
     el.append "path"
-      .datum createNominalPlane(e)
+      .datum createNominalPlane(e, p)
       .attr 'class', 'nominal'
 
 __createErrorEllipse = (opts)->
@@ -69,7 +76,7 @@ __createErrorEllipse = (opts)->
 
       # Check winding (note: only an issue with non-traditional
       # stereonet axes)
-      a = d3.geoArea(f)
+      a = geoArea(f)
       if a > 2*Math.PI
         f = createFeature("Polygon",[e.reverse()])
         a = d3.geoArea(f)
@@ -77,6 +84,7 @@ __createErrorEllipse = (opts)->
         area: a
         level: opts.level
         sheet: sheet
+      f.data = p
       f
 
     v = ['upper','lower'].map f_

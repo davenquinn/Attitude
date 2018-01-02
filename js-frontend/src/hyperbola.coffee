@@ -1,11 +1,16 @@
-M = require 'mathjs'
-Q = require 'quaternion'
-d3 = require 'd3'
-require 'd3-jetpack'
+import create from 'mathjs/core'
+import Q from 'quaternion'
+import * as d3 from 'd3'
 import chroma from 'chroma-js'
 import * as math from './math.coffee'
 import {opacityByCertainty} from './stereonet'
-import uuid from 'uuid'
+import uuid from 'js-uuid'
+
+# We don't bundle mathjs right now but can if we figure out how
+if window.math?
+  M = window.math
+else
+  M = create()
 
 fixAngle = (a)->
   # Put an angle on the interval [-Pi,Pi]
@@ -125,12 +130,17 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
     # Semiaxes of hyperbola
     cutAngle = Math.atan2(b,a)
     angularError = cutAngle*2*180/Math.PI
+    if angularError > 90
+      ## This plane has undefined errors
+      hyp = d3.select(@)
+        .attr('visibility','hidden')
+      return
+
     #console.log "Error: ", angularError
     # find length at which tangent is x long
     lengthShown = width/2
 
     cutAngle2 = Math.atan2(b,a*screenRatio)
-
     inPlaneLength = lengthShown * Math.cos cutAngle2
 
     ## We will transform with svg functions
@@ -186,6 +196,7 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
     #__angle = 0
     ## Start DOM manipulation ###
     hyp = d3.select(@)
+      .attr 'visibility','visible'
       .attr 'transform', "translate(#{-center[0]+xScale(0)},#{yScale(0)+center[1]})
                           rotate(#{v})"
 
@@ -193,7 +204,7 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
 
     lim = width/2
     lim = Math.abs inPlaneLength
-    masksz = {x:-lim,y:-lim,width:lim*2,height:lim*2}
+    masksz = {x:-lim,y:-lim,width:lim*2,height: lim*2}
 
     mask = hyp.select('mask')
     mid = null
@@ -231,7 +242,11 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
     stop = (ofs, op)->
       a = Math.round(op*255)
       g.append 'stop'
-       .attrs offset: ofs, 'stop-color': "rgb(#{a},#{a},#{a})", 'stop-opacity': op
+        .attrs {
+          offset: ofs
+          'stop-color': "rgb(#{a},#{a},#{a})"
+          'stop-opacity': op
+         }
 
     stop(0,0)
     stop(0.2,0.1)
@@ -303,7 +318,6 @@ apparentDip = (viewpoint, xScale,yScale)->
     n[1] = Math.abs(n[1])
     n1 = [n[0],0,n[2]]
     n1 = n1.map (d)->d/M.norm(n1)
-    console.log n,n1
     qR = Q.fromBetweenVectors(n,n1)
 
     # Without adding this other quaternion, it is the same as just showing
@@ -334,20 +348,22 @@ apparentDip = (viewpoint, xScale,yScale)->
 class PlaneData
   constructor: (data, mean=null)->
     {axes, hyperbolic_axes, extracted, color} = data
-    @mean = mean or data.mean
+    @mean = mean or data.mean or data.center
     @axes = data.axes
     @color = color
     @lengths = hyperbolic_axes
     @in_group = data.in_group
     @array = extracted
     @data = data
-    #@pcaAxes = math.convolveAxes @axes, @lengths
+    @centered = data.centered_array
+
     # If we didn't pass a mean, we have to compute one
     return unless @array?
     ## Extract mean of data on each axis ##
     if not @mean?
       @mean = [0..2].map (i)=> d3.mean @array, (d)->d[i]
-    @centered = @array.map (d)=>M.subtract(d,@mean)
+    if not @centered?
+      @centered = @array.map (d)=>M.subtract(d,@mean)
 
   dip: =>
     n = @axes[2]
@@ -366,5 +382,6 @@ class PlaneData
     d = M.tan(dip)*M.cos(azimuth-dipDr)
     sign*Math.atan(d)
 
-export {hyperbolicErrors, digitizedLine, PlaneData, fixAngle, apparentDip}
+export {hyperbolicErrors, digitizedLine, PlaneData, fixAngle,
+        apparentDip, dot, chroma}
 

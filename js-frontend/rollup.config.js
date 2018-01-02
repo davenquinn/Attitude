@@ -6,16 +6,23 @@ import nodeResolve from 'rollup-plugin-node-resolve';
 
 let plugins = [
   coffee2({version: 2}),
-  stylus({output: 'styles.css'}),
+  stylus({output: 'lib/styles.css'}),
   nodeResolve({jsnext:true,main:true}),
-  commonJS({extensions: [ '.js', '.coffee' ]})
+  commonJS({
+    extensions: [ '.js', '.coffee' ],
+    include: 'node_modules/**'
+  })
 ];
 
 export default {
   entry: "src/index.coffee",
   dest: "lib/attitude.js",
   extend: true,
-  format: "cjs",
+  external: ["d3"],
+  globals: {
+    "d3": "d3"
+  },
+  format: "umd",
   moduleName: "attitude",
   plugins: plugins
 }
