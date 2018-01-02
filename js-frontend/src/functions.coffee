@@ -1,5 +1,4 @@
 import {geoArea,geoContains,select} from 'd3'
-import rewind from 'geojson-rewind'
 import * as math from './math.coffee'
 import {cloneOptions} from './util.coffee'
 

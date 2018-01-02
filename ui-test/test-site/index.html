@@ -8,19 +8,19 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <link rel="stylesheet" href="/lib/styles.css">
-        <link rel="stylesheet" href="/lib/local-styles.css">
+        <link rel="stylesheet" href="/lib/ui-styles.css">
         <script src="/lib-stable/d3v4-jetpack.js"></script>
         <script src="/lib-stable/d3-selection-multi.min.js"></script>
         <script src="/lib/math.min.js"></script>
-        <script type="text/javascript" src="/lib/attitude.js"></script>
+        <script type="text/javascript" src="/lib/attitude-ui.js"></script>
         <script type="text/javascript" src="/lib/index.js"></script>
     </head>
     <body>
       <h1>Collection</h1>
       <div class='attitude-area'>
         <div class='row'>
-          <svg id="stereonet"></svg>
-          <div id="data">
+          <svg class="stereonet"></svg>
+          <div class="attitude-data">
             <div class='plane-desc' style='display:none;'>
               <h3 class='data-id'>ID: <span class='data id'></span></h3>
               <h4>Nominal plane</h4>
@@ -36,7 +36,7 @@
             </div>
           </div>
         </div>
-        <svg id="horizontal"></svg>
+        <svg class="horizontal-area"></svg>
         <div class='collected-ids'></div>
       </svg>
     </body>

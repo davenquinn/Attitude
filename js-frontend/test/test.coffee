@@ -10,7 +10,6 @@ randomPCA = ->
   stdout = await runCommand cmd
   return JSON.parse stdout
 
-
 describe 'math module', ->
   it 'should be importable', ->
     {math} = require '..'
@@ -45,6 +44,5 @@ describe 'math module', ->
 
       pt = points[0]
       v = d3.geoContains(polygon, pt)
-      console.log v
       assert v, "point is in polygon"
 

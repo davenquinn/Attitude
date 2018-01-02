@@ -5,7 +5,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
 var d3$1 = require('d3');
-var geojsonRewind = _interopDefault(require('geojson-rewind'));
 var chroma = _interopDefault(require('chroma-js'));
 require('d3-selection-multi');
 var M = _interopDefault(require('mathjs'));
