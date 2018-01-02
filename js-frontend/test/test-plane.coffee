@@ -1,7 +1,7 @@
 d3 = require 'd3'
 turf = require 'turf'
 window = null
-{errorSurface,nominalPlane, math} = require '../lib/attitude.js'
+{errorSurface,nominalPlane, math} = require '../lib/attitude.node.js'
 
 # Test implementations of plane functions in javascript
 mode = process.argv[2]

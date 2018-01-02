@@ -1,21 +1,10 @@
-import create from 'mathjs/core'
+import M from 'mathjs'
 import Q from 'quaternion'
 import * as d3 from 'd3'
 import chroma from 'chroma-js'
 import * as math from './math.coffee'
 import {opacityByCertainty} from './stereonet'
-import uuidNode from 'uuid'
-import uuidShim from 'js-uuid'
-
-# We don't bundle mathjs right now but can if we figure out how
-if window.math?
-  # This is a pretty bad hack
-  M = window.math
-  uuid = uuidShim
-else
-  M = create()
-  uuid = uuidNode
-
+import uuid from 'uuid'
 
 fixAngle = (a)->
   # Put an angle on the interval [-Pi,Pi]
