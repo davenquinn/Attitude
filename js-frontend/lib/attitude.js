@@ -1,8 +1,10 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3')) :
-	typeof define === 'function' && define.amd ? define(['exports', 'd3'], factory) :
-	(factory((global.attitude = global.attitude || {}),global.d3));
-}(this, (function (exports,d3$1) { 'use strict';
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3'), require('uuid')) :
+	typeof define === 'function' && define.amd ? define(['exports', 'd3', 'uuid'], factory) :
+	(factory((global.attitude = global.attitude || {}),global.d3,global.uuidNode));
+}(this, (function (exports,d3$1,uuidNode) { 'use strict';
+
+uuidNode = uuidNode && uuidNode.hasOwnProperty('default') ? uuidNode['default'] : uuidNode;
 
 var cart2sph;
 var combinedErrors$1;
@@ -11095,14 +11097,18 @@ var getRatios;
 var matrix;
 var scaleRatio;
 var transpose$1;
+var uuid;
 var vecAngle;
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 // We don't bundle mathjs right now but can if we figure out how
 if (window.math != null) {
+  // This is a pretty bad hack
   M = window.math;
+  uuid = jsUuid;
 } else {
   M = core$1();
+  uuid = uuidNode;
 }
 
 exports.fixAngle = function(a) {
@@ -11318,7 +11324,7 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     mask = hyp.select('mask');
     mid = null;
     if (!mask.node()) {
-      mid = jsUuid.v4();
+      mid = uuid.v4();
       mask = hyp.append('mask').attr('id', mid).attrs(masksz).append('rect').attrs(_extends({}, masksz, {
         fill: "url(#gradient)"
       }));
