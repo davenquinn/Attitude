@@ -46,21 +46,19 @@ text.axis-label {
   font-size: 12pt;
   baseline-shift: 10px;
 }
-path.trace {
-  fill: transparent;
-  stroke-width: 2px;
-}
 div.attitude-area {
   width: 800px;
   margin-bottom: 1em;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
-div.row {
+div.attitude-area div.row {
   flex-grow: 1;
   display: flex;
   flex-direction: row;
 }
-* {
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+path.trace {
+  fill: transparent;
+  stroke-width: 2px;
 }
 div.attiude-data {
   flex: 1;

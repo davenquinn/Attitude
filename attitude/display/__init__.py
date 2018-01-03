@@ -6,7 +6,7 @@ from base64 import b64encode
 from jinja2 import FileSystemLoader, Environment
 import numpy as N
 import json
-from .nbextension import init_notebook_mode
+from .nbextension import init_notebook_mode, plot_interactive
 
 # For python 3 compatibility
 try:

@@ -3,8 +3,6 @@
 
 var cart2sph;
 var combinedErrors$1;
-var convolveAxes;
-var deconvolveAxes;
 var ellipse;
 var identity;
 var norm;
@@ -269,36 +267,6 @@ combinedErrors$1 = function(sv, ax, opts = {}) {
     upper: func('upper'),
     lower: func('lower')
   };
-};
-
-convolveAxes = function(axes, sv) {
-  var residual;
-  // Convolve unit-length principal axes
-  // with singular values to form vectors
-  // representing the orientation and magnitude
-  // of hyperbolic axes
-  // In case we don't pass normalized axes
-  [residual, axes] = deconvolveAxes(axes);
-  return axes.map(function(row, i) {
-    return row.map(function(e) {
-      return e * sv[i];
-    });
-  });
-};
-
-deconvolveAxes = function(axes) {
-  var ax, i, j, k, l, ref, ref1, sv;
-  // Deconvolve unit-length principal axes and
-  // singular values from premultiplied principal axes
-  // Inverse of `convolveAxes`
-  ax = transpose(axes);
-  sv = ax.map(norm);
-  for (i = k = 0, ref = axes.length; 0 <= ref ? k < ref : k > ref; i = 0 <= ref ? ++k : --k) {
-    for (j = l = 0, ref1 = axes.length; 0 <= ref1 ? l < ref1 : l > ref1; j = 0 <= ref1 ? ++l : --l) {
-      axes[j][i] /= sv[i];
-    }
-  }
-  return [sv, axes];
 };
 
 var cloneOptions;
@@ -1947,7 +1915,7 @@ var chroma = createCommonjsModule(function (module, exports) {
         this._rgb = hex2rgb(w3cx11[n]);
       }
       this._rgb[3] = 1;
-      this;
+      
     }
     h = this.hex();
     for (k in w3cx11) {
@@ -2543,7 +2511,6 @@ var chroma = createCommonjsModule(function (module, exports) {
     _mode = 'rgb';
     _nacol = chroma('#ccc');
     _spread = 0;
-    _fixed = false;
     _domain = [0, 1];
     _pos = [];
     _padding = [0, 0];
@@ -2593,18 +2560,6 @@ var chroma = createCommonjsModule(function (module, exports) {
     };
     tmap = function(t) {
       return t;
-    };
-    classifyValue = function(value) {
-      var i, maxc, minc, n, val;
-      val = value;
-      if (_classes.length > 2) {
-        n = _classes.length - 1;
-        i = getClass(value);
-        minc = _classes[0] + (_classes[1] - _classes[0]) * (0 + _spread * 0.5);
-        maxc = _classes[n - 1] + (_classes[n] - _classes[n - 1]) * (1 - _spread * 0.5);
-        val = _min + ((_classes[i] + (_classes[i + 1] - _classes[i]) * 0.5 - minc) / (maxc - minc)) * (_max - _min);
-      }
-      return val;
     };
     getColor = function(val, bypassMap) {
       var c, col, i, k, o, p, ref, t;
@@ -3228,7 +3183,7 @@ d = {
   }
 };
 
-var horizontal = function(stereonet) {
+function horizontal(stereonet) {
   var labelDistance;
   labelDistance = 4;
   return function() {
@@ -3272,13 +3227,13 @@ var horizontal = function(stereonet) {
       dy: -labelDistance - 4
     });
   };
-};
+}
 
 var d2r;
 
 d2r = Math.PI / 180;
 
-var vertical = function(stereonet) {
+function vertical(stereonet) {
   return function(opts = {}) {
     var a, at, az, dip, dy, feat, g, grat, innerRadius, labels, locs, lon, m, proj, sel, v, x;
     if (opts.startOffset == null) {
@@ -3356,10 +3311,10 @@ var vertical = function(stereonet) {
       startOffset: `${innerRadius * 70 * d2r}`
     });
   };
-};
+}
 
 //# Stereonet Dragging
-var interaction = function(stereonet) {
+function interaction(stereonet) {
   var el, m0, mousedown, mousemove, mouseup, o0, proj;
   // modified from http://bl.ocks.org/1392560
   m0 = void 0;
@@ -3389,7 +3344,7 @@ var interaction = function(stereonet) {
   };
   el.on('mousedown', mousedown);
   return d3$1.select(window).on("mousemove", mousemove).on("mouseup", mouseup);
-};
+}
 
 /*
 Stereonet labeling:
@@ -3547,8 +3502,6 @@ getterSetter = function(main) {
 
 Stereonet = function() {
   var _, __getSet, __redraw, __setScale, callStack, clipAngle, data, dataArea, dispatch$$1, drawEllipses, drawPlanes, el, ell, ellipses, f, graticule, margin, overlay, path, planes, proj, s, scale, setGraticule, shouldClip;
-  planes = null;
-  ellipses = null;
   data = null;
   el = null;
   dataArea = null;
@@ -3793,38 +3746,6 @@ Stereonet = function() {
     }
     return f;
   };
-  ell = function() {
-    var attrs, data_, fn, o, sel;
-    // Same call signature as d3.Selection.data
-    attrs = null;
-    data_ = null;
-    sel = null;
-    fn = null;
-    o = function(el_) {
-      ell = createErrorEllipse(opts);
-      sel = function() {
-        return el_.selectAll('path.ellipse').data(data_.map(ell), fn);
-      };
-      sel().enter().append('path').attr('class', "ellipse").attrs(attrs).exit().remove();
-      if (el != null) {
-        __redraw();
-      }
-      return sel;
-    };
-    __getSet = getterSetter(o);
-    o.data = __getSet(data_, function(d, f) {
-      data_ = d;
-      return fn = f;
-    });
-    o.attrs = __getSet(attrs, function(o) {
-      attrs = o;
-      if (sel != null) {
-        return sel().attrs(attrs);
-      }
-    });
-    o.selection = sel;
-    return o;
-  };
   f.ellipses = drawEllipses;
   f.dataArea = function() {
     return dataArea;
@@ -3880,21 +3801,6 @@ var isBigNumber = function isBigNumber(x) {
 };
 
 var object = createCommonjsModule(function (module, exports) {
-'use strict';
-
-
-
-/**
- * Clone an object
- *
- *     clone(x)
- *
- * Can clone any primitive type, array, and object.
- * If x has a function clone, this function will be invoked to clone the object.
- *
- * @param {*} x
- * @return {*} clone
- */
 exports.clone = function clone(x) {
   var type = typeof x;
 
@@ -4146,6 +4052,16 @@ exports.isFactory = function (object) {
 };
 });
 
+var object_1 = object.clone;
+var object_2 = object.map;
+var object_3 = object.extend;
+var object_4 = object.deepExtend;
+var object_5 = object.deepEqual;
+var object_6 = object.canDefineProperty;
+var object_7 = object.lazy;
+var object_8 = object.traverse;
+var object_9 = object.isFactory;
+
 var typedFunction = createCommonjsModule(function (module, exports) {
 /**
  * typed-function
@@ -4154,8 +4070,6 @@ var typedFunction = createCommonjsModule(function (module, exports) {
  *
  * https://github.com/josdejong/typed-function
  */
-'use strict';
-
 (function (root, factory) {
   if (typeof undefined === 'function' && undefined.amd) {
     // AMD. Register as an anonymous module.
@@ -5537,17 +5451,6 @@ var typedFunction = createCommonjsModule(function (module, exports) {
 });
 
 var number = createCommonjsModule(function (module, exports) {
-'use strict';
-
-/**
- * @typedef {{sign: '+' | '-' | '', coefficients: number[], exponent: number}} SplitValue
- */
-
-/**
- * Test whether value is a number
- * @param {*} value
- * @return {boolean} isNumber
- */
 exports.isNumber = function(value) {
   return typeof value === 'number';
 };
@@ -6044,6 +5947,20 @@ exports.nearlyEqual = function(x, y, epsilon) {
   return false;
 };
 });
+
+var number_1 = number.isNumber;
+var number_2 = number.isInteger;
+var number_3 = number.sign;
+var number_4 = number.format;
+var number_5 = number.splitNumber;
+var number_6 = number.toEngineering;
+var number_7 = number.toFixed;
+var number_8 = number.toExponential;
+var number_9 = number.toPrecision;
+var number_10 = number.roundDigits;
+var number_11 = number.digits;
+var number_12 = number.DBL_EPSILON;
+var number_13 = number.nearlyEqual;
 
 /**
  * Test whether a value is a Matrix
@@ -7054,23 +6971,6 @@ var core = core$2;
 var decimal = createCommonjsModule(function (module) {
 /*! decimal.js v9.0.1 https://github.com/MikeMcl/decimal.js/LICENCE */
 (function (globalScope) {
-  'use strict';
-
-
-  /*
-   *  decimal.js v9.0.1
-   *  An arbitrary-precision Decimal type for JavaScript.
-   *  https://github.com/MikeMcl/decimal.js
-   *  Copyright (c) 2017 Michael Mclaughlin <M8ch88l@gmail.com>
-   *  MIT Licence
-   */
-
-
-  // -----------------------------------  EDITABLE DEFAULTS  ------------------------------------ //
-
-
-    // The maximum exponent magnitude.
-    // The limit on the value of `toExpNeg`, `toExpPos`, `minE` and `maxE`.
   var EXP_LIMIT = 9e15,                      // 0 to 9e15
 
     // The limit on the value of `precision`, and on the value of the first argument to
@@ -10778,7 +10678,7 @@ var decimal = createCommonjsModule(function (module) {
       u = y;
       y = t;
       t = j;
-      i++;
+      
     }
 
     external = true;
@@ -12310,9 +12210,11 @@ exports.toFixed = function (value, precision) {
 };
 });
 
-var string = createCommonjsModule(function (module, exports) {
-'use strict';
+var formatter_1 = formatter.format;
+var formatter_2 = formatter.toExponential;
+var formatter_3 = formatter.toFixed;
 
+var string = createCommonjsModule(function (module, exports) {
 var formatNumber = number.format;
 var formatBigNumber = formatter.format;
 
@@ -12522,6 +12424,12 @@ function looksLikeFraction (value) {
       typeof value.d === 'number') || false;
 }
 });
+
+var string_1 = string.isString;
+var string_2 = string.endsWith;
+var string_3 = string.format;
+var string_4 = string.stringify;
+var string_5 = string.escape;
 
 var format = string.format;
 var lazy$1 = object.lazy;
@@ -12796,8 +12704,6 @@ var complex$2 = createCommonjsModule(function (module, exports) {
 
 (function(root) {
 
-  'use strict';
-
   var P = {'re': 0, 'im': 0};
 
   var cosh = function(x) {
@@ -12986,10 +12892,7 @@ var complex$2 = createCommonjsModule(function (module, exports) {
         parser_exit();
     }
 
-    if (isNaN(P['re']) || isNaN(P['im'])) {
-      // If a calculation is NaN, we treat it as NaN and don't throw
-      //parser_exit();
-    }
+    
   };
 
   /**
@@ -13248,10 +13151,6 @@ var complex$2 = createCommonjsModule(function (module, exports) {
 
       var a = this['re'];
       var b = this['im'];
-
-      if (b === 0 && a > 0) {
-        //return new Complex(Math.log(a), 0);
-      }
 
       return new Complex(
               logHypot(a, b),
@@ -14217,8 +14116,6 @@ var Complex_1 = {
 };
 
 var latex = createCommonjsModule(function (module, exports) {
-'use strict';
-
 exports.symbols = {
   // GREEK LETTERS
   Alpha: 'A',     alpha: '\\alpha',
@@ -14322,6 +14219,11 @@ exports.toSymbol = function (name, isUnit) {
   return name;
 };
 });
+
+var latex_1 = latex.symbols;
+var latex_2 = latex.operators;
+var latex_3 = latex.defaultTemplate;
+var latex_4 = latex.toSymbol;
 
 function factory$8 (type, config, load, typed) {
   var latex$$1 = latex;
@@ -14475,11 +14377,6 @@ var fraction$2 = createCommonjsModule(function (module, exports) {
 
 (function (root) {
 
-  "use strict";
-
-  // Maximum search depth for cyclic rational numbers. 2000 should be more than enough.
-  // Example: 1/7 = 0.(142857) has 6 repeating decimal places.
-  // If MAX_CYCLE_LEN gets reduced, long cycles will not be detected and toString() only gets the first 10 digits
   var MAX_CYCLE_LEN = 2000;
 
   // Parsed data to avoid calling "new" all the time
@@ -15468,23 +15365,6 @@ IndexError.prototype.isIndexError = true;
 var IndexError_1 = IndexError;
 
 var array = createCommonjsModule(function (module, exports) {
-'use strict';
-
-
-
-
-
-
-
-
-
-/**
- * Calculate the size of a multi dimensional array.
- * This function checks the size of the first entry, it does not validate
- * whether all dimensions match. (use function `validate` for that)
- * @param {Array} x
- * @Return {Number[]} size
- */
 exports.size = function (x) {
   var s = [];
 
@@ -16003,6 +15883,24 @@ exports.generalize = function(a) {
 exports.isArray = Array.isArray;
 });
 
+var array_1 = array.size;
+var array_2 = array.validate;
+var array_3 = array.validateIndex;
+var array_4 = array.UNINITIALIZED;
+var array_5 = array.resize;
+var array_6 = array.reshape;
+var array_7 = array.squeeze;
+var array_8 = array.unsqueeze;
+var array_9 = array.flatten;
+var array_10 = array.map;
+var array_11 = array.forEach;
+var array_12 = array.filter;
+var array_13 = array.filterRegExp;
+var array_14 = array.join;
+var array_15 = array.identify;
+var array_16 = array.generalize;
+var array_17 = array.isArray;
+
 /**
  * Test whether value is a boolean
  * @param {*} value
@@ -16083,8 +15981,6 @@ var _function = {
 };
 
 var utils = createCommonjsModule(function (module, exports) {
-'use strict';
-
 exports.array = array;
 exports['boolean'] = boolean_1$2;
 exports['function'] = _function;
@@ -16094,6 +15990,13 @@ exports.string = string;
 exports.types = types;
 exports.emitter = emitter;
 });
+
+var utils_1 = utils.array;
+var utils_2 = utils.number;
+var utils_3 = utils.object;
+var utils_4 = utils.string;
+var utils_5 = utils.types;
+var utils_6 = utils.emitter;
 
 var string$2 = utils.string;
 
@@ -19513,6 +19416,9 @@ var algorithm10 = {
 	factory: factory_1$21
 };
 
+var string$5 = utils.string;
+var isString$3 = string$5.isString;
+
 function factory$22 (type, config, load, typed) {
 
   var DenseMatrix = type.DenseMatrix;
@@ -22378,6 +22284,11 @@ function hasher (args) {
   return args[0].precision;
 }
 });
+
+var constants_1 = constants.e;
+var constants_2 = constants.phi;
+var constants_3 = constants.pi;
+var constants_4 = constants.tau;
 
 function factory$40 (type, config, load, typed) {
   var latex$$2 = latex;
@@ -26212,8 +26123,6 @@ function factory$38 (type, config, load, typed, math) {
           matchingUnit = currentUnitSystem[matchingBase];
         }
       }
-      var value;
-      var str;
       if(matchingUnit) {
         this.units = [{
           unit: matchingUnit.unit,
@@ -26262,7 +26171,6 @@ function factory$38 (type, config, load, typed, math) {
     // Multiple units or units with powers are formatted like this:
     // 5 (kg m^2) / (s^3 mol)
     // Build an representation from the base units of the SI unit system
-    var missingBaseDim = false;
     for(var i=0; i<BASE_DIMENSIONS.length; i++) {
       var baseDim = BASE_DIMENSIONS[i];
       if(Math.abs(ret.dimensions[i] || 0) > 1e-12) {
@@ -28866,8 +28774,6 @@ var type = [
 ];
 
 var version = '3.18.0';
-// Note: This file is automatically generated when building math.js.
-// Changes made in this file will be overwritten.
 
 function factory$60 (type, config, load, typed, math) {
   // listen for changed in the configuration, automatically reload
@@ -35098,7 +35004,6 @@ function factory$73 (type, config, load, typed) {
   var assign$$1 = load(assign);
   var access$$2 = load(access);
 
-  var keywords$$2 = keywords;
   var operators$$2 = operators;
 
   /**
@@ -41955,6 +41860,7 @@ var util$1 = {
 	math: math$17
 };
 
+var digits$1 = number.digits;
 // TODO this could be improved by simplifying seperated constants under associative and commutative operators
 function factory$111(type, config, load, typed, math) {
   var util = load(util$1);
@@ -55566,6 +55472,7 @@ var cross$2 = {
 	factory: factory_1$199
 };
 
+var clone$11     = object.clone;
 var isInteger$25 = number.isInteger;
 
 function factory$200 (type, config, load, typed) {
@@ -56958,7 +56865,6 @@ var size$6 = {
  */
 /*jshint unused:false */
 var naturalSort = function naturalSort (a, b) {
-	"use strict";
 	var re = /(^([+\-]?(?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+\-]?\d+)?)?$|^0x[0-9a-f]+$|\d+)/gi,
 		sre = /(^[ ]*|[ ]*$)/g,
 		dre = /(^([\w ]+,?[\w ]+)?[\w ]+,?[\w ]+\d+:\d+(:\d+)?[\w ]?|^\d{1,4}[\/\-]\d{1,4}[\/\-]\d{1,4}|^\w+, \w+ \d+, \d{4})/,
@@ -57816,8 +57722,6 @@ var permutations$2 = {
 };
 
 var seedRandom = createCommonjsModule(function (module) {
-'use strict';
-
 var width = 256;// each RC4 output is 0 <= x < 256
 var chunks = 6;// at least six RC4 outputs for each double
 var digits = 52;// there are 52 significant digits in a double
@@ -57990,6 +57894,8 @@ function tostring(a) {
 //
 mixkey(Math.random(), pool);
 });
+
+var seedRandom_1 = seedRandom.resetGlobal;
 
 // create a random seed here to prevent an infinite loop from seed-random
 // inside the factory. Reason is that math.random is defined as a getter/setter
@@ -62611,8 +62517,6 @@ var error = [
   }
 ];
 
-// TODO: implement an InvalidValueError?
-
 var lib = [
   type,        // data types (Matrix, Complex, Unit, ...)
   constants$2,   // constants
@@ -62668,15 +62572,6 @@ var quaternion = createCommonjsModule(function (module, exports) {
  **/
 (function(root) {
 
-  'use strict';
-
-  /**
-   * Calculates log(sqrt(a^2+b^2)) in a way to avoid overflows
-   *
-   * @param {number} a
-   * @param {number} b
-   * @returns {number}
-   */
   function logHypot(a, b) {
 
     var _a = Math.abs(a);
@@ -63492,7 +63387,6 @@ var quaternion = createCommonjsModule(function (module, exports) {
       var z1 = this['z'];
 
       // [0, v]
-      var w2 = 0;
       var x2 = v[0];
       var y2 = v[1];
       var z2 = v[2];
@@ -63503,7 +63397,6 @@ var quaternion = createCommonjsModule(function (module, exports) {
       var y3 = w1 * y2 + /*y1 * w2 +*/ z1 * x2 - x1 * z2;
       var z3 = w1 * z2 + /*z1 * w2 +*/ x1 * y2 - y1 * x2;
 
-      var w4 = w3 * w1 + x3 * x1 + y3 * y1 + z3 * z1;
       var x4 = x3 * w1 - w3 * x1 - y3 * z1 + z3 * y1;
       var y4 = y3 * w1 - w3 * y1 - z3 * x1 + x3 * z1;
       var z4 = z3 * w1 - w3 * z1 - x3 * y1 + y3 * x1;
@@ -63850,8 +63743,6 @@ var uuid_1 = uuid;
 var PlaneData;
 var T;
 var __planeAngle;
-var apparentDip;
-var apparentDipCorrection;
 var digitizedLine;
 var dot;
 var fixAngle;
@@ -63913,21 +63804,6 @@ fixAngle = function(a) {
   return a;
 };
 
-apparentDipCorrection = function(screenRatio = 1) {
-  return function(axes2d) {
-    var a0, a1, angle, cosA;
-    // Correct for apparent dip
-    a0 = axes2d[1];
-    a1 = [0, 1];
-    //a0 = M.divide(a0,M.norm(a0))
-    //a1 = M.divide(a1,M.norm(a1))
-    cosA = dot(a0, a1);
-    console.log("Axes", a0, cosA);
-    angle = Math.atan2(Math.tan(Math.acos(cosA / (mathjs.norm(a0) * mathjs.norm(a1)))), screenRatio);
-    return angle * 180 / Math.PI;
-  };
-};
-
 scaleRatio = function(scale) {
   return scale(1) - scale(0);
 };
@@ -63957,7 +63833,6 @@ hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
   var angle, centerPoint, dfunc, gradient, lineGenerator, n, nCoords, nominal, ratioX, ratioY, screenRatio, width;
   n = 10;
   angle = viewpoint;
-  gradient = null;
   width = 400;
   nominal = false;
   centerPoint = false;
@@ -64164,56 +64039,6 @@ digitizedLine = function(viewpoint, lineGenerator) {
   return f;
 };
 
-apparentDip = function(viewpoint, xScale, yScale) {
-  var axes, f, lineGenerator, ratioX, ratioY, screenRatio;
-  axes = mathjs.eye(3);
-  ({ratioX, ratioY, screenRatio, lineGenerator} = getRatios(xScale, yScale));
-  //if not axes?
-  f = function(d) {
-    /* Map down to two dimensions (the x-z plane of the viewing geometry) */
-    /* Create a line from input points */
-    /* Put in axis-aligned coordinates */
-    var A, R, a, data, n, n1, normal, offs, planeAxes, q, qA, qR, v;
-    //d3.select @
-    //.attr 'd',lineGenerator(lineData)
-    //.attr 'transform', "translate(#{xScale(offs[0])},#{yScale(offs[2])})rotate(#{v})"
-    planeAxes = d.axes;
-    if (d.group != null) {
-      planeAxes = d.group.axes;
-    }
-    q = quaternion.fromAxisAngle([0, 0, 1], viewpoint);
-    R = mathjs.transpose(matrix(axes));
-    A = planeAxes;
-    // Find fit normal in new coordinates
-    normal = dot(A[2], R, q);
-    // Get transform that puts normal in xz plane
-    n = normal.toArray();
-    n[1] = Math.abs(n[1]);
-    n1 = [n[0], 0, n[2]];
-    n1 = n1.map(function(d) {
-      return d / mathjs.norm(n1);
-    });
-    qR = quaternion.fromBetweenVectors(n, n1);
-    // Without adding this other quaternion, it is the same as just showing
-    // digitized lines
-    qA = q.mul(qR);
-    v = dot(d.centered, R);
-    a = dot(v, qA);
-    data = dot(a, T).toArray();
-    // Get offset of angles
-    offs = dot(d.offset, R, q, T).toArray();
-    return d3$1.select(this).attr('d', lineGenerator(data)).attr('transform', `translate(${xScale(offs[0])},${yScale(offs[1])})`);
-  };
-  f.axes = function(o) {
-    if (o == null) {
-      return axes;
-    }
-    axes = o;
-    return f;
-  };
-  return f;
-};
-
 PlaneData = class PlaneData {
   constructor(data, mean$$1 = null) {
     var axes, color, extracted, hyperbolic_axes;
@@ -64367,7 +64192,6 @@ exports.createUI = function(__base) {
     return new PlaneData(d);
   });
   totalLength = 0;
-  accum = [0, 0, 0];
   weights = singlePlanes.map(function(plane) {
     var d, len;
     d = plane.data;
