@@ -1,25 +1,9 @@
-<script type='text/javascript'>
-if(!window.__attitudeUILoaded){
-define("mathjs", function(require, exports, module) {
-  <<<mathjs>>>
-});
-define("d3", function(require, exports, module) {
-  <<<d3>>>
-});
-define("attitudeUI", function(require, exports, module) {
-  <<<attitudeUI>>>
-});
-
-
-require(['d3','mathjs','attitudeUI'], function(d3, math, attitudeUI) {
-  window.d3 = d3;
-  window.math = math;
-  window.attitudeUI = attitudeUI;
-  window.__attitudeUILoaded = true;
-});
-}
-</script>
 <style>
   <<<stylesheet>>>
 </style>
+<script type='text/javascript'>
+  <<<mathjs>>>
+  <<<d3>>>
+  <<<attitudeUI>>>
+</script>
 

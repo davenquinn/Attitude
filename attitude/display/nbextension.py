@@ -1,7 +1,7 @@
 from os import path
 from uuid import uuid4
 from json import dumps
-from IPython.display import display
+from IPython import display
 
 __here__ = path.dirname(__file__)
 lib = path.join(__here__,'../../js-frontend/lib')
@@ -17,6 +17,9 @@ def init_notebook_mode():
 
     Based heavily on the `plotly` offline setup function
     (https://github.com/plotly/plotly.py/blob/master/plotly/offline/offline.py)
+
+    Also see
+    https://github.com/paulgb/nbgraph/blob/master/nbgraph/client/prepare_notebook.html
     """
     global __ATTITUDE_INITIALIZED
 
@@ -27,7 +30,7 @@ def init_notebook_mode():
                             get_library("d3v4+jetpack.js")+
                             get_library("d3-selection-multi.min.js"))
     script = script.replace("<<<mathjs>>>",
-                            get_library("math.min.js"))
+                            get_library("math.js"))
     script = script.replace("<<<attitudeUI>>>",
                             get_library("attitude-ui.js"))
 
@@ -37,7 +40,7 @@ def init_notebook_mode():
     display_bundle = {
         'text/html': script
     }
-    display(display_bundle, raw=True)
+    display.display(display_bundle, raw=True)
     __ATTITUDE_INITIALIZED = True
 
 def plot_interactive(attitudes):
@@ -47,18 +50,6 @@ def plot_interactive(attitudes):
     attitudes = [a.to_mapping() if hasattr(a,'to_mapping') else a
                  for a in attitudes]
 
-
-    script = script.replace("<<<d3>>>",
-                            get_library("d3v4+jetpack.js")+
-                            get_library("d3-selection-multi.min.js"))
-    script = script.replace("<<<mathjs>>>",
-                            get_library("math.min.js"))
-    script = script.replace("<<<attitudeUI>>>",
-                            get_library("attitude-ui.js"))
-
-    script = script.replace("<<<stylesheet>>>",
-                            get_library("ui-styles.css"))
-
     data = dumps(attitudes)
     script = script.replace("<<<data>>>",data)
 
@@ -67,5 +58,7 @@ def plot_interactive(attitudes):
     display_bundle = {
         'text/html': script
     }
-    display(display_bundle, raw=True)
+    #with open(path.join(__here__,'view-filled.html'), 'w') as f:
+    #    print(script,file=f)
+    display.display(display_bundle, raw=True)
 

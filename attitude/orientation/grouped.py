@@ -37,8 +37,12 @@ def create_groups(orientations, *groups, **kwargs):
     """
     grouped = []
     for o in orientations:
+        # Get rid of and recreate group membership
+        o.member_of = None
         try:
             grouped += o.members
+            for a in o.members:
+                a.member_of = o
         except AttributeError:
             pass
 
