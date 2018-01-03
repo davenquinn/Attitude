@@ -20,10 +20,21 @@
   <svg class="horizontal-area"></svg>
   <div class='collected-ids'></div>
 </div>
+<style>
+  <<<stylesheet>>>
+</style>
 <script type='text/javascript'>
+  <<<mathjs>>>
+  <<<d3>>>
+  <<<attitudeUI>>>
   var data='<<<data>>>';
-  d3.select(".attitude-area.<<<hash>>>")
-    .datum(data)
+  var c = d3.select(".attitude-area.<<<hash>>>");
+
+  c.datum(JSON.parse(data))
     .call(attitudeUI.createUI);
+
+  d3.select(c.node().parentElement.parentElement)
+    .style('max-height',900)
+    .style('background-color','white');
 </script>
 

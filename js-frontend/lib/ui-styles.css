@@ -48,7 +48,9 @@ text.axis-label {
 }
 div.attitude-area {
   width: 800px;
-  margin-bottom: 1em;
+  background: #fff;
+  margin: 1em;
+  margin-bottom: 2em;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 div.attitude-area div.row {
@@ -60,10 +62,8 @@ path.trace {
   fill: transparent;
   stroke-width: 2px;
 }
-div.attiude-data {
-  flex: 1;
-}
 div.plane-desc {
+  margin-top: 1em;
   min-width: 15em;
   background-color: #eee;
   padding: 0.5em;
@@ -92,7 +92,10 @@ g.in_group path.hyperbola {
 }
 .collected-ids {
   height: 1em;
+  margin-bottom: 0.5em;
   font-size: 0.9em;
+  cursor: pointer;
+  color: #444;
   font-family: "Consolas", monospace;
 }
 .stereonet g.plane.in-group path.error {

@@ -33,6 +33,8 @@ class BaseOrientation(object):
     other orientation classes (e.g. reconstructed
     orientations, pca orientations)
     """
+    disabled = False
+
     def dip_direction(self, uncertainties=False):
         s,d = self.strike_dip()
         s+=90
@@ -94,6 +96,11 @@ class BaseOrientation(object):
         strike, dip, rake = self.strike_dip_rake()
         min, max = self.angular_errors()
 
+        try:
+            disabled = self.disabled
+        except AttributeError:
+            disabled = False
+
         mapping = dict(
             uid=self.hash,
             axes=self.axes.tolist(),
@@ -102,7 +109,8 @@ class BaseOrientation(object):
             min_angular_error=min,
             strike=strike,
             dip=dip,
-            rake=rake)
+            rake=rake,
+            disabled=disabled)
 
         # Add in user-provided-values, overwriting if
         # necessary
