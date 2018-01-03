@@ -1,0 +1,6 @@
+#!/usr/bin/env zsh
+
+dir=.
+
+rm -f $dir/lib/*.*
+cp $ATTITUDE/lib/* $dir/lib

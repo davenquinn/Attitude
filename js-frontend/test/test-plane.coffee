@@ -21,25 +21,6 @@ modeFunctions =
   deconvolveAxes: (d)->
     # Test javascript deconvolution of axes
     math.deconvolveAxes(d)
-  intersection: (d)->
-    # Test that nominal plane is within
-    # error bounds
-    axs = math.deconvolveAxes d
-    e = math.combinedErrors.apply null, axs
-    polygon = errorSurface e
-    line = nominalPlane e
-    points = line.geometry.coordinates.map (d)->
-      {
-        type: 'Feature',
-        geometry: {
-          type: 'Point',
-          coordinates: d
-        }
-      }
-
-    pt = points[0]
-    ins = d3.geoContains polygon, pt
-    return ins
 
 fn = modeFunctions[mode]
 val = fn(data)

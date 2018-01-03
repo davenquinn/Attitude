@@ -1,2 +1,4 @@
 #!/bin/bash
-find src -name '*.*' | entr npm run-script build
+find src -name '*.*' | entr ./build & \
+find ui-src -name '*.*' | entr rollup -c rollup.ui.js
+

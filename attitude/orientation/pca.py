@@ -149,6 +149,7 @@ class PCAOrientation(BaseOrientation):
         # For principal components, data needs
         # to be pre-processed to have zero mean
         self.member_of = None
+        self.disabled = False
 
         self.method = noise_axes
         self.array = arr

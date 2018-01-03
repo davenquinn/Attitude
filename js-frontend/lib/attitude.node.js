@@ -5,7 +5,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
 var d3$1 = require('d3');
-var geojsonRewind = _interopDefault(require('geojson-rewind'));
 var chroma = _interopDefault(require('chroma-js'));
 require('d3-selection-multi');
 var M = _interopDefault(require('mathjs'));
@@ -507,7 +506,7 @@ d = {
   }
 };
 
-var horizontal = function(stereonet) {
+function horizontal(stereonet) {
   var labelDistance;
   labelDistance = 4;
   return function() {
@@ -551,13 +550,13 @@ var horizontal = function(stereonet) {
       dy: -labelDistance - 4
     });
   };
-};
+}
 
 var d2r;
 
 d2r = Math.PI / 180;
 
-var vertical = function(stereonet) {
+function vertical(stereonet) {
   return function(opts = {}) {
     var a, at, az, dip, dy, feat, g, grat, innerRadius, labels, locs, lon, m, proj, sel, v, x;
     if (opts.startOffset == null) {
@@ -635,10 +634,10 @@ var vertical = function(stereonet) {
       startOffset: `${innerRadius * 70 * d2r}`
     });
   };
-};
+}
 
 //# Stereonet Dragging
-var interaction = function(stereonet) {
+function interaction(stereonet) {
   var el, m0, mousedown, mousemove, mouseup, o0, proj;
   // modified from http://bl.ocks.org/1392560
   m0 = void 0;
@@ -668,7 +667,7 @@ var interaction = function(stereonet) {
   };
   el.on('mousedown', mousedown);
   return d3$1.select(window).on("mousemove", mousemove).on("mouseup", mouseup);
-};
+}
 
 /*
 Stereonet labeling:
@@ -823,8 +822,6 @@ getterSetter = function(main) {
 
 exports.Stereonet = function() {
   var _, __getSet, __redraw, __setScale, callStack, clipAngle, data, dataArea, dispatch$$1, drawEllipses, drawPlanes, el, ell, ellipses, f, graticule, margin, overlay, path, planes, proj, s, scale, setGraticule, shouldClip;
-  planes = null;
-  ellipses = null;
   data = null;
   el = null;
   dataArea = null;
@@ -1069,38 +1066,6 @@ exports.Stereonet = function() {
     }
     return f;
   };
-  ell = function() {
-    var attrs, data_, fn, o, sel;
-    // Same call signature as d3.Selection.data
-    attrs = null;
-    data_ = null;
-    sel = null;
-    fn = null;
-    o = function(el_) {
-      ell = createErrorEllipse(opts);
-      sel = function() {
-        return el_.selectAll('path.ellipse').data(data_.map(ell), fn);
-      };
-      sel().enter().append('path').attr('class', "ellipse").attrs(attrs).exit().remove();
-      if (el != null) {
-        __redraw();
-      }
-      return sel;
-    };
-    __getSet = getterSetter(o);
-    o.data = __getSet(data_, function(d, f) {
-      data_ = d;
-      return fn = f;
-    });
-    o.attrs = __getSet(attrs, function(o) {
-      attrs = o;
-      if (sel != null) {
-        return sel().attrs(attrs);
-      }
-    });
-    o.selection = sel;
-    return o;
-  };
   f.ellipses = drawEllipses;
   f.dataArea = function() {
     return dataArea;
@@ -1148,7 +1113,6 @@ exports.opacityByCertainty = function(colorFunc, accessor = null) {
 
 var T;
 var __planeAngle;
-var apparentDipCorrection;
 var getRatios;
 var matrix;
 var scaleRatio;
@@ -1206,21 +1170,6 @@ exports.fixAngle = function(a) {
   return a;
 };
 
-apparentDipCorrection = function(screenRatio = 1) {
-  return function(axes2d) {
-    var a0, a1, angle, cosA;
-    // Correct for apparent dip
-    a0 = axes2d[1];
-    a1 = [0, 1];
-    //a0 = M.divide(a0,M.norm(a0))
-    //a1 = M.divide(a1,M.norm(a1))
-    cosA = exports.dot(a0, a1);
-    console.log("Axes", a0, cosA);
-    angle = Math.atan2(Math.tan(Math.acos(cosA / (M.norm(a0) * M.norm(a1)))), screenRatio);
-    return angle * 180 / Math.PI;
-  };
-};
-
 scaleRatio = function(scale) {
   return scale(1) - scale(0);
 };
@@ -1250,7 +1199,6 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
   var angle, centerPoint, dfunc, gradient, lineGenerator, n, nCoords, nominal, ratioX, ratioY, screenRatio, width;
   n = 10;
   angle = viewpoint;
-  gradient = null;
   width = 400;
   nominal = false;
   centerPoint = false;

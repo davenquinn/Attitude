@@ -1,0 +1,20 @@
+#!/usr/bin/env zsh
+
+export BASE=${0:h:A}
+export ATTITUDE=${BASE:h}/js-frontend
+export DATA=$BASE/data
+
+script=$BASE/process-onis-planes.py
+
+cd $BASE/test-site
+
+$BASE/scripts/copy-files
+cmd=(python $script $BASE/test-site/data.json)
+$cmd
+echo "-----"
+
+(cd $ATTITUDE && ./watch) & \
+ls $ATTITUDE/lib/*.* | entr $BASE/scripts/copy-files & \
+echo $script | entr $cmd & \
+browser-sync start --server --files "**/*.*"
+

@@ -6,7 +6,7 @@ import nodeResolve from 'rollup-plugin-node-resolve';
 
 let plugins = [
   coffee2({version: 2}),
-  stylus({output: 'lib/styles.css'}),
+  stylus({output: 'lib/styles.css', sourceMap: false}),
   nodeResolve({browser:true,main:true}),
   commonJS({
     extensions: [ '.js', '.coffee' ],

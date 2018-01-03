@@ -18,9 +18,6 @@ class GroupedOrientation(PCAOrientation):
         for o in orientations:
             if hasattr(o,'members'):
                 raise GroupedPlaneError("Cannot group already-grouped planes")
-            if o.member_of:
-                raise GroupedPlaneError("{} is already in a group."
-                                            .format(o.hash))
             o.member_of = self
 
         self.members = orientations
@@ -38,9 +35,24 @@ def create_groups(orientations, *groups, **kwargs):
     """
     Create groups of an orientation measurement dataset
     """
+    grouped = []
+    for o in orientations:
+        # Get rid of and recreate group membership
+        o.member_of = None
+        try:
+            grouped += o.members
+            for a in o.members:
+                a.member_of = o
+        except AttributeError:
+            pass
+
     def find(uid):
         try:
-            return next(x for x in orientations if x.hash == uid)
+            val = next(x for x in orientations if x.hash == uid)
+            if val in grouped:
+                raise GroupedPlaneError("{} is already in a group."
+                                           .format(val.hash))
+            return val
         except StopIteration:
             raise KeyError("No measurement of with hash {} found"
                            .format(uid))
@@ -51,3 +63,15 @@ def create_groups(orientations, *groups, **kwargs):
         orientations.append(o)
 
     return orientations
+
+def disable_orientations(orientations, *to_disable):
+    for uid in to_disable:
+        try:
+            val = next(x for x in orientations if x.hash == uid)
+            val.disabled = True
+        except StopIteration:
+            raise KeyError("No measurement of with hash {} found"
+                           .format(uid))
+    return orientations
+
+

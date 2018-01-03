@@ -1,0 +1,65 @@
+:global
+  div.attitude-area
+    width: 800px
+    background: white
+    margin 1em
+    margin-bottom 2em
+    font-family "Helvetica Neue", Helvetica, Arial, sans-serif
+
+    div.row
+      flex-grow: 1
+      display: flex
+      flex-direction: row
+
+  path.trace
+    fill: transparent
+    stroke-width: 2px
+
+  mono()
+    font-family "Consolas", monospace
+
+
+  div.plane-desc
+    margin-top 1em
+    min-width 15em
+    background-color: #eee
+    padding 0.5em
+    color #444
+
+    h4
+      font-weight 500
+      margin-bottom 0
+      padding-bottom 0
+      font-size 0.9em
+    ul
+      padding-left 0
+      list-style none
+      font-size 0.9em
+    li
+      mono()
+
+  h3.data-id
+    font-size 0.9em
+
+
+  g.in_group
+    path.hyperbola
+      stroke-dasharray: 2,2
+      fill: none
+
+  .collected-ids
+    height 1em
+    margin-bottom 0.5em
+    font-size 0.9em
+    cursor pointer
+    color #444
+    mono()
+
+
+  .stereonet
+    g.plane
+      &.in-group
+        path.error
+          fill none
+          stroke-dasharray 2,2
+
