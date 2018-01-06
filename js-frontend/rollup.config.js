@@ -15,15 +15,17 @@ let plugins = [
 ];
 
 export default {
-  entry: "src/index.coffee",
-  dest: "lib/attitude.js",
-  extend: true,
+  input: "src/index.coffee",
   external: ["d3","mathjs"],
-  globals: {
-    "d3": "d3",
-    "mathjs": "math"
+  output: {
+    file: "lib/attitude.js",
+    globals: {
+      "d3": "d3",
+      "mathjs": "math"
+    },
+    format: "umd",
+    name: "attitude",
+    extend: true
   },
-  format: "umd",
-  moduleName: "attitude",
   plugins: plugins
 }

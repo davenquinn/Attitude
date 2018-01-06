@@ -14,16 +14,18 @@ let plugins = [
 ];
 
 export default {
-  entry: "ui-src/index.coffee",
-  dest: "lib/attitude-ui.js",
-  extend: true,
+  input: "ui-src/index.coffee",
   external: ['d3','d3-selection-multi','d3-jetpack'],
-  globals: {
-    "d3": "d3",
-    "mathjs": "math"
+  output: {
+    file: "lib/attitude-ui.js",
+    format: "iife",
+    globals: {
+      "d3": "d3",
+      "mathjs": "math"
+    },
+    name: "attitudeUI",
+    extend: true
   },
-  format: "iife",
-  moduleName: "attitudeUI",
   plugins: plugins
 }
 

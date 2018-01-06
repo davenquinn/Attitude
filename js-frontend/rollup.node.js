@@ -15,11 +15,13 @@ let plugins = [
 ];
 
 export default {
-  entry: "src/index.coffee",
-  dest: "lib/attitude.node.js",
-  extend: true,
+  input: "src/index.coffee",
   external: Object.keys(dependencies),
-  format: "cjs",
-  moduleName: "attitude",
+  output: {
+    file: "lib/attitude.node.js",
+    format: "cjs",
+    name: "attitude",
+    extend: true
+  },
   plugins: plugins
 }
