@@ -354,7 +354,7 @@ opacityByCertainty = (colorFunc, accessor=null)->
     e = d3.select @
     if accessor?
       e = e.selectAll 'path.error'
-    e.attrs {fill, stroke}
+    e.at {fill, stroke}
 
   __getSet = getterSetter(f)
 

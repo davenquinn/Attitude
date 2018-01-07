@@ -20,6 +20,11 @@ export default {
   output: {
     file: "lib/attitude.node.js",
     format: "cjs",
+    globals: {
+      "d3": "d3",
+      "d3-selection-multi": "d3",
+      "d3-jetpack": "d3"
+    },
     name: "attitude",
     extend: true
   },

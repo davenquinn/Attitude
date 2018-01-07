@@ -3779,7 +3779,7 @@ opacityByCertainty = function(colorFunc, accessor = null) {
     if (accessor != null) {
       e = e.selectAll('path.error');
     }
-    return e.attrs({fill, stroke});
+    return e.at({fill, stroke});
   };
   __getSet = getterSetter(f);
   f.angularError = __getSet(angularError, function(v) {
@@ -63859,7 +63859,7 @@ hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
   ({ratioX, ratioY, screenRatio, lineGenerator} = getRatios(xScale, yScale));
   dfunc = function(d) {
     /* Project axes to 2d */
-    var R, a, a1, angles, angularError, arr, ax, b, center, coords, cutAngle, cutAngle2, hyp, inPlaneLength, j, largeNumber, lengthShown, lim, limit, mask, masksz, mid, oa, offs, poly, q, rax, results, s, top, v;
+    var R, a, a1, angles, angularError, arr, ax, b, center, coords, cutAngle, cutAngle2, hyp, inPlaneLength, j, largeNumber, lengthShown, lim, limit, loc, mask, masksz, mid, oa, offs, poly, q, rax, results, s, top, translate, v, zind;
     // Get a single level of planar errors (or the
     // plane's nominal value) as a girdle
     rax = d.axes;
@@ -63933,10 +63933,22 @@ hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     top.reverse();
     poly = coords.concat(top);
     // Translate
-    offs = dot(d.offset, R, q).toArray();
-    center = [xScale(offs[0]) - xScale(0), yScale(offs[2]) - yScale(0)];
+    if (d.offset == null) {
+      d.offset = [0, 0, 0];
+    }
+    if (d.offset.length === 3) {
+      offs = dot(d.offset, R, q).toArray();
+      zind = offs[1];
+      loc = [offs[0], offs[2]];
+      center = [xScale(loc[0]) - xScale(0), yScale(loc[1]) - yScale(0)];
+      translate = [-center[0] + xScale(0), yScale(0) + center[1]];
+    } else {
+      loc = d.offset;
+      zind = 1;
+      translate = [xScale(loc[0]), yScale(loc[1])];
+    }
     // Used for positioning, but later
-    d.__z = offs[1];
+    d.__z = zind;
     oa = opacityByCertainty(function() {
       return d.color;
     }).angularError(function() {
@@ -63953,7 +63965,7 @@ hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     //console.log 'Angle', __angle
     //__angle = 0
     //# Start DOM manipulation ###
-    hyp = d3$1.select(this).attr('visibility', 'visible').attr('transform', `translate(${-center[0] + xScale(0)},${yScale(0) + center[1]}) rotate(${v})`);
+    hyp = d3$1.select(this).attr('visibility', 'visible').attr('transform', `translate(${translate[0]},${translate[1]}) rotate(${v})`);
     hyp.classed('in_group', d.in_group);
     lim = width / 2;
     lim = Math.abs(inPlaneLength);
@@ -63967,7 +63979,7 @@ hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     mid = null;
     if (!mask.node()) {
       mid = uuid_1.v4();
-      mask = hyp.append('mask').attr('id', mid).attrs(masksz).append('rect').attrs(_extends({}, masksz, {
+      mask = hyp.append('mask').attr('id', mid).at(masksz).append('rect').at(_extends({}, masksz, {
         fill: "url(#gradient)"
       }));
     }
@@ -63975,7 +63987,7 @@ hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
       mid = mask.attr('id');
     }
     if (centerPoint) {
-      hyp.selectAppend('circle').attrs({
+      hyp.selectAppend('circle').at({
         r: 2,
         fill: 'black'
       });
@@ -63986,7 +63998,7 @@ hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
   };
   //if nominal
   //hyp.selectAppend 'line.nominal'
-  //.attrs x1: -largeNumber, x2: largeNumber
+  //.at x1: -largeNumber, x2: largeNumber
   //.attr 'stroke', '#000000'
   dfunc.setupGradient = function(el) {
     var defs, g, stop;
@@ -63995,7 +64007,7 @@ hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     stop = function(ofs, op) {
       var a;
       a = Math.round(op * 255);
-      return g.append('stop').attrs({
+      return g.append('stop').at({
         offset: ofs,
         'stop-color': `rgb(${a},${a},${a})`,
         'stop-opacity': op

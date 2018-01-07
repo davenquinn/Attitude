@@ -1,6 +1,8 @@
 import M from 'mathjs'
 import Q from 'quaternion'
 import * as d3 from 'd3'
+import 'd3-jetpack'
+import 'd3-selection-multi'
 import chroma from 'chroma-js'
 import * as math from './math.coffee'
 import {opacityByCertainty} from './stereonet'
@@ -169,10 +171,19 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
     poly = coords.concat top
 
     # Translate
-    offs = dot(d.offset,R,q).toArray()
-    center = [xScale(offs[0])-xScale(0),yScale(offs[2])-yScale(0)]
+    d.offset ?= [0,0,0]
+    if d.offset.length == 3
+      offs = dot(d.offset,R,q).toArray()
+      zind = offs[1]
+      loc = [offs[0], offs[2]]
+      center = [xScale(loc[0])-xScale(0),yScale(loc[1])-yScale(0)]
+      translate = [-center[0]+xScale(0),yScale(0)+center[1]]
+    else
+      loc = d.offset
+      zind = 1
+      translate = [xScale(loc[0]),yScale(loc[1])]
     # Used for positioning, but later
-    d.__z = offs[1]
+    d.__z = zind
 
     oa = opacityByCertainty(->d.color)
       .angularError -> angularError
@@ -191,7 +202,7 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
     ## Start DOM manipulation ###
     hyp = d3.select(@)
       .attr 'visibility','visible'
-      .attr 'transform', "translate(#{-center[0]+xScale(0)},#{yScale(0)+center[1]})
+      .attr 'transform', "translate(#{translate[0]},#{translate[1]})
                           rotate(#{v})"
 
     hyp.classed 'in_group', d.in_group
@@ -206,15 +217,15 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
       mid = uuid.v4()
       mask = hyp.append 'mask'
         .attr 'id', mid
-        .attrs masksz
+        .at masksz
         .append 'rect'
-        .attrs {masksz..., fill: "url(#gradient)"}
+        .at {masksz..., fill: "url(#gradient)"}
     if not mid?
       mid = mask.attr('id')
 
     if centerPoint
       hyp.selectAppend 'circle'
-        .attrs r: 2, fill: 'black'
+        .at r: 2, fill: 'black'
 
     hyp.selectAppend 'path.hyperbola'
       .datum poly
@@ -224,7 +235,7 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
 
     #if nominal
       #hyp.selectAppend 'line.nominal'
-        #.attrs x1: -largeNumber, x2: largeNumber
+        #.at x1: -largeNumber, x2: largeNumber
         #.attr 'stroke', '#000000'
 
   dfunc.setupGradient = (el)->
@@ -236,7 +247,7 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
     stop = (ofs, op)->
       a = Math.round(op*255)
       g.append 'stop'
-        .attrs {
+        .at {
           offset: ofs
           'stop-color': "rgb(#{a},#{a},#{a})"
           'stop-opacity': op
