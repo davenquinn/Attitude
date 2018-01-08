@@ -1,4 +1,5 @@
-import {geoArea,geoContains,select} from 'd3'
+import {geoArea,geoContains, select} from 'd3'
+import 'd3-selection-multi'
 import * as math from './math.coffee'
 import {cloneOptions} from './util.coffee'
 
@@ -78,7 +79,7 @@ __createErrorEllipse = (opts)->
       a = geoArea(f)
       if a > 2*Math.PI
         f = createFeature("Polygon",[e.reverse()])
-        a = d3.geoArea(f)
+        a = geoArea(f)
       f.properties =
         area: a
         level: opts.level

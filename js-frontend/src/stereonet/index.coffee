@@ -1,5 +1,6 @@
 import * as d3 from 'd3'
 import chroma from 'chroma-js'
+import {selection, select} from 'd3-selection'
 import 'd3-selection-multi'
 import * as functions from '../functions.coffee'
 import * as math from '../math.coffee'
@@ -7,6 +8,9 @@ import style from './module.styl'
 import horizontal from './horizontal'
 import vertical from './vertical'
 import interaction from './interaction.coffee'
+import {globalLabels} from './labels.coffee'
+
+export {selection}
 
 opts =
   degrees: true
@@ -83,7 +87,7 @@ Stereonet = ->
                 color = o.color(d)
               else
                 color = o.color
-              e = d3.select @
+              e = select @
               e.selectAll 'path.error'
                 .attrs fill: color
               e.selectAll 'path.nominal'
@@ -100,7 +104,7 @@ Stereonet = ->
     fn = functions.errorEllipse opts
 
     createEllipse = (d)->
-      d3.select @
+      select @
         .append 'path'
         .attr 'class', 'error'
         .datum fn(d)
@@ -120,7 +124,7 @@ Stereonet = ->
         color = o.color(d)
       else
         color = o.color
-      e = d3.select @
+      e = select @
         .selectAll 'path.error'
         .attrs fill: color
     __redraw()
@@ -289,7 +293,7 @@ Stereonet = ->
     return f
 
   ell = ->
-    # Same call signature as d3.Selection.data
+    # Same call signature as selection.data
     attrs = null
     data_ = null
     sel = null
@@ -351,7 +355,7 @@ opacityByCertainty = (colorFunc, accessor=null)->
     fill = color.alpha(al).css()
     stroke = color.alpha(al+darkenStroke).css()
 
-    e = d3.select @
+    e = select @
     if accessor?
       e = e.selectAll 'path.error'
     e.at {fill, stroke}
@@ -363,7 +367,6 @@ opacityByCertainty = (colorFunc, accessor=null)->
 
   return f
 
-import {globalLabels} from './labels.coffee'
 export {
   globalLabels
   Stereonet
