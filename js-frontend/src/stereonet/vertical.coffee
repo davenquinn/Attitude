@@ -1,10 +1,15 @@
+import {scaleLinear} from 'd3-scale'
+
 d2r = Math.PI/180
 export default (stereonet)->
   (opts={})->
     opts.startOffset ?= 10
     # correct for start at bottom
     opts.startOffset += 100
-    opts.labelPadding ?= 8
+    opts.labelPadding ?= 2
+    {dipLabels, nLabels} = opts
+    nLabels ?= 2
+    dy = opts.labelPadding
 
     g = stereonet.overlay()
 
@@ -12,6 +17,8 @@ export default (stereonet)->
     console.log grat
 
     labels = ["N","E","S","W"]
+    textAnchor = ['middle','start','middle','end']
+    alignmentBaseline = [null,'middle','hanging','middle']
     locs = [0,90,180,270]
 
     az = g.append 'g'
@@ -25,14 +32,16 @@ export default (stereonet)->
     sel.enter()
       .append 'text'
       .text (d)->d
-      .attrs (d,i)->
+      .styles (d,i)->
+        {'alignment-baseline': alignmentBaseline[i], 'text-anchor': textAnchor[i]}
+      .attr 'transform', (d,i)->
         szm = innerRadius+m
         angle = (locs[i]-90)*Math.PI/180
-        {
-          transform: "translate(#{szm} #{szm})"
-          x: Math.cos(angle)*(innerRadius+opts.labelPadding)
-          y: Math.sin(angle)*(innerRadius+opts.labelPadding)
-        }
+        x = szm+Math.cos(angle)*(innerRadius+opts.labelPadding)
+        y = szm+Math.sin(angle)*(innerRadius+opts.labelPadding)
+        if i == 0
+          y -= 3
+        return "translate(#{x} #{y})"
 
     dip = g.append 'g'
       .attr 'class', 'dipLabels'
@@ -47,27 +56,32 @@ export default (stereonet)->
           coordinates: [lon,-90+d]
       }
 
-    dy = 8
     a = stereonet.clipAngle()
-    v = (x for x in [5..a] by 5)
+    if not dipLabels?
+      dipLabels = scaleLinear [0,a]
+        .ticks nLabels
+
     proj = stereonet.projection()
     sel = dip.selectAll 'text'
-      .data v.map(feat)
+      .data dipLabels.map(feat)
     sel.enter()
       .append 'text'
+      .attr 'class', 'inner'
       .text (d)->d.label
       .attr "transform", (d)->
         v = proj(d.geometry.coordinates)
         "translate(#{v[0]}, #{v[1]}) rotate(#{180-lon})"
 
-    at = {class: 'outer', dy: -dy}
+    sphereId = "##{stereonet.uid()}-sphere"
+
+    at = {dy: -dy-3, class: 'outer'}
     # Labels
     az.append 'text'
       .attrs at
       .append 'textPath'
         .text 'Azimuth →'
         .attrs
-          'xlink:href': '#sphere'
+          'xlink:href': sphereId
           startOffset: "#{innerRadius*opts.startOffset*d2r}"
           method: 'stretch'
     dip.append 'text'
@@ -76,5 +90,5 @@ export default (stereonet)->
         .text 'Dip'
         .attrs
           method: 'stretch'
-          'xlink:href': '#sphere'
+          'xlink:href': sphereId
           startOffset: "#{innerRadius*70*d2r}"

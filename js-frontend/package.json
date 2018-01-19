@@ -10,10 +10,8 @@
     "d3-jetpack": "^2.0.16",
     "d3-selection-multi": "^1.0.0",
     "geojson-rewind": "^0.1.0",
-    "js-uuid": "0.0.6",
     "mathjs": "^3.16.5",
     "quaternion": "^2.0.0",
-    "rollup-plugin-alias": "^1.4.0",
     "uuid": "^3.1.0"
   },
   "peerDependencies": {

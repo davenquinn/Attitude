@@ -9,6 +9,7 @@ import horizontal from './horizontal'
 import vertical from './vertical'
 import interaction from './interaction.coffee'
 import {globalLabels} from './labels.coffee'
+import uuid from 'uuid'
 
 export {selection}
 
@@ -44,6 +45,7 @@ Stereonet = ->
   clipAngle = 90
   s = 0.00001
   shouldClip = true
+  uid = uuid.v4()
 
   graticule = d3.geoGraticule()
     .stepMinor [10,10]
@@ -87,7 +89,7 @@ Stereonet = ->
                 color = o.color(d)
               else
                 color = o.color
-              e = select @
+              e = d3.select @
               e.selectAll 'path.error'
                 .attrs fill: color
               e.selectAll 'path.nominal'
@@ -104,7 +106,7 @@ Stereonet = ->
     fn = functions.errorEllipse opts
 
     createEllipse = (d)->
-      select @
+      d3.select @
         .append 'path'
         .attr 'class', 'error'
         .datum fn(d)
@@ -124,7 +126,7 @@ Stereonet = ->
         color = o.color(d)
       else
         color = o.color
-      e = select @
+      e = d3.select @
         .selectAll 'path.error'
         .attrs fill: color
     __redraw()
@@ -165,21 +167,25 @@ Stereonet = ->
 
     __setScale() # Scale the stereonet
 
+    sphereId = "##{uid}-sphere"
+
     el.append "defs"
       .append "path"
         .datum({type: "Sphere"})
         .attrs
           d: path
-          id: "sphere"
+          id: sphereId.slice(1)
 
+    neatlineId = "##{uid}-neatline-clip"
     el.append "clipPath"
-      .attr "id", "neatline-clip"
+      .attr "id", neatlineId.slice(1)
       .append "use"
-      .attr "xlink:href", "#sphere"
+      .attr "xlink:href", sphereId
 
     el.append "use"
       .attrs
         class: 'background'
+        'xlink:href': sphereId
         fill: 'white'
         stroke: '#aaaaaa'
 
@@ -201,9 +207,9 @@ Stereonet = ->
       el.append "use"
         .attrs
           class: 'neatline'
-          "xlink:href": "#sphere"
+          "xlink:href": sphereId
 
-      int.attr 'clip-path', "url(#neatline-clip)"
+      int.attr 'clip-path', "url(#{neatlineId})"
 
     overlay = el.append "g"
       .attrs class: "overlay"
@@ -231,6 +237,8 @@ Stereonet = ->
     ->shouldClip
     (c)->shouldClip=c
   )
+
+  f.uid = -> uid
 
   f.refresh = ->__redraw()
   f.rotate = (coords)=>
@@ -355,10 +363,11 @@ opacityByCertainty = (colorFunc, accessor=null)->
     fill = color.alpha(al).css()
     stroke = color.alpha(al+darkenStroke).css()
 
-    e = select @
+    e = d3.select @
     if accessor?
       e = e.selectAll 'path.error'
-    e.at {fill, stroke}
+    e.attr 'fill', fill
+     .attr 'stroke', stroke
 
   __getSet = getterSetter(f)
 

@@ -1,12 +1,16 @@
 import M from 'mathjs'
 import Q from 'quaternion'
+import {mean} from 'd3-array'
+import {line} from 'd3-shape'
 import * as d3 from 'd3'
-import 'd3-jetpack'
 import 'd3-selection-multi'
+import 'd3-jetpack'
 import chroma from 'chroma-js'
 import * as math from './math.coffee'
 import {opacityByCertainty} from './stereonet'
 import uuid from 'uuid'
+
+select = d3.select
 
 fixAngle = (a)->
   # Put an angle on the interval [-Pi,Pi]
@@ -68,7 +72,7 @@ getRatios = (x,y)->
   ratioY = scaleRatio(y)
   screenRatio = ratioX/ratioY
 
-  lineGenerator = d3.line()
+  lineGenerator = line()
     .x (d)->d[0]*ratioX
     .y (d)->d[1]*ratioY
 
@@ -128,7 +132,7 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
     angularError = cutAngle*2*180/Math.PI
     if angularError > 90
       ## This plane has undefined errors
-      hyp = d3.select(@)
+      hyp = select(@)
         .attr('visibility','hidden')
       return
 
@@ -200,7 +204,7 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
     #console.log 'Angle', __angle
     #__angle = 0
     ## Start DOM manipulation ###
-    hyp = d3.select(@)
+    hyp = select(@)
       .attr 'visibility','visible'
       .attr 'transform', "translate(#{translate[0]},#{translate[1]})
                           rotate(#{v})"
@@ -217,15 +221,15 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
       mid = uuid.v4()
       mask = hyp.append 'mask'
         .attr 'id', mid
-        .at masksz
+        .attrs masksz
         .append 'rect'
-        .at {masksz..., fill: "url(#gradient)"}
+        .attrs {masksz..., fill: "url(#gradient)"}
     if not mid?
       mid = mask.attr('id')
 
     if centerPoint
       hyp.selectAppend 'circle'
-        .at r: 2, fill: 'black'
+        .attrs r: 2, fill: 'black'
 
     hyp.selectAppend 'path.hyperbola'
       .datum poly
@@ -235,7 +239,7 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
 
     #if nominal
       #hyp.selectAppend 'line.nominal'
-        #.at x1: -largeNumber, x2: largeNumber
+        #.attrs x1: -largeNumber, x2: largeNumber
         #.attr 'stroke', '#000000'
 
   dfunc.setupGradient = (el)->
@@ -247,7 +251,7 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
     stop = (ofs, op)->
       a = Math.round(op*255)
       g.append 'stop'
-        .at {
+        .attrs {
           offset: ofs
           'stop-color': "rgb(#{a},#{a},#{a})"
           'stop-opacity': op
@@ -287,7 +291,7 @@ digitizedLine = (viewpoint, lineGenerator)->
     ### Map down to two dimensions (the x-z plane of the viewing geometry) ###
     data = dot(a, T).toArray()
 
-    d3.select(@).attr 'd', lineGenerator(data)
+    select(@).attr 'd', lineGenerator(data)
 
   f.axes = (o)->
     return axes unless o?
@@ -303,7 +307,7 @@ apparentDip = (viewpoint, xScale,yScale)->
   #if not axes?
   f = (d)->
 
-    #d3.select @
+    #select @
       #.attr 'd',lineGenerator(lineData)
       #.attr 'transform', "translate(#{xScale(offs[0])},#{yScale(offs[2])})rotate(#{v})"
 
@@ -338,7 +342,7 @@ apparentDip = (viewpoint, xScale,yScale)->
     # Get offset of angles
     offs = dot(d.offset,R,q,T).toArray()
 
-    d3.select(@)
+    select(@)
       .attr 'd', lineGenerator(data)
       .attr 'transform', "translate(#{xScale(offs[0])},#{yScale(offs[1])})"
 
@@ -366,7 +370,7 @@ class PlaneData
     return unless @array?
     ## Extract mean of data on each axis ##
     if not @mean?
-      @mean = [0..2].map (i)=> d3.mean @array, (d)->d[i]
+      @mean = [0..2].map (i)=> mean @array, (d)->d[i]
     if not @centered?
       @centered = @array.map (d)=>M.subtract(d,@mean)
 

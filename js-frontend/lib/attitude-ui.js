@@ -1,5 +1,7 @@
-(function (exports,d3$1) {
+(function (exports,d3$1,d3SelectionMulti,crypto$1) {
 'use strict';
+
+crypto$1 = crypto$1 && crypto$1.hasOwnProperty('default') ? crypto$1['default'] : crypto$1;
 
 var cart2sph;
 var combinedErrors$1;
@@ -3173,51 +3175,6 @@ var chroma = createCommonjsModule(function (module, exports) {
 }).call(commonjsGlobal);
 });
 
-var xhtml = "http://www.w3.org/1999/xhtml";
-
-var namespaces = {
-  svg: "http://www.w3.org/2000/svg",
-  xhtml: xhtml,
-  xlink: "http://www.w3.org/1999/xlink",
-  xml: "http://www.w3.org/XML/1998/namespace",
-  xmlns: "http://www.w3.org/2000/xmlns/"
-};
-
-function namespace(name) {
-  var prefix = name += "", i = prefix.indexOf(":");
-  if (i >= 0 && (prefix = name.slice(0, i)) !== "xmlns") name = name.slice(i + 1);
-  return namespaces.hasOwnProperty(prefix) ? {space: namespaces[prefix], local: name} : name;
-}
-
-function creatorInherit(name) {
-  return function() {
-    var document = this.ownerDocument,
-        uri = this.namespaceURI;
-    return uri === xhtml && document.documentElement.namespaceURI === xhtml
-        ? document.createElement(name)
-        : document.createElementNS(uri, name);
-  };
-}
-
-function creatorFixed(fullname) {
-  return function() {
-    return this.ownerDocument.createElementNS(fullname.space, fullname.local);
-  };
-}
-
-function creator(name) {
-  var fullname = namespace(name);
-  return (fullname.local
-      ? creatorFixed
-      : creatorInherit)(fullname);
-}
-
-var matcher = function(selector) {
-  return function() {
-    return this.matches(selector);
-  };
-};
-
 if (typeof document !== "undefined") {
   var element = document.documentElement;
   if (!element.matches) {
@@ -3225,806 +3182,13 @@ if (typeof document !== "undefined") {
         || element.msMatchesSelector
         || element.mozMatchesSelector
         || element.oMatchesSelector;
-    matcher = function(selector) {
-      return function() {
-        return vendorMatches.call(this, selector);
-      };
-    };
+    
   }
 }
-
-var matcher$1 = matcher;
-
-var filterEvents = {};
-
-
 
 if (typeof document !== "undefined") {
   var element$1 = document.documentElement;
-  if (!("onmouseenter" in element$1)) {
-    filterEvents = {mouseenter: "mouseover", mouseleave: "mouseout"};
-  }
-}
-
-function filterContextListener(listener, index, group) {
-  listener = contextListener(listener, index, group);
-  return function(event$$1) {
-    var related = event$$1.relatedTarget;
-    if (!related || (related !== this && !(related.compareDocumentPosition(this) & 8))) {
-      listener.call(this, event$$1);
-    }
-  };
-}
-
-function contextListener(listener, index, group) {
-  return function(event1) {
-    try {
-      listener.call(this, this.__data__, index, group);
-    } finally {
-      
-    }
-  };
-}
-
-function parseTypenames(typenames) {
-  return typenames.trim().split(/^|\s+/).map(function(t) {
-    var name = "", i = t.indexOf(".");
-    if (i >= 0) name = t.slice(i + 1), t = t.slice(0, i);
-    return {type: t, name: name};
-  });
-}
-
-function onRemove(typename) {
-  return function() {
-    var on = this.__on;
-    if (!on) return;
-    for (var j = 0, i = -1, m = on.length, o; j < m; ++j) {
-      if (o = on[j], (!typename.type || o.type === typename.type) && o.name === typename.name) {
-        this.removeEventListener(o.type, o.listener, o.capture);
-      } else {
-        on[++i] = o;
-      }
-    }
-    if (++i) on.length = i;
-    else delete this.__on;
-  };
-}
-
-function onAdd(typename, value, capture) {
-  var wrap = filterEvents.hasOwnProperty(typename.type) ? filterContextListener : contextListener;
-  return function(d, i, group) {
-    var on = this.__on, o, listener = wrap(value, i, group);
-    if (on) for (var j = 0, m = on.length; j < m; ++j) {
-      if ((o = on[j]).type === typename.type && o.name === typename.name) {
-        this.removeEventListener(o.type, o.listener, o.capture);
-        this.addEventListener(o.type, o.listener = listener, o.capture = capture);
-        o.value = value;
-        return;
-      }
-    }
-    this.addEventListener(typename.type, listener, capture);
-    o = {type: typename.type, name: typename.name, value: value, listener: listener, capture: capture};
-    if (!on) this.__on = [o];
-    else on.push(o);
-  };
-}
-
-function selection_on(typename, value, capture) {
-  var typenames = parseTypenames(typename + ""), i, n = typenames.length, t;
-
-  if (arguments.length < 2) {
-    var on = this.node().__on;
-    if (on) for (var j = 0, m = on.length, o; j < m; ++j) {
-      for (i = 0, o = on[j]; i < n; ++i) {
-        if ((t = typenames[i]).type === o.type && t.name === o.name) {
-          return o.value;
-        }
-      }
-    }
-    return;
-  }
-
-  on = value ? onAdd : onRemove;
-  if (capture == null) capture = false;
-  for (i = 0; i < n; ++i) this.each(on(typenames[i], value, capture));
-  return this;
-}
-
-function none() {}
-
-function selector(selector) {
-  return selector == null ? none : function() {
-    return this.querySelector(selector);
-  };
-}
-
-function selection_select(select$$1) {
-  if (typeof select$$1 !== "function") select$$1 = selector(select$$1);
-
-  for (var groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
-    for (var group = groups[j], n = group.length, subgroup = subgroups[j] = new Array(n), node, subnode, i = 0; i < n; ++i) {
-      if ((node = group[i]) && (subnode = select$$1.call(node, node.__data__, i, group))) {
-        if ("__data__" in node) subnode.__data__ = node.__data__;
-        subgroup[i] = subnode;
-      }
-    }
-  }
-
-  return new Selection(subgroups, this._parents);
-}
-
-function empty() {
-  return [];
-}
-
-function selectorAll(selector) {
-  return selector == null ? empty : function() {
-    return this.querySelectorAll(selector);
-  };
-}
-
-function selection_selectAll(select$$1) {
-  if (typeof select$$1 !== "function") select$$1 = selectorAll(select$$1);
-
-  for (var groups = this._groups, m = groups.length, subgroups = [], parents = [], j = 0; j < m; ++j) {
-    for (var group = groups[j], n = group.length, node, i = 0; i < n; ++i) {
-      if (node = group[i]) {
-        subgroups.push(select$$1.call(node, node.__data__, i, group));
-        parents.push(node);
-      }
-    }
-  }
-
-  return new Selection(subgroups, parents);
-}
-
-function selection_filter(match) {
-  if (typeof match !== "function") match = matcher$1(match);
-
-  for (var groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
-    for (var group = groups[j], n = group.length, subgroup = subgroups[j] = [], node, i = 0; i < n; ++i) {
-      if ((node = group[i]) && match.call(node, node.__data__, i, group)) {
-        subgroup.push(node);
-      }
-    }
-  }
-
-  return new Selection(subgroups, this._parents);
-}
-
-function sparse(update) {
-  return new Array(update.length);
-}
-
-function selection_enter() {
-  return new Selection(this._enter || this._groups.map(sparse), this._parents);
-}
-
-function EnterNode(parent, datum) {
-  this.ownerDocument = parent.ownerDocument;
-  this.namespaceURI = parent.namespaceURI;
-  this._next = null;
-  this._parent = parent;
-  this.__data__ = datum;
-}
-
-EnterNode.prototype = {
-  constructor: EnterNode,
-  appendChild: function(child) { return this._parent.insertBefore(child, this._next); },
-  insertBefore: function(child, next) { return this._parent.insertBefore(child, next); },
-  querySelector: function(selector) { return this._parent.querySelector(selector); },
-  querySelectorAll: function(selector) { return this._parent.querySelectorAll(selector); }
-};
-
-function constant(x) {
-  return function() {
-    return x;
-  };
-}
-
-var keyPrefix = "$"; // Protect against keys like “__proto__”.
-
-function bindIndex(parent, group, enter, update, exit, data) {
-  var i = 0,
-      node,
-      groupLength = group.length,
-      dataLength = data.length;
-
-  // Put any non-null nodes that fit into update.
-  // Put any null nodes into enter.
-  // Put any remaining data into enter.
-  for (; i < dataLength; ++i) {
-    if (node = group[i]) {
-      node.__data__ = data[i];
-      update[i] = node;
-    } else {
-      enter[i] = new EnterNode(parent, data[i]);
-    }
-  }
-
-  // Put any non-null nodes that don’t fit into exit.
-  for (; i < groupLength; ++i) {
-    if (node = group[i]) {
-      exit[i] = node;
-    }
-  }
-}
-
-function bindKey(parent, group, enter, update, exit, data, key) {
-  var i,
-      node,
-      nodeByKeyValue = {},
-      groupLength = group.length,
-      dataLength = data.length,
-      keyValues = new Array(groupLength),
-      keyValue;
-
-  // Compute the key for each node.
-  // If multiple nodes have the same key, the duplicates are added to exit.
-  for (i = 0; i < groupLength; ++i) {
-    if (node = group[i]) {
-      keyValues[i] = keyValue = keyPrefix + key.call(node, node.__data__, i, group);
-      if (keyValue in nodeByKeyValue) {
-        exit[i] = node;
-      } else {
-        nodeByKeyValue[keyValue] = node;
-      }
-    }
-  }
-
-  // Compute the key for each datum.
-  // If there a node associated with this key, join and add it to update.
-  // If there is not (or the key is a duplicate), add it to enter.
-  for (i = 0; i < dataLength; ++i) {
-    keyValue = keyPrefix + key.call(parent, data[i], i, data);
-    if (node = nodeByKeyValue[keyValue]) {
-      update[i] = node;
-      node.__data__ = data[i];
-      nodeByKeyValue[keyValue] = null;
-    } else {
-      enter[i] = new EnterNode(parent, data[i]);
-    }
-  }
-
-  // Add any remaining nodes that were not bound to data to exit.
-  for (i = 0; i < groupLength; ++i) {
-    if ((node = group[i]) && (nodeByKeyValue[keyValues[i]] === node)) {
-      exit[i] = node;
-    }
-  }
-}
-
-function selection_data(value, key) {
-  if (!value) {
-    data = new Array(this.size()), j = -1;
-    this.each(function(d) { data[++j] = d; });
-    return data;
-  }
-
-  var bind = key ? bindKey : bindIndex,
-      parents = this._parents,
-      groups = this._groups;
-
-  if (typeof value !== "function") value = constant(value);
-
-  for (var m = groups.length, update = new Array(m), enter = new Array(m), exit = new Array(m), j = 0; j < m; ++j) {
-    var parent = parents[j],
-        group = groups[j],
-        groupLength = group.length,
-        data = value.call(parent, parent && parent.__data__, j, parents),
-        dataLength = data.length,
-        enterGroup = enter[j] = new Array(dataLength),
-        updateGroup = update[j] = new Array(dataLength),
-        exitGroup = exit[j] = new Array(groupLength);
-
-    bind(parent, group, enterGroup, updateGroup, exitGroup, data, key);
-
-    // Now connect the enter nodes to their following update node, such that
-    // appendChild can insert the materialized enter node before this node,
-    // rather than at the end of the parent node.
-    for (var i0 = 0, i1 = 0, previous, next; i0 < dataLength; ++i0) {
-      if (previous = enterGroup[i0]) {
-        if (i0 >= i1) i1 = i0 + 1;
-        while (!(next = updateGroup[i1]) && ++i1 < dataLength);
-        previous._next = next || null;
-      }
-    }
-  }
-
-  update = new Selection(update, parents);
-  update._enter = enter;
-  update._exit = exit;
-  return update;
-}
-
-function selection_exit() {
-  return new Selection(this._exit || this._groups.map(sparse), this._parents);
-}
-
-function selection_merge(selection$$1) {
-
-  for (var groups0 = this._groups, groups1 = selection$$1._groups, m0 = groups0.length, m1 = groups1.length, m = Math.min(m0, m1), merges = new Array(m0), j = 0; j < m; ++j) {
-    for (var group0 = groups0[j], group1 = groups1[j], n = group0.length, merge = merges[j] = new Array(n), node, i = 0; i < n; ++i) {
-      if (node = group0[i] || group1[i]) {
-        merge[i] = node;
-      }
-    }
-  }
-
-  for (; j < m0; ++j) {
-    merges[j] = groups0[j];
-  }
-
-  return new Selection(merges, this._parents);
-}
-
-function selection_order() {
-
-  for (var groups = this._groups, j = -1, m = groups.length; ++j < m;) {
-    for (var group = groups[j], i = group.length - 1, next = group[i], node; --i >= 0;) {
-      if (node = group[i]) {
-        if (next && next !== node.nextSibling) next.parentNode.insertBefore(node, next);
-        next = node;
-      }
-    }
-  }
-
-  return this;
-}
-
-function selection_sort(compare) {
-  if (!compare) compare = ascending;
-
-  function compareNode(a, b) {
-    return a && b ? compare(a.__data__, b.__data__) : !a - !b;
-  }
-
-  for (var groups = this._groups, m = groups.length, sortgroups = new Array(m), j = 0; j < m; ++j) {
-    for (var group = groups[j], n = group.length, sortgroup = sortgroups[j] = new Array(n), node, i = 0; i < n; ++i) {
-      if (node = group[i]) {
-        sortgroup[i] = node;
-      }
-    }
-    sortgroup.sort(compareNode);
-  }
-
-  return new Selection(sortgroups, this._parents).order();
-}
-
-function ascending(a, b) {
-  return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
-}
-
-function selection_call() {
-  var callback = arguments[0];
-  arguments[0] = this;
-  callback.apply(null, arguments);
-  return this;
-}
-
-function selection_nodes() {
-  var nodes = new Array(this.size()), i = -1;
-  this.each(function() { nodes[++i] = this; });
-  return nodes;
-}
-
-function selection_node() {
-
-  for (var groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
-    for (var group = groups[j], i = 0, n = group.length; i < n; ++i) {
-      var node = group[i];
-      if (node) return node;
-    }
-  }
-
-  return null;
-}
-
-function selection_size() {
-  var size = 0;
-  this.each(function() { ++size; });
-  return size;
-}
-
-function selection_empty() {
-  return !this.node();
-}
-
-function selection_each(callback) {
-
-  for (var groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
-    for (var group = groups[j], i = 0, n = group.length, node; i < n; ++i) {
-      if (node = group[i]) callback.call(node, node.__data__, i, group);
-    }
-  }
-
-  return this;
-}
-
-function attrRemove(name) {
-  return function() {
-    this.removeAttribute(name);
-  };
-}
-
-function attrRemoveNS(fullname) {
-  return function() {
-    this.removeAttributeNS(fullname.space, fullname.local);
-  };
-}
-
-function attrConstant(name, value) {
-  return function() {
-    this.setAttribute(name, value);
-  };
-}
-
-function attrConstantNS(fullname, value) {
-  return function() {
-    this.setAttributeNS(fullname.space, fullname.local, value);
-  };
-}
-
-function attrFunction(name, value) {
-  return function() {
-    var v = value.apply(this, arguments);
-    if (v == null) this.removeAttribute(name);
-    else this.setAttribute(name, v);
-  };
-}
-
-function attrFunctionNS(fullname, value) {
-  return function() {
-    var v = value.apply(this, arguments);
-    if (v == null) this.removeAttributeNS(fullname.space, fullname.local);
-    else this.setAttributeNS(fullname.space, fullname.local, v);
-  };
-}
-
-function selection_attr(name, value) {
-  var fullname = namespace(name);
-
-  if (arguments.length < 2) {
-    var node = this.node();
-    return fullname.local
-        ? node.getAttributeNS(fullname.space, fullname.local)
-        : node.getAttribute(fullname);
-  }
-
-  return this.each((value == null
-      ? (fullname.local ? attrRemoveNS : attrRemove) : (typeof value === "function"
-      ? (fullname.local ? attrFunctionNS : attrFunction)
-      : (fullname.local ? attrConstantNS : attrConstant)))(fullname, value));
-}
-
-function defaultView(node) {
-  return (node.ownerDocument && node.ownerDocument.defaultView) // node is a Node
-      || (node.document && node) // node is a Window
-      || node.defaultView; // node is a Document
-}
-
-function styleRemove(name) {
-  return function() {
-    this.style.removeProperty(name);
-  };
-}
-
-function styleConstant(name, value, priority) {
-  return function() {
-    this.style.setProperty(name, value, priority);
-  };
-}
-
-function styleFunction(name, value, priority) {
-  return function() {
-    var v = value.apply(this, arguments);
-    if (v == null) this.style.removeProperty(name);
-    else this.style.setProperty(name, v, priority);
-  };
-}
-
-function selection_style(name, value, priority) {
-  return arguments.length > 1
-      ? this.each((value == null
-            ? styleRemove : typeof value === "function"
-            ? styleFunction
-            : styleConstant)(name, value, priority == null ? "" : priority))
-      : styleValue(this.node(), name);
-}
-
-function styleValue(node, name) {
-  return node.style.getPropertyValue(name)
-      || defaultView(node).getComputedStyle(node, null).getPropertyValue(name);
-}
-
-function propertyRemove(name) {
-  return function() {
-    delete this[name];
-  };
-}
-
-function propertyConstant(name, value) {
-  return function() {
-    this[name] = value;
-  };
-}
-
-function propertyFunction(name, value) {
-  return function() {
-    var v = value.apply(this, arguments);
-    if (v == null) delete this[name];
-    else this[name] = v;
-  };
-}
-
-function selection_property(name, value) {
-  return arguments.length > 1
-      ? this.each((value == null
-          ? propertyRemove : typeof value === "function"
-          ? propertyFunction
-          : propertyConstant)(name, value))
-      : this.node()[name];
-}
-
-function classArray(string) {
-  return string.trim().split(/^|\s+/);
-}
-
-function classList(node) {
-  return node.classList || new ClassList(node);
-}
-
-function ClassList(node) {
-  this._node = node;
-  this._names = classArray(node.getAttribute("class") || "");
-}
-
-ClassList.prototype = {
-  add: function(name) {
-    var i = this._names.indexOf(name);
-    if (i < 0) {
-      this._names.push(name);
-      this._node.setAttribute("class", this._names.join(" "));
-    }
-  },
-  remove: function(name) {
-    var i = this._names.indexOf(name);
-    if (i >= 0) {
-      this._names.splice(i, 1);
-      this._node.setAttribute("class", this._names.join(" "));
-    }
-  },
-  contains: function(name) {
-    return this._names.indexOf(name) >= 0;
-  }
-};
-
-function classedAdd(node, names) {
-  var list = classList(node), i = -1, n = names.length;
-  while (++i < n) list.add(names[i]);
-}
-
-function classedRemove(node, names) {
-  var list = classList(node), i = -1, n = names.length;
-  while (++i < n) list.remove(names[i]);
-}
-
-function classedTrue(names) {
-  return function() {
-    classedAdd(this, names);
-  };
-}
-
-function classedFalse(names) {
-  return function() {
-    classedRemove(this, names);
-  };
-}
-
-function classedFunction(names, value) {
-  return function() {
-    (value.apply(this, arguments) ? classedAdd : classedRemove)(this, names);
-  };
-}
-
-function selection_classed(name, value) {
-  var names = classArray(name + "");
-
-  if (arguments.length < 2) {
-    var list = classList(this.node()), i = -1, n = names.length;
-    while (++i < n) if (!list.contains(names[i])) return false;
-    return true;
-  }
-
-  return this.each((typeof value === "function"
-      ? classedFunction : value
-      ? classedTrue
-      : classedFalse)(names, value));
-}
-
-function textRemove() {
-  this.textContent = "";
-}
-
-function textConstant(value) {
-  return function() {
-    this.textContent = value;
-  };
-}
-
-function textFunction(value) {
-  return function() {
-    var v = value.apply(this, arguments);
-    this.textContent = v == null ? "" : v;
-  };
-}
-
-function selection_text(value) {
-  return arguments.length
-      ? this.each(value == null
-          ? textRemove : (typeof value === "function"
-          ? textFunction
-          : textConstant)(value))
-      : this.node().textContent;
-}
-
-function htmlRemove() {
-  this.innerHTML = "";
-}
-
-function htmlConstant(value) {
-  return function() {
-    this.innerHTML = value;
-  };
-}
-
-function htmlFunction(value) {
-  return function() {
-    var v = value.apply(this, arguments);
-    this.innerHTML = v == null ? "" : v;
-  };
-}
-
-function selection_html(value) {
-  return arguments.length
-      ? this.each(value == null
-          ? htmlRemove : (typeof value === "function"
-          ? htmlFunction
-          : htmlConstant)(value))
-      : this.node().innerHTML;
-}
-
-function raise() {
-  if (this.nextSibling) this.parentNode.appendChild(this);
-}
-
-function selection_raise() {
-  return this.each(raise);
-}
-
-function lower() {
-  if (this.previousSibling) this.parentNode.insertBefore(this, this.parentNode.firstChild);
-}
-
-function selection_lower() {
-  return this.each(lower);
-}
-
-function selection_append(name) {
-  var create = typeof name === "function" ? name : creator(name);
-  return this.select(function() {
-    return this.appendChild(create.apply(this, arguments));
-  });
-}
-
-function constantNull() {
-  return null;
-}
-
-function selection_insert(name, before) {
-  var create = typeof name === "function" ? name : creator(name),
-      select$$1 = before == null ? constantNull : typeof before === "function" ? before : selector(before);
-  return this.select(function() {
-    return this.insertBefore(create.apply(this, arguments), select$$1.apply(this, arguments) || null);
-  });
-}
-
-function remove() {
-  var parent = this.parentNode;
-  if (parent) parent.removeChild(this);
-}
-
-function selection_remove() {
-  return this.each(remove);
-}
-
-function selection_datum(value) {
-  return arguments.length
-      ? this.property("__data__", value)
-      : this.node().__data__;
-}
-
-function dispatchEvent(node, type, params) {
-  var window = defaultView(node),
-      event$$1 = window.CustomEvent;
-
-  if (typeof event$$1 === "function") {
-    event$$1 = new event$$1(type, params);
-  } else {
-    event$$1 = window.document.createEvent("Event");
-    if (params) event$$1.initEvent(type, params.bubbles, params.cancelable), event$$1.detail = params.detail;
-    else event$$1.initEvent(type, false, false);
-  }
-
-  node.dispatchEvent(event$$1);
-}
-
-function dispatchConstant(type, params) {
-  return function() {
-    return dispatchEvent(this, type, params);
-  };
-}
-
-function dispatchFunction(type, params) {
-  return function() {
-    return dispatchEvent(this, type, params.apply(this, arguments));
-  };
-}
-
-function selection_dispatch(type, params) {
-  return this.each((typeof params === "function"
-      ? dispatchFunction
-      : dispatchConstant)(type, params));
-}
-
-var root = [null];
-
-function Selection(groups, parents) {
-  this._groups = groups;
-  this._parents = parents;
-}
-
-function selection() {
-  return new Selection([[document.documentElement]], root);
-}
-
-Selection.prototype = selection.prototype = {
-  constructor: Selection,
-  select: selection_select,
-  selectAll: selection_selectAll,
-  filter: selection_filter,
-  data: selection_data,
-  enter: selection_enter,
-  exit: selection_exit,
-  merge: selection_merge,
-  order: selection_order,
-  sort: selection_sort,
-  call: selection_call,
-  nodes: selection_nodes,
-  node: selection_node,
-  size: selection_size,
-  empty: selection_empty,
-  each: selection_each,
-  attr: selection_attr,
-  style: selection_style,
-  property: selection_property,
-  classed: selection_classed,
-  text: selection_text,
-  html: selection_html,
-  raise: selection_raise,
-  lower: selection_lower,
-  append: selection_append,
-  insert: selection_insert,
-  remove: selection_remove,
-  datum: selection_datum,
-  on: selection_on,
-  dispatch: selection_dispatch
-};
-
-function select$1(selector) {
-  return typeof selector === "string"
-      ? new Selection([[document.querySelector(selector)]], [document.documentElement])
-      : new Selection([[selector]], root);
+  
 }
 
 var d;
@@ -4083,25 +3247,2472 @@ function horizontal(stereonet) {
   };
 }
 
+function ascending$1(a, b) {
+  return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
+}
+
+function bisector(compare) {
+  if (compare.length === 1) compare = ascendingComparator(compare);
+  return {
+    left: function(a, x, lo, hi) {
+      if (lo == null) lo = 0;
+      if (hi == null) hi = a.length;
+      while (lo < hi) {
+        var mid = lo + hi >>> 1;
+        if (compare(a[mid], x) < 0) lo = mid + 1;
+        else hi = mid;
+      }
+      return lo;
+    },
+    right: function(a, x, lo, hi) {
+      if (lo == null) lo = 0;
+      if (hi == null) hi = a.length;
+      while (lo < hi) {
+        var mid = lo + hi >>> 1;
+        if (compare(a[mid], x) > 0) hi = mid;
+        else lo = mid + 1;
+      }
+      return lo;
+    }
+  };
+}
+
+function ascendingComparator(f) {
+  return function(d, x) {
+    return ascending$1(f(d), x);
+  };
+}
+
+var ascendingBisect = bisector(ascending$1);
+var bisectRight = ascendingBisect.right;
+
+var e10 = Math.sqrt(50);
+var e5 = Math.sqrt(10);
+var e2 = Math.sqrt(2);
+
+function ticks(start, stop, count) {
+  var reverse,
+      i = -1,
+      n,
+      ticks,
+      step;
+
+  stop = +stop, start = +start, count = +count;
+  if (start === stop && count > 0) return [start];
+  if (reverse = stop < start) n = start, start = stop, stop = n;
+  if ((step = tickIncrement(start, stop, count)) === 0 || !isFinite(step)) return [];
+
+  if (step > 0) {
+    start = Math.ceil(start / step);
+    stop = Math.floor(stop / step);
+    ticks = new Array(n = Math.ceil(stop - start + 1));
+    while (++i < n) ticks[i] = (start + i) * step;
+  } else {
+    start = Math.floor(start * step);
+    stop = Math.ceil(stop * step);
+    ticks = new Array(n = Math.ceil(start - stop + 1));
+    while (++i < n) ticks[i] = (start - i) / step;
+  }
+
+  if (reverse) ticks.reverse();
+
+  return ticks;
+}
+
+function tickIncrement(start, stop, count) {
+  var step = (stop - start) / Math.max(0, count),
+      power = Math.floor(Math.log(step) / Math.LN10),
+      error = step / Math.pow(10, power);
+  return power >= 0
+      ? (error >= e10 ? 10 : error >= e5 ? 5 : error >= e2 ? 2 : 1) * Math.pow(10, power)
+      : -Math.pow(10, -power) / (error >= e10 ? 10 : error >= e5 ? 5 : error >= e2 ? 2 : 1);
+}
+
+function tickStep(start, stop, count) {
+  var step0 = Math.abs(stop - start) / Math.max(0, count),
+      step1 = Math.pow(10, Math.floor(Math.log(step0) / Math.LN10)),
+      error = step0 / step1;
+  if (error >= e10) step1 *= 10;
+  else if (error >= e5) step1 *= 5;
+  else if (error >= e2) step1 *= 2;
+  return stop < start ? -step1 : step1;
+}
+
+var prefix = "$";
+
+function Map() {}
+
+Map.prototype = map$1.prototype = {
+  constructor: Map,
+  has: function(key) {
+    return (prefix + key) in this;
+  },
+  get: function(key) {
+    return this[prefix + key];
+  },
+  set: function(key, value) {
+    this[prefix + key] = value;
+    return this;
+  },
+  remove: function(key) {
+    var property = prefix + key;
+    return property in this && delete this[property];
+  },
+  clear: function() {
+    for (var property in this) if (property[0] === prefix) delete this[property];
+  },
+  keys: function() {
+    var keys = [];
+    for (var property in this) if (property[0] === prefix) keys.push(property.slice(1));
+    return keys;
+  },
+  values: function() {
+    var values = [];
+    for (var property in this) if (property[0] === prefix) values.push(this[property]);
+    return values;
+  },
+  entries: function() {
+    var entries = [];
+    for (var property in this) if (property[0] === prefix) entries.push({key: property.slice(1), value: this[property]});
+    return entries;
+  },
+  size: function() {
+    var size = 0;
+    for (var property in this) if (property[0] === prefix) ++size;
+    return size;
+  },
+  empty: function() {
+    for (var property in this) if (property[0] === prefix) return false;
+    return true;
+  },
+  each: function(f) {
+    for (var property in this) if (property[0] === prefix) f(this[property], property.slice(1), this);
+  }
+};
+
+function map$1(object, f) {
+  var map = new Map;
+
+  // Copy constructor.
+  if (object instanceof Map) object.each(function(value, key) { map.set(key, value); });
+
+  // Index array by numeric index or specified key function.
+  else if (Array.isArray(object)) {
+    var i = -1,
+        n = object.length,
+        o;
+
+    if (f == null) while (++i < n) map.set(i, object[i]);
+    else while (++i < n) map.set(f(o = object[i], i, object), o);
+  }
+
+  // Convert object to map.
+  else if (object) for (var key in object) map.set(key, object[key]);
+
+  return map;
+}
+
+function Set() {}
+
+var proto = map$1.prototype;
+
+Set.prototype = set.prototype = {
+  constructor: Set,
+  has: proto.has,
+  add: function(value) {
+    value += "";
+    this[prefix + value] = value;
+    return this;
+  },
+  remove: proto.remove,
+  clear: proto.clear,
+  values: proto.keys,
+  size: proto.size,
+  empty: proto.empty,
+  each: proto.each
+};
+
+function set(object, f) {
+  var set = new Set;
+
+  // Copy constructor.
+  if (object instanceof Set) object.each(function(value) { set.add(value); });
+
+  // Otherwise, assume it’s an array.
+  else if (object) {
+    var i = -1, n = object.length;
+    if (f == null) while (++i < n) set.add(object[i]);
+    else while (++i < n) set.add(f(object[i], i, object));
+  }
+
+  return set;
+}
+
+var array$1 = Array.prototype;
+
+var map$3 = array$1.map;
+var slice$1 = array$1.slice;
+
+function define(constructor, factory, prototype) {
+  constructor.prototype = factory.prototype = prototype;
+  prototype.constructor = constructor;
+}
+
+function extend(parent, definition) {
+  var prototype = Object.create(parent.prototype);
+  for (var key in definition) prototype[key] = definition[key];
+  return prototype;
+}
+
+function Color() {}
+
+var darker = 0.7;
+var brighter = 1 / darker;
+
+var reI = "\\s*([+-]?\\d+)\\s*";
+var reN = "\\s*([+-]?\\d*\\.?\\d+(?:[eE][+-]?\\d+)?)\\s*";
+var reP = "\\s*([+-]?\\d*\\.?\\d+(?:[eE][+-]?\\d+)?)%\\s*";
+var reHex3 = /^#([0-9a-f]{3})$/;
+var reHex6 = /^#([0-9a-f]{6})$/;
+var reRgbInteger = new RegExp("^rgb\\(" + [reI, reI, reI] + "\\)$");
+var reRgbPercent = new RegExp("^rgb\\(" + [reP, reP, reP] + "\\)$");
+var reRgbaInteger = new RegExp("^rgba\\(" + [reI, reI, reI, reN] + "\\)$");
+var reRgbaPercent = new RegExp("^rgba\\(" + [reP, reP, reP, reN] + "\\)$");
+var reHslPercent = new RegExp("^hsl\\(" + [reN, reP, reP] + "\\)$");
+var reHslaPercent = new RegExp("^hsla\\(" + [reN, reP, reP, reN] + "\\)$");
+
+var named = {
+  aliceblue: 0xf0f8ff,
+  antiquewhite: 0xfaebd7,
+  aqua: 0x00ffff,
+  aquamarine: 0x7fffd4,
+  azure: 0xf0ffff,
+  beige: 0xf5f5dc,
+  bisque: 0xffe4c4,
+  black: 0x000000,
+  blanchedalmond: 0xffebcd,
+  blue: 0x0000ff,
+  blueviolet: 0x8a2be2,
+  brown: 0xa52a2a,
+  burlywood: 0xdeb887,
+  cadetblue: 0x5f9ea0,
+  chartreuse: 0x7fff00,
+  chocolate: 0xd2691e,
+  coral: 0xff7f50,
+  cornflowerblue: 0x6495ed,
+  cornsilk: 0xfff8dc,
+  crimson: 0xdc143c,
+  cyan: 0x00ffff,
+  darkblue: 0x00008b,
+  darkcyan: 0x008b8b,
+  darkgoldenrod: 0xb8860b,
+  darkgray: 0xa9a9a9,
+  darkgreen: 0x006400,
+  darkgrey: 0xa9a9a9,
+  darkkhaki: 0xbdb76b,
+  darkmagenta: 0x8b008b,
+  darkolivegreen: 0x556b2f,
+  darkorange: 0xff8c00,
+  darkorchid: 0x9932cc,
+  darkred: 0x8b0000,
+  darksalmon: 0xe9967a,
+  darkseagreen: 0x8fbc8f,
+  darkslateblue: 0x483d8b,
+  darkslategray: 0x2f4f4f,
+  darkslategrey: 0x2f4f4f,
+  darkturquoise: 0x00ced1,
+  darkviolet: 0x9400d3,
+  deeppink: 0xff1493,
+  deepskyblue: 0x00bfff,
+  dimgray: 0x696969,
+  dimgrey: 0x696969,
+  dodgerblue: 0x1e90ff,
+  firebrick: 0xb22222,
+  floralwhite: 0xfffaf0,
+  forestgreen: 0x228b22,
+  fuchsia: 0xff00ff,
+  gainsboro: 0xdcdcdc,
+  ghostwhite: 0xf8f8ff,
+  gold: 0xffd700,
+  goldenrod: 0xdaa520,
+  gray: 0x808080,
+  green: 0x008000,
+  greenyellow: 0xadff2f,
+  grey: 0x808080,
+  honeydew: 0xf0fff0,
+  hotpink: 0xff69b4,
+  indianred: 0xcd5c5c,
+  indigo: 0x4b0082,
+  ivory: 0xfffff0,
+  khaki: 0xf0e68c,
+  lavender: 0xe6e6fa,
+  lavenderblush: 0xfff0f5,
+  lawngreen: 0x7cfc00,
+  lemonchiffon: 0xfffacd,
+  lightblue: 0xadd8e6,
+  lightcoral: 0xf08080,
+  lightcyan: 0xe0ffff,
+  lightgoldenrodyellow: 0xfafad2,
+  lightgray: 0xd3d3d3,
+  lightgreen: 0x90ee90,
+  lightgrey: 0xd3d3d3,
+  lightpink: 0xffb6c1,
+  lightsalmon: 0xffa07a,
+  lightseagreen: 0x20b2aa,
+  lightskyblue: 0x87cefa,
+  lightslategray: 0x778899,
+  lightslategrey: 0x778899,
+  lightsteelblue: 0xb0c4de,
+  lightyellow: 0xffffe0,
+  lime: 0x00ff00,
+  limegreen: 0x32cd32,
+  linen: 0xfaf0e6,
+  magenta: 0xff00ff,
+  maroon: 0x800000,
+  mediumaquamarine: 0x66cdaa,
+  mediumblue: 0x0000cd,
+  mediumorchid: 0xba55d3,
+  mediumpurple: 0x9370db,
+  mediumseagreen: 0x3cb371,
+  mediumslateblue: 0x7b68ee,
+  mediumspringgreen: 0x00fa9a,
+  mediumturquoise: 0x48d1cc,
+  mediumvioletred: 0xc71585,
+  midnightblue: 0x191970,
+  mintcream: 0xf5fffa,
+  mistyrose: 0xffe4e1,
+  moccasin: 0xffe4b5,
+  navajowhite: 0xffdead,
+  navy: 0x000080,
+  oldlace: 0xfdf5e6,
+  olive: 0x808000,
+  olivedrab: 0x6b8e23,
+  orange: 0xffa500,
+  orangered: 0xff4500,
+  orchid: 0xda70d6,
+  palegoldenrod: 0xeee8aa,
+  palegreen: 0x98fb98,
+  paleturquoise: 0xafeeee,
+  palevioletred: 0xdb7093,
+  papayawhip: 0xffefd5,
+  peachpuff: 0xffdab9,
+  peru: 0xcd853f,
+  pink: 0xffc0cb,
+  plum: 0xdda0dd,
+  powderblue: 0xb0e0e6,
+  purple: 0x800080,
+  rebeccapurple: 0x663399,
+  red: 0xff0000,
+  rosybrown: 0xbc8f8f,
+  royalblue: 0x4169e1,
+  saddlebrown: 0x8b4513,
+  salmon: 0xfa8072,
+  sandybrown: 0xf4a460,
+  seagreen: 0x2e8b57,
+  seashell: 0xfff5ee,
+  sienna: 0xa0522d,
+  silver: 0xc0c0c0,
+  skyblue: 0x87ceeb,
+  slateblue: 0x6a5acd,
+  slategray: 0x708090,
+  slategrey: 0x708090,
+  snow: 0xfffafa,
+  springgreen: 0x00ff7f,
+  steelblue: 0x4682b4,
+  tan: 0xd2b48c,
+  teal: 0x008080,
+  thistle: 0xd8bfd8,
+  tomato: 0xff6347,
+  turquoise: 0x40e0d0,
+  violet: 0xee82ee,
+  wheat: 0xf5deb3,
+  white: 0xffffff,
+  whitesmoke: 0xf5f5f5,
+  yellow: 0xffff00,
+  yellowgreen: 0x9acd32
+};
+
+define(Color, color, {
+  displayable: function() {
+    return this.rgb().displayable();
+  },
+  toString: function() {
+    return this.rgb() + "";
+  }
+});
+
+function color(format) {
+  var m;
+  format = (format + "").trim().toLowerCase();
+  return (m = reHex3.exec(format)) ? (m = parseInt(m[1], 16), new Rgb((m >> 8 & 0xf) | (m >> 4 & 0x0f0), (m >> 4 & 0xf) | (m & 0xf0), ((m & 0xf) << 4) | (m & 0xf), 1)) // #f00
+      : (m = reHex6.exec(format)) ? rgbn(parseInt(m[1], 16)) // #ff0000
+      : (m = reRgbInteger.exec(format)) ? new Rgb(m[1], m[2], m[3], 1) // rgb(255, 0, 0)
+      : (m = reRgbPercent.exec(format)) ? new Rgb(m[1] * 255 / 100, m[2] * 255 / 100, m[3] * 255 / 100, 1) // rgb(100%, 0%, 0%)
+      : (m = reRgbaInteger.exec(format)) ? rgba(m[1], m[2], m[3], m[4]) // rgba(255, 0, 0, 1)
+      : (m = reRgbaPercent.exec(format)) ? rgba(m[1] * 255 / 100, m[2] * 255 / 100, m[3] * 255 / 100, m[4]) // rgb(100%, 0%, 0%, 1)
+      : (m = reHslPercent.exec(format)) ? hsla(m[1], m[2] / 100, m[3] / 100, 1) // hsl(120, 50%, 50%)
+      : (m = reHslaPercent.exec(format)) ? hsla(m[1], m[2] / 100, m[3] / 100, m[4]) // hsla(120, 50%, 50%, 1)
+      : named.hasOwnProperty(format) ? rgbn(named[format])
+      : format === "transparent" ? new Rgb(NaN, NaN, NaN, 0)
+      : null;
+}
+
+function rgbn(n) {
+  return new Rgb(n >> 16 & 0xff, n >> 8 & 0xff, n & 0xff, 1);
+}
+
+function rgba(r, g, b, a) {
+  if (a <= 0) r = g = b = NaN;
+  return new Rgb(r, g, b, a);
+}
+
+function rgbConvert(o) {
+  if (!(o instanceof Color)) o = color(o);
+  if (!o) return new Rgb;
+  o = o.rgb();
+  return new Rgb(o.r, o.g, o.b, o.opacity);
+}
+
+function rgb(r, g, b, opacity) {
+  return arguments.length === 1 ? rgbConvert(r) : new Rgb(r, g, b, opacity == null ? 1 : opacity);
+}
+
+function Rgb(r, g, b, opacity) {
+  this.r = +r;
+  this.g = +g;
+  this.b = +b;
+  this.opacity = +opacity;
+}
+
+define(Rgb, rgb, extend(Color, {
+  brighter: function(k) {
+    k = k == null ? brighter : Math.pow(brighter, k);
+    return new Rgb(this.r * k, this.g * k, this.b * k, this.opacity);
+  },
+  darker: function(k) {
+    k = k == null ? darker : Math.pow(darker, k);
+    return new Rgb(this.r * k, this.g * k, this.b * k, this.opacity);
+  },
+  rgb: function() {
+    return this;
+  },
+  displayable: function() {
+    return (0 <= this.r && this.r <= 255)
+        && (0 <= this.g && this.g <= 255)
+        && (0 <= this.b && this.b <= 255)
+        && (0 <= this.opacity && this.opacity <= 1);
+  },
+  toString: function() {
+    var a = this.opacity; a = isNaN(a) ? 1 : Math.max(0, Math.min(1, a));
+    return (a === 1 ? "rgb(" : "rgba(")
+        + Math.max(0, Math.min(255, Math.round(this.r) || 0)) + ", "
+        + Math.max(0, Math.min(255, Math.round(this.g) || 0)) + ", "
+        + Math.max(0, Math.min(255, Math.round(this.b) || 0))
+        + (a === 1 ? ")" : ", " + a + ")");
+  }
+}));
+
+function hsla(h, s, l, a) {
+  if (a <= 0) h = s = l = NaN;
+  else if (l <= 0 || l >= 1) h = s = NaN;
+  else if (s <= 0) h = NaN;
+  return new Hsl(h, s, l, a);
+}
+
+function hslConvert(o) {
+  if (o instanceof Hsl) return new Hsl(o.h, o.s, o.l, o.opacity);
+  if (!(o instanceof Color)) o = color(o);
+  if (!o) return new Hsl;
+  if (o instanceof Hsl) return o;
+  o = o.rgb();
+  var r = o.r / 255,
+      g = o.g / 255,
+      b = o.b / 255,
+      min = Math.min(r, g, b),
+      max = Math.max(r, g, b),
+      h = NaN,
+      s = max - min,
+      l = (max + min) / 2;
+  if (s) {
+    if (r === max) h = (g - b) / s + (g < b) * 6;
+    else if (g === max) h = (b - r) / s + 2;
+    else h = (r - g) / s + 4;
+    s /= l < 0.5 ? max + min : 2 - max - min;
+    h *= 60;
+  } else {
+    s = l > 0 && l < 1 ? 0 : h;
+  }
+  return new Hsl(h, s, l, o.opacity);
+}
+
+function hsl(h, s, l, opacity) {
+  return arguments.length === 1 ? hslConvert(h) : new Hsl(h, s, l, opacity == null ? 1 : opacity);
+}
+
+function Hsl(h, s, l, opacity) {
+  this.h = +h;
+  this.s = +s;
+  this.l = +l;
+  this.opacity = +opacity;
+}
+
+define(Hsl, hsl, extend(Color, {
+  brighter: function(k) {
+    k = k == null ? brighter : Math.pow(brighter, k);
+    return new Hsl(this.h, this.s, this.l * k, this.opacity);
+  },
+  darker: function(k) {
+    k = k == null ? darker : Math.pow(darker, k);
+    return new Hsl(this.h, this.s, this.l * k, this.opacity);
+  },
+  rgb: function() {
+    var h = this.h % 360 + (this.h < 0) * 360,
+        s = isNaN(h) || isNaN(this.s) ? 0 : this.s,
+        l = this.l,
+        m2 = l + (l < 0.5 ? l : 1 - l) * s,
+        m1 = 2 * l - m2;
+    return new Rgb(
+      hsl2rgb(h >= 240 ? h - 240 : h + 120, m1, m2),
+      hsl2rgb(h, m1, m2),
+      hsl2rgb(h < 120 ? h + 240 : h - 120, m1, m2),
+      this.opacity
+    );
+  },
+  displayable: function() {
+    return (0 <= this.s && this.s <= 1 || isNaN(this.s))
+        && (0 <= this.l && this.l <= 1)
+        && (0 <= this.opacity && this.opacity <= 1);
+  }
+}));
+
+/* From FvD 13.37, CSS Color Module Level 3 */
+function hsl2rgb(h, m1, m2) {
+  return (h < 60 ? m1 + (m2 - m1) * h / 60
+      : h < 180 ? m2
+      : h < 240 ? m1 + (m2 - m1) * (240 - h) / 60
+      : m1) * 255;
+}
+
+var deg2rad = Math.PI / 180;
+var rad2deg = 180 / Math.PI;
+
+var Kn = 18;
+var Xn = 0.950470;
+var Yn = 1;
+var Zn = 1.088830;
+var t0 = 4 / 29;
+var t1 = 6 / 29;
+var t2 = 3 * t1 * t1;
+var t3 = t1 * t1 * t1;
+
+function labConvert(o) {
+  if (o instanceof Lab) return new Lab(o.l, o.a, o.b, o.opacity);
+  if (o instanceof Hcl) {
+    var h = o.h * deg2rad;
+    return new Lab(o.l, Math.cos(h) * o.c, Math.sin(h) * o.c, o.opacity);
+  }
+  if (!(o instanceof Rgb)) o = rgbConvert(o);
+  var b = rgb2xyz(o.r),
+      a = rgb2xyz(o.g),
+      l = rgb2xyz(o.b),
+      x = xyz2lab((0.4124564 * b + 0.3575761 * a + 0.1804375 * l) / Xn),
+      y = xyz2lab((0.2126729 * b + 0.7151522 * a + 0.0721750 * l) / Yn),
+      z = xyz2lab((0.0193339 * b + 0.1191920 * a + 0.9503041 * l) / Zn);
+  return new Lab(116 * y - 16, 500 * (x - y), 200 * (y - z), o.opacity);
+}
+
+function lab(l, a, b, opacity) {
+  return arguments.length === 1 ? labConvert(l) : new Lab(l, a, b, opacity == null ? 1 : opacity);
+}
+
+function Lab(l, a, b, opacity) {
+  this.l = +l;
+  this.a = +a;
+  this.b = +b;
+  this.opacity = +opacity;
+}
+
+define(Lab, lab, extend(Color, {
+  brighter: function(k) {
+    return new Lab(this.l + Kn * (k == null ? 1 : k), this.a, this.b, this.opacity);
+  },
+  darker: function(k) {
+    return new Lab(this.l - Kn * (k == null ? 1 : k), this.a, this.b, this.opacity);
+  },
+  rgb: function() {
+    var y = (this.l + 16) / 116,
+        x = isNaN(this.a) ? y : y + this.a / 500,
+        z = isNaN(this.b) ? y : y - this.b / 200;
+    y = Yn * lab2xyz(y);
+    x = Xn * lab2xyz(x);
+    z = Zn * lab2xyz(z);
+    return new Rgb(
+      xyz2rgb( 3.2404542 * x - 1.5371385 * y - 0.4985314 * z), // D65 -> sRGB
+      xyz2rgb(-0.9692660 * x + 1.8760108 * y + 0.0415560 * z),
+      xyz2rgb( 0.0556434 * x - 0.2040259 * y + 1.0572252 * z),
+      this.opacity
+    );
+  }
+}));
+
+function xyz2lab(t) {
+  return t > t3 ? Math.pow(t, 1 / 3) : t / t2 + t0;
+}
+
+function lab2xyz(t) {
+  return t > t1 ? t * t * t : t2 * (t - t0);
+}
+
+function xyz2rgb(x) {
+  return 255 * (x <= 0.0031308 ? 12.92 * x : 1.055 * Math.pow(x, 1 / 2.4) - 0.055);
+}
+
+function rgb2xyz(x) {
+  return (x /= 255) <= 0.04045 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
+}
+
+function hclConvert(o) {
+  if (o instanceof Hcl) return new Hcl(o.h, o.c, o.l, o.opacity);
+  if (!(o instanceof Lab)) o = labConvert(o);
+  var h = Math.atan2(o.b, o.a) * rad2deg;
+  return new Hcl(h < 0 ? h + 360 : h, Math.sqrt(o.a * o.a + o.b * o.b), o.l, o.opacity);
+}
+
+function hcl(h, c, l, opacity) {
+  return arguments.length === 1 ? hclConvert(h) : new Hcl(h, c, l, opacity == null ? 1 : opacity);
+}
+
+function Hcl(h, c, l, opacity) {
+  this.h = +h;
+  this.c = +c;
+  this.l = +l;
+  this.opacity = +opacity;
+}
+
+define(Hcl, hcl, extend(Color, {
+  brighter: function(k) {
+    return new Hcl(this.h, this.c, this.l + Kn * (k == null ? 1 : k), this.opacity);
+  },
+  darker: function(k) {
+    return new Hcl(this.h, this.c, this.l - Kn * (k == null ? 1 : k), this.opacity);
+  },
+  rgb: function() {
+    return labConvert(this).rgb();
+  }
+}));
+
+var A = -0.14861;
+var B = +1.78277;
+var C = -0.29227;
+var D = -0.90649;
+var E = +1.97294;
+var ED = E * D;
+var EB = E * B;
+var BC_DA = B * C - D * A;
+
+function cubehelixConvert(o) {
+  if (o instanceof Cubehelix) return new Cubehelix(o.h, o.s, o.l, o.opacity);
+  if (!(o instanceof Rgb)) o = rgbConvert(o);
+  var r = o.r / 255,
+      g = o.g / 255,
+      b = o.b / 255,
+      l = (BC_DA * b + ED * r - EB * g) / (BC_DA + ED - EB),
+      bl = b - l,
+      k = (E * (g - l) - C * bl) / D,
+      s = Math.sqrt(k * k + bl * bl) / (E * l * (1 - l)), // NaN if l=0 or l=1
+      h = s ? Math.atan2(k, bl) * rad2deg - 120 : NaN;
+  return new Cubehelix(h < 0 ? h + 360 : h, s, l, o.opacity);
+}
+
+function cubehelix(h, s, l, opacity) {
+  return arguments.length === 1 ? cubehelixConvert(h) : new Cubehelix(h, s, l, opacity == null ? 1 : opacity);
+}
+
+function Cubehelix(h, s, l, opacity) {
+  this.h = +h;
+  this.s = +s;
+  this.l = +l;
+  this.opacity = +opacity;
+}
+
+define(Cubehelix, cubehelix, extend(Color, {
+  brighter: function(k) {
+    k = k == null ? brighter : Math.pow(brighter, k);
+    return new Cubehelix(this.h, this.s, this.l * k, this.opacity);
+  },
+  darker: function(k) {
+    k = k == null ? darker : Math.pow(darker, k);
+    return new Cubehelix(this.h, this.s, this.l * k, this.opacity);
+  },
+  rgb: function() {
+    var h = isNaN(this.h) ? 0 : (this.h + 120) * deg2rad,
+        l = +this.l,
+        a = isNaN(this.s) ? 0 : this.s * l * (1 - l),
+        cosh = Math.cos(h),
+        sinh = Math.sin(h);
+    return new Rgb(
+      255 * (l + a * (A * cosh + B * sinh)),
+      255 * (l + a * (C * cosh + D * sinh)),
+      255 * (l + a * (E * cosh)),
+      this.opacity
+    );
+  }
+}));
+
+function constant$2(x) {
+  return function() {
+    return x;
+  };
+}
+
+function linear$1(a, d) {
+  return function(t) {
+    return a + t * d;
+  };
+}
+
+function exponential(a, b, y) {
+  return a = Math.pow(a, y), b = Math.pow(b, y) - a, y = 1 / y, function(t) {
+    return Math.pow(a + t * b, y);
+  };
+}
+
+function hue(a, b) {
+  var d = b - a;
+  return d ? linear$1(a, d > 180 || d < -180 ? d - 360 * Math.round(d / 360) : d) : constant$2(isNaN(a) ? b : a);
+}
+
+function gamma(y) {
+  return (y = +y) === 1 ? nogamma : function(a, b) {
+    return b - a ? exponential(a, b, y) : constant$2(isNaN(a) ? b : a);
+  };
+}
+
+function nogamma(a, b) {
+  var d = b - a;
+  return d ? linear$1(a, d) : constant$2(isNaN(a) ? b : a);
+}
+
+var rgb$1 = (function rgbGamma(y) {
+  var color$$1 = gamma(y);
+
+  function rgb$$1(start, end) {
+    var r = color$$1((start = rgb(start)).r, (end = rgb(end)).r),
+        g = color$$1(start.g, end.g),
+        b = color$$1(start.b, end.b),
+        opacity = nogamma(start.opacity, end.opacity);
+    return function(t) {
+      start.r = r(t);
+      start.g = g(t);
+      start.b = b(t);
+      start.opacity = opacity(t);
+      return start + "";
+    };
+  }
+
+  rgb$$1.gamma = rgbGamma;
+
+  return rgb$$1;
+})(1);
+
+function array$2(a, b) {
+  var nb = b ? b.length : 0,
+      na = a ? Math.min(nb, a.length) : 0,
+      x = new Array(na),
+      c = new Array(nb),
+      i;
+
+  for (i = 0; i < na; ++i) x[i] = interpolateValue(a[i], b[i]);
+  for (; i < nb; ++i) c[i] = b[i];
+
+  return function(t) {
+    for (i = 0; i < na; ++i) c[i] = x[i](t);
+    return c;
+  };
+}
+
+function date(a, b) {
+  var d = new Date;
+  return a = +a, b -= a, function(t) {
+    return d.setTime(a + b * t), d;
+  };
+}
+
+function reinterpolate(a, b) {
+  return a = +a, b -= a, function(t) {
+    return a + b * t;
+  };
+}
+
+function object(a, b) {
+  var i = {},
+      c = {},
+      k;
+
+  if (a === null || typeof a !== "object") a = {};
+  if (b === null || typeof b !== "object") b = {};
+
+  for (k in b) {
+    if (k in a) {
+      i[k] = interpolateValue(a[k], b[k]);
+    } else {
+      c[k] = b[k];
+    }
+  }
+
+  return function(t) {
+    for (k in i) c[k] = i[k](t);
+    return c;
+  };
+}
+
+var reA = /[-+]?(?:\d+\.?\d*|\.?\d+)(?:[eE][-+]?\d+)?/g;
+var reB = new RegExp(reA.source, "g");
+
+function zero(b) {
+  return function() {
+    return b;
+  };
+}
+
+function one(b) {
+  return function(t) {
+    return b(t) + "";
+  };
+}
+
+function string(a, b) {
+  var bi = reA.lastIndex = reB.lastIndex = 0, // scan index for next number in b
+      am, // current match in a
+      bm, // current match in b
+      bs, // string preceding current number in b, if any
+      i = -1, // index in s
+      s = [], // string constants and placeholders
+      q = []; // number interpolators
+
+  // Coerce inputs to strings.
+  a = a + "", b = b + "";
+
+  // Interpolate pairs of numbers in a & b.
+  while ((am = reA.exec(a))
+      && (bm = reB.exec(b))) {
+    if ((bs = bm.index) > bi) { // a string precedes the next number in b
+      bs = b.slice(bi, bs);
+      if (s[i]) s[i] += bs; // coalesce with previous string
+      else s[++i] = bs;
+    }
+    if ((am = am[0]) === (bm = bm[0])) { // numbers in a & b match
+      if (s[i]) s[i] += bm; // coalesce with previous string
+      else s[++i] = bm;
+    } else { // interpolate non-matching numbers
+      s[++i] = null;
+      q.push({i: i, x: reinterpolate(am, bm)});
+    }
+    bi = reB.lastIndex;
+  }
+
+  // Add remains of b.
+  if (bi < b.length) {
+    bs = b.slice(bi);
+    if (s[i]) s[i] += bs; // coalesce with previous string
+    else s[++i] = bs;
+  }
+
+  // Special optimization for only a single match.
+  // Otherwise, interpolate each of the numbers and rejoin the string.
+  return s.length < 2 ? (q[0]
+      ? one(q[0].x)
+      : zero(b))
+      : (b = q.length, function(t) {
+          for (var i = 0, o; i < b; ++i) s[(o = q[i]).i] = o.x(t);
+          return s.join("");
+        });
+}
+
+function interpolateValue(a, b) {
+  var t = typeof b, c;
+  return b == null || t === "boolean" ? constant$2(b)
+      : (t === "number" ? reinterpolate
+      : t === "string" ? ((c = color(b)) ? (b = c, rgb$1) : string)
+      : b instanceof color ? rgb$1
+      : b instanceof Date ? date
+      : Array.isArray(b) ? array$2
+      : typeof b.valueOf !== "function" && typeof b.toString !== "function" || isNaN(b) ? object
+      : reinterpolate)(a, b);
+}
+
+function interpolateRound(a, b) {
+  return a = +a, b -= a, function(t) {
+    return Math.round(a + b * t);
+  };
+}
+
+var degrees = 180 / Math.PI;
+
+var rho = Math.SQRT2;
+
+function cubehelix$1(hue$$1) {
+  return (function cubehelixGamma(y) {
+    y = +y;
+
+    function cubehelix$$1(start, end) {
+      var h = hue$$1((start = cubehelix(start)).h, (end = cubehelix(end)).h),
+          s = nogamma(start.s, end.s),
+          l = nogamma(start.l, end.l),
+          opacity = nogamma(start.opacity, end.opacity);
+      return function(t) {
+        start.h = h(t);
+        start.s = s(t);
+        start.l = l(Math.pow(t, y));
+        start.opacity = opacity(t);
+        return start + "";
+      };
+    }
+
+    cubehelix$$1.gamma = cubehelixGamma;
+
+    return cubehelix$$1;
+  })(1);
+}
+
+cubehelix$1(hue);
+var cubehelixLong = cubehelix$1(nogamma);
+
+function constant$3(x) {
+  return function() {
+    return x;
+  };
+}
+
+function number$1(x) {
+  return +x;
+}
+
+var unit = [0, 1];
+
+function deinterpolateLinear(a, b) {
+  return (b -= (a = +a))
+      ? function(x) { return (x - a) / b; }
+      : constant$3(b);
+}
+
+function deinterpolateClamp(deinterpolate) {
+  return function(a, b) {
+    var d = deinterpolate(a = +a, b = +b);
+    return function(x) { return x <= a ? 0 : x >= b ? 1 : d(x); };
+  };
+}
+
+function reinterpolateClamp(reinterpolate) {
+  return function(a, b) {
+    var r = reinterpolate(a = +a, b = +b);
+    return function(t) { return t <= 0 ? a : t >= 1 ? b : r(t); };
+  };
+}
+
+function bimap(domain, range, deinterpolate, reinterpolate) {
+  var d0 = domain[0], d1 = domain[1], r0 = range[0], r1 = range[1];
+  if (d1 < d0) d0 = deinterpolate(d1, d0), r0 = reinterpolate(r1, r0);
+  else d0 = deinterpolate(d0, d1), r0 = reinterpolate(r0, r1);
+  return function(x) { return r0(d0(x)); };
+}
+
+function polymap(domain, range, deinterpolate, reinterpolate) {
+  var j = Math.min(domain.length, range.length) - 1,
+      d = new Array(j),
+      r = new Array(j),
+      i = -1;
+
+  // Reverse descending domains.
+  if (domain[j] < domain[0]) {
+    domain = domain.slice().reverse();
+    range = range.slice().reverse();
+  }
+
+  while (++i < j) {
+    d[i] = deinterpolate(domain[i], domain[i + 1]);
+    r[i] = reinterpolate(range[i], range[i + 1]);
+  }
+
+  return function(x) {
+    var i = bisectRight(domain, x, 1, j) - 1;
+    return r[i](d[i](x));
+  };
+}
+
+function copy(source, target) {
+  return target
+      .domain(source.domain())
+      .range(source.range())
+      .interpolate(source.interpolate())
+      .clamp(source.clamp());
+}
+
+// deinterpolate(a, b)(x) takes a domain value x in [a,b] and returns the corresponding parameter t in [0,1].
+// reinterpolate(a, b)(t) takes a parameter t in [0,1] and returns the corresponding domain value x in [a,b].
+function continuous(deinterpolate, reinterpolate) {
+  var domain = unit,
+      range = unit,
+      interpolate$$1 = interpolateValue,
+      clamp = false,
+      piecewise,
+      output,
+      input;
+
+  function rescale() {
+    piecewise = Math.min(domain.length, range.length) > 2 ? polymap : bimap;
+    output = input = null;
+    return scale;
+  }
+
+  function scale(x) {
+    return (output || (output = piecewise(domain, range, clamp ? deinterpolateClamp(deinterpolate) : deinterpolate, interpolate$$1)))(+x);
+  }
+
+  scale.invert = function(y) {
+    return (input || (input = piecewise(range, domain, deinterpolateLinear, clamp ? reinterpolateClamp(reinterpolate) : reinterpolate)))(+y);
+  };
+
+  scale.domain = function(_) {
+    return arguments.length ? (domain = map$3.call(_, number$1), rescale()) : domain.slice();
+  };
+
+  scale.range = function(_) {
+    return arguments.length ? (range = slice$1.call(_), rescale()) : range.slice();
+  };
+
+  scale.rangeRound = function(_) {
+    return range = slice$1.call(_), interpolate$$1 = interpolateRound, rescale();
+  };
+
+  scale.clamp = function(_) {
+    return arguments.length ? (clamp = !!_, rescale()) : clamp;
+  };
+
+  scale.interpolate = function(_) {
+    return arguments.length ? (interpolate$$1 = _, rescale()) : interpolate$$1;
+  };
+
+  return rescale();
+}
+
+// Computes the decimal coefficient and exponent of the specified number x with
+// significant digits p, where x is positive and p is in [1, 21] or undefined.
+// For example, formatDecimal(1.23) returns ["123", 0].
+function formatDecimal(x, p) {
+  if ((i = (x = p ? x.toExponential(p - 1) : x.toExponential()).indexOf("e")) < 0) return null; // NaN, ±Infinity
+  var i, coefficient = x.slice(0, i);
+
+  // The string returned by toExponential either has the form \d\.\d+e[-+]\d+
+  // (e.g., 1.2e+3) or the form \de[-+]\d+ (e.g., 1e+3).
+  return [
+    coefficient.length > 1 ? coefficient[0] + coefficient.slice(2) : coefficient,
+    +x.slice(i + 1)
+  ];
+}
+
+function exponent(x) {
+  return x = formatDecimal(Math.abs(x)), x ? x[1] : NaN;
+}
+
+function formatGroup(grouping, thousands) {
+  return function(value, width) {
+    var i = value.length,
+        t = [],
+        j = 0,
+        g = grouping[0],
+        length = 0;
+
+    while (i > 0 && g > 0) {
+      if (length + g + 1 > width) g = Math.max(1, width - length);
+      t.push(value.substring(i -= g, i + g));
+      if ((length += g + 1) > width) break;
+      g = grouping[j = (j + 1) % grouping.length];
+    }
+
+    return t.reverse().join(thousands);
+  };
+}
+
+function formatNumerals(numerals) {
+  return function(value) {
+    return value.replace(/[0-9]/g, function(i) {
+      return numerals[+i];
+    });
+  };
+}
+
+function formatDefault(x, p) {
+  x = x.toPrecision(p);
+
+  out: for (var n = x.length, i = 1, i0 = -1, i1; i < n; ++i) {
+    switch (x[i]) {
+      case ".": i0 = i1 = i; break;
+      case "0": if (i0 === 0) i0 = i; i1 = i; break;
+      case "e": break out;
+      default: if (i0 > 0) i0 = 0; break;
+    }
+  }
+
+  return i0 > 0 ? x.slice(0, i0) + x.slice(i1 + 1) : x;
+}
+
+var prefixExponent;
+
+function formatPrefixAuto(x, p) {
+  var d = formatDecimal(x, p);
+  if (!d) return x + "";
+  var coefficient = d[0],
+      exponent = d[1],
+      i = exponent - (prefixExponent = Math.max(-8, Math.min(8, Math.floor(exponent / 3))) * 3) + 1,
+      n = coefficient.length;
+  return i === n ? coefficient
+      : i > n ? coefficient + new Array(i - n + 1).join("0")
+      : i > 0 ? coefficient.slice(0, i) + "." + coefficient.slice(i)
+      : "0." + new Array(1 - i).join("0") + formatDecimal(x, Math.max(0, p + i - 1))[0]; // less than 1y!
+}
+
+function formatRounded(x, p) {
+  var d = formatDecimal(x, p);
+  if (!d) return x + "";
+  var coefficient = d[0],
+      exponent = d[1];
+  return exponent < 0 ? "0." + new Array(-exponent).join("0") + coefficient
+      : coefficient.length > exponent + 1 ? coefficient.slice(0, exponent + 1) + "." + coefficient.slice(exponent + 1)
+      : coefficient + new Array(exponent - coefficient.length + 2).join("0");
+}
+
+var formatTypes = {
+  "": formatDefault,
+  "%": function(x, p) { return (x * 100).toFixed(p); },
+  "b": function(x) { return Math.round(x).toString(2); },
+  "c": function(x) { return x + ""; },
+  "d": function(x) { return Math.round(x).toString(10); },
+  "e": function(x, p) { return x.toExponential(p); },
+  "f": function(x, p) { return x.toFixed(p); },
+  "g": function(x, p) { return x.toPrecision(p); },
+  "o": function(x) { return Math.round(x).toString(8); },
+  "p": function(x, p) { return formatRounded(x * 100, p); },
+  "r": formatRounded,
+  "s": formatPrefixAuto,
+  "X": function(x) { return Math.round(x).toString(16).toUpperCase(); },
+  "x": function(x) { return Math.round(x).toString(16); }
+};
+
+// [[fill]align][sign][symbol][0][width][,][.precision][type]
+var re = /^(?:(.)?([<>=^]))?([+\-\( ])?([$#])?(0)?(\d+)?(,)?(\.\d+)?([a-z%])?$/i;
+
+function formatSpecifier(specifier) {
+  return new FormatSpecifier(specifier);
+}
+
+formatSpecifier.prototype = FormatSpecifier.prototype; // instanceof
+
+function FormatSpecifier(specifier) {
+  if (!(match = re.exec(specifier))) throw new Error("invalid format: " + specifier);
+
+  var match,
+      fill = match[1] || " ",
+      align = match[2] || ">",
+      sign = match[3] || "-",
+      symbol = match[4] || "",
+      zero = !!match[5],
+      width = match[6] && +match[6],
+      comma = !!match[7],
+      precision = match[8] && +match[8].slice(1),
+      type = match[9] || "";
+
+  // The "n" type is an alias for ",g".
+  if (type === "n") comma = true, type = "g";
+
+  // Map invalid types to the default format.
+  else if (!formatTypes[type]) type = "";
+
+  // If zero fill is specified, padding goes after sign and before digits.
+  if (zero || (fill === "0" && align === "=")) zero = true, fill = "0", align = "=";
+
+  this.fill = fill;
+  this.align = align;
+  this.sign = sign;
+  this.symbol = symbol;
+  this.zero = zero;
+  this.width = width;
+  this.comma = comma;
+  this.precision = precision;
+  this.type = type;
+}
+
+FormatSpecifier.prototype.toString = function() {
+  return this.fill
+      + this.align
+      + this.sign
+      + this.symbol
+      + (this.zero ? "0" : "")
+      + (this.width == null ? "" : Math.max(1, this.width | 0))
+      + (this.comma ? "," : "")
+      + (this.precision == null ? "" : "." + Math.max(0, this.precision | 0))
+      + this.type;
+};
+
+function identity$4(x) {
+  return x;
+}
+
+var prefixes = ["y","z","a","f","p","n","µ","m","","k","M","G","T","P","E","Z","Y"];
+
+function formatLocale(locale) {
+  var group = locale.grouping && locale.thousands ? formatGroup(locale.grouping, locale.thousands) : identity$4,
+      currency = locale.currency,
+      decimal = locale.decimal,
+      numerals = locale.numerals ? formatNumerals(locale.numerals) : identity$4,
+      percent = locale.percent || "%";
+
+  function newFormat(specifier) {
+    specifier = formatSpecifier(specifier);
+
+    var fill = specifier.fill,
+        align = specifier.align,
+        sign = specifier.sign,
+        symbol = specifier.symbol,
+        zero = specifier.zero,
+        width = specifier.width,
+        comma = specifier.comma,
+        precision = specifier.precision,
+        type = specifier.type;
+
+    // Compute the prefix and suffix.
+    // For SI-prefix, the suffix is lazily computed.
+    var prefix = symbol === "$" ? currency[0] : symbol === "#" && /[boxX]/.test(type) ? "0" + type.toLowerCase() : "",
+        suffix = symbol === "$" ? currency[1] : /[%p]/.test(type) ? percent : "";
+
+    // What format function should we use?
+    // Is this an integer type?
+    // Can this type generate exponential notation?
+    var formatType = formatTypes[type],
+        maybeSuffix = !type || /[defgprs%]/.test(type);
+
+    // Set the default precision if not specified,
+    // or clamp the specified precision to the supported range.
+    // For significant precision, it must be in [1, 21].
+    // For fixed precision, it must be in [0, 20].
+    precision = precision == null ? (type ? 6 : 12)
+        : /[gprs]/.test(type) ? Math.max(1, Math.min(21, precision))
+        : Math.max(0, Math.min(20, precision));
+
+    function format(value) {
+      var valuePrefix = prefix,
+          valueSuffix = suffix,
+          i, n, c;
+
+      if (type === "c") {
+        valueSuffix = formatType(value) + valueSuffix;
+        value = "";
+      } else {
+        value = +value;
+
+        // Perform the initial formatting.
+        var valueNegative = value < 0;
+        value = formatType(Math.abs(value), precision);
+
+        // If a negative value rounds to zero during formatting, treat as positive.
+        if (valueNegative && +value === 0) valueNegative = false;
+
+        // Compute the prefix and suffix.
+        valuePrefix = (valueNegative ? (sign === "(" ? sign : "-") : sign === "-" || sign === "(" ? "" : sign) + valuePrefix;
+        valueSuffix = valueSuffix + (type === "s" ? prefixes[8 + prefixExponent / 3] : "") + (valueNegative && sign === "(" ? ")" : "");
+
+        // Break the formatted value into the integer “value” part that can be
+        // grouped, and fractional or exponential “suffix” part that is not.
+        if (maybeSuffix) {
+          i = -1, n = value.length;
+          while (++i < n) {
+            if (c = value.charCodeAt(i), 48 > c || c > 57) {
+              valueSuffix = (c === 46 ? decimal + value.slice(i + 1) : value.slice(i)) + valueSuffix;
+              value = value.slice(0, i);
+              break;
+            }
+          }
+        }
+      }
+
+      // If the fill character is not "0", grouping is applied before padding.
+      if (comma && !zero) value = group(value, Infinity);
+
+      // Compute the padding.
+      var length = valuePrefix.length + value.length + valueSuffix.length,
+          padding = length < width ? new Array(width - length + 1).join(fill) : "";
+
+      // If the fill character is "0", grouping is applied after padding.
+      if (comma && zero) value = group(padding + value, padding.length ? width - valueSuffix.length : Infinity), padding = "";
+
+      // Reconstruct the final output based on the desired alignment.
+      switch (align) {
+        case "<": value = valuePrefix + value + valueSuffix + padding; break;
+        case "=": value = valuePrefix + padding + value + valueSuffix; break;
+        case "^": value = padding.slice(0, length = padding.length >> 1) + valuePrefix + value + valueSuffix + padding.slice(length); break;
+        default: value = padding + valuePrefix + value + valueSuffix; break;
+      }
+
+      return numerals(value);
+    }
+
+    format.toString = function() {
+      return specifier + "";
+    };
+
+    return format;
+  }
+
+  function formatPrefix(specifier, value) {
+    var f = newFormat((specifier = formatSpecifier(specifier), specifier.type = "f", specifier)),
+        e = Math.max(-8, Math.min(8, Math.floor(exponent(value) / 3))) * 3,
+        k = Math.pow(10, -e),
+        prefix = prefixes[8 + e / 3];
+    return function(value) {
+      return f(k * value) + prefix;
+    };
+  }
+
+  return {
+    format: newFormat,
+    formatPrefix: formatPrefix
+  };
+}
+
+var locale;
+var format;
+var formatPrefix;
+
+defaultLocale({
+  decimal: ".",
+  thousands: ",",
+  grouping: [3],
+  currency: ["$", ""]
+});
+
+function defaultLocale(definition) {
+  locale = formatLocale(definition);
+  format = locale.format;
+  formatPrefix = locale.formatPrefix;
+  return locale;
+}
+
+function precisionFixed(step) {
+  return Math.max(0, -exponent(Math.abs(step)));
+}
+
+function precisionPrefix(step, value) {
+  return Math.max(0, Math.max(-8, Math.min(8, Math.floor(exponent(value) / 3))) * 3 - exponent(Math.abs(step)));
+}
+
+function precisionRound(step, max) {
+  step = Math.abs(step), max = Math.abs(max) - step;
+  return Math.max(0, exponent(max) - exponent(step)) + 1;
+}
+
+function tickFormat(domain, count, specifier) {
+  var start = domain[0],
+      stop = domain[domain.length - 1],
+      step = tickStep(start, stop, count == null ? 10 : count),
+      precision;
+  specifier = formatSpecifier(specifier == null ? ",f" : specifier);
+  switch (specifier.type) {
+    case "s": {
+      var value = Math.max(Math.abs(start), Math.abs(stop));
+      if (specifier.precision == null && !isNaN(precision = precisionPrefix(step, value))) specifier.precision = precision;
+      return formatPrefix(specifier, value);
+    }
+    case "":
+    case "e":
+    case "g":
+    case "p":
+    case "r": {
+      if (specifier.precision == null && !isNaN(precision = precisionRound(step, Math.max(Math.abs(start), Math.abs(stop))))) specifier.precision = precision - (specifier.type === "e");
+      break;
+    }
+    case "f":
+    case "%": {
+      if (specifier.precision == null && !isNaN(precision = precisionFixed(step))) specifier.precision = precision - (specifier.type === "%") * 2;
+      break;
+    }
+  }
+  return format(specifier);
+}
+
+function linearish(scale) {
+  var domain = scale.domain;
+
+  scale.ticks = function(count) {
+    var d = domain();
+    return ticks(d[0], d[d.length - 1], count == null ? 10 : count);
+  };
+
+  scale.tickFormat = function(count, specifier) {
+    return tickFormat(domain(), count, specifier);
+  };
+
+  scale.nice = function(count) {
+    if (count == null) count = 10;
+
+    var d = domain(),
+        i0 = 0,
+        i1 = d.length - 1,
+        start = d[i0],
+        stop = d[i1],
+        step;
+
+    if (stop < start) {
+      step = start, start = stop, stop = step;
+      step = i0, i0 = i1, i1 = step;
+    }
+
+    step = tickIncrement(start, stop, count);
+
+    if (step > 0) {
+      start = Math.floor(start / step) * step;
+      stop = Math.ceil(stop / step) * step;
+      step = tickIncrement(start, stop, count);
+    } else if (step < 0) {
+      start = Math.ceil(start * step) / step;
+      stop = Math.floor(stop * step) / step;
+      step = tickIncrement(start, stop, count);
+    }
+
+    if (step > 0) {
+      d[i0] = Math.floor(start / step) * step;
+      d[i1] = Math.ceil(stop / step) * step;
+      domain(d);
+    } else if (step < 0) {
+      d[i0] = Math.ceil(start * step) / step;
+      d[i1] = Math.floor(stop * step) / step;
+      domain(d);
+    }
+
+    return scale;
+  };
+
+  return scale;
+}
+
+function linear() {
+  var scale = continuous(deinterpolateLinear, reinterpolate);
+
+  scale.copy = function() {
+    return copy(scale, linear());
+  };
+
+  return linearish(scale);
+}
+
+var t0$1 = new Date;
+var t1$1 = new Date;
+
+function newInterval(floori, offseti, count, field) {
+
+  function interval(date) {
+    return floori(date = new Date(+date)), date;
+  }
+
+  interval.floor = interval;
+
+  interval.ceil = function(date) {
+    return floori(date = new Date(date - 1)), offseti(date, 1), floori(date), date;
+  };
+
+  interval.round = function(date) {
+    var d0 = interval(date),
+        d1 = interval.ceil(date);
+    return date - d0 < d1 - date ? d0 : d1;
+  };
+
+  interval.offset = function(date, step) {
+    return offseti(date = new Date(+date), step == null ? 1 : Math.floor(step)), date;
+  };
+
+  interval.range = function(start, stop, step) {
+    var range = [], previous;
+    start = interval.ceil(start);
+    step = step == null ? 1 : Math.floor(step);
+    if (!(start < stop) || !(step > 0)) return range; // also handles Invalid Date
+    do range.push(previous = new Date(+start)), offseti(start, step), floori(start);
+    while (previous < start && start < stop);
+    return range;
+  };
+
+  interval.filter = function(test) {
+    return newInterval(function(date) {
+      if (date >= date) while (floori(date), !test(date)) date.setTime(date - 1);
+    }, function(date, step) {
+      if (date >= date) {
+        if (step < 0) while (++step <= 0) {
+          while (offseti(date, -1), !test(date)) {} // eslint-disable-line no-empty
+        } else while (--step >= 0) {
+          while (offseti(date, +1), !test(date)) {} // eslint-disable-line no-empty
+        }
+      }
+    });
+  };
+
+  if (count) {
+    interval.count = function(start, end) {
+      t0$1.setTime(+start), t1$1.setTime(+end);
+      floori(t0$1), floori(t1$1);
+      return Math.floor(count(t0$1, t1$1));
+    };
+
+    interval.every = function(step) {
+      step = Math.floor(step);
+      return !isFinite(step) || !(step > 0) ? null
+          : !(step > 1) ? interval
+          : interval.filter(field
+              ? function(d) { return field(d) % step === 0; }
+              : function(d) { return interval.count(0, d) % step === 0; });
+    };
+  }
+
+  return interval;
+}
+
+var millisecond = newInterval(function() {
+  // noop
+}, function(date, step) {
+  date.setTime(+date + step);
+}, function(start, end) {
+  return end - start;
+});
+
+// An optimized implementation for this simple case.
+millisecond.every = function(k) {
+  k = Math.floor(k);
+  if (!isFinite(k) || !(k > 0)) return null;
+  if (!(k > 1)) return millisecond;
+  return newInterval(function(date) {
+    date.setTime(Math.floor(date / k) * k);
+  }, function(date, step) {
+    date.setTime(+date + step * k);
+  }, function(start, end) {
+    return (end - start) / k;
+  });
+};
+
+var durationSecond$1 = 1e3;
+var durationMinute$1 = 6e4;
+var durationHour$1 = 36e5;
+var durationDay$1 = 864e5;
+var durationWeek$1 = 6048e5;
+
+var second = newInterval(function(date) {
+  date.setTime(Math.floor(date / durationSecond$1) * durationSecond$1);
+}, function(date, step) {
+  date.setTime(+date + step * durationSecond$1);
+}, function(start, end) {
+  return (end - start) / durationSecond$1;
+}, function(date) {
+  return date.getUTCSeconds();
+});
+
+var minute = newInterval(function(date) {
+  date.setTime(Math.floor(date / durationMinute$1) * durationMinute$1);
+}, function(date, step) {
+  date.setTime(+date + step * durationMinute$1);
+}, function(start, end) {
+  return (end - start) / durationMinute$1;
+}, function(date) {
+  return date.getMinutes();
+});
+
+var hour = newInterval(function(date) {
+  var offset = date.getTimezoneOffset() * durationMinute$1 % durationHour$1;
+  if (offset < 0) offset += durationHour$1;
+  date.setTime(Math.floor((+date - offset) / durationHour$1) * durationHour$1 + offset);
+}, function(date, step) {
+  date.setTime(+date + step * durationHour$1);
+}, function(start, end) {
+  return (end - start) / durationHour$1;
+}, function(date) {
+  return date.getHours();
+});
+
+var day = newInterval(function(date) {
+  date.setHours(0, 0, 0, 0);
+}, function(date, step) {
+  date.setDate(date.getDate() + step);
+}, function(start, end) {
+  return (end - start - (end.getTimezoneOffset() - start.getTimezoneOffset()) * durationMinute$1) / durationDay$1;
+}, function(date) {
+  return date.getDate() - 1;
+});
+
+function weekday(i) {
+  return newInterval(function(date) {
+    date.setDate(date.getDate() - (date.getDay() + 7 - i) % 7);
+    date.setHours(0, 0, 0, 0);
+  }, function(date, step) {
+    date.setDate(date.getDate() + step * 7);
+  }, function(start, end) {
+    return (end - start - (end.getTimezoneOffset() - start.getTimezoneOffset()) * durationMinute$1) / durationWeek$1;
+  });
+}
+
+var sunday = weekday(0);
+var monday = weekday(1);
+var tuesday = weekday(2);
+var wednesday = weekday(3);
+var thursday = weekday(4);
+var friday = weekday(5);
+var saturday = weekday(6);
+
+var month = newInterval(function(date) {
+  date.setDate(1);
+  date.setHours(0, 0, 0, 0);
+}, function(date, step) {
+  date.setMonth(date.getMonth() + step);
+}, function(start, end) {
+  return end.getMonth() - start.getMonth() + (end.getFullYear() - start.getFullYear()) * 12;
+}, function(date) {
+  return date.getMonth();
+});
+
+var year = newInterval(function(date) {
+  date.setMonth(0, 1);
+  date.setHours(0, 0, 0, 0);
+}, function(date, step) {
+  date.setFullYear(date.getFullYear() + step);
+}, function(start, end) {
+  return end.getFullYear() - start.getFullYear();
+}, function(date) {
+  return date.getFullYear();
+});
+
+// An optimized implementation for this simple case.
+year.every = function(k) {
+  return !isFinite(k = Math.floor(k)) || !(k > 0) ? null : newInterval(function(date) {
+    date.setFullYear(Math.floor(date.getFullYear() / k) * k);
+    date.setMonth(0, 1);
+    date.setHours(0, 0, 0, 0);
+  }, function(date, step) {
+    date.setFullYear(date.getFullYear() + step * k);
+  });
+};
+
+var utcMinute = newInterval(function(date) {
+  date.setUTCSeconds(0, 0);
+}, function(date, step) {
+  date.setTime(+date + step * durationMinute$1);
+}, function(start, end) {
+  return (end - start) / durationMinute$1;
+}, function(date) {
+  return date.getUTCMinutes();
+});
+
+var utcHour = newInterval(function(date) {
+  date.setUTCMinutes(0, 0, 0);
+}, function(date, step) {
+  date.setTime(+date + step * durationHour$1);
+}, function(start, end) {
+  return (end - start) / durationHour$1;
+}, function(date) {
+  return date.getUTCHours();
+});
+
+var utcDay = newInterval(function(date) {
+  date.setUTCHours(0, 0, 0, 0);
+}, function(date, step) {
+  date.setUTCDate(date.getUTCDate() + step);
+}, function(start, end) {
+  return (end - start) / durationDay$1;
+}, function(date) {
+  return date.getUTCDate() - 1;
+});
+
+function utcWeekday(i) {
+  return newInterval(function(date) {
+    date.setUTCDate(date.getUTCDate() - (date.getUTCDay() + 7 - i) % 7);
+    date.setUTCHours(0, 0, 0, 0);
+  }, function(date, step) {
+    date.setUTCDate(date.getUTCDate() + step * 7);
+  }, function(start, end) {
+    return (end - start) / durationWeek$1;
+  });
+}
+
+var utcSunday = utcWeekday(0);
+var utcMonday = utcWeekday(1);
+var utcTuesday = utcWeekday(2);
+var utcWednesday = utcWeekday(3);
+var utcThursday = utcWeekday(4);
+var utcFriday = utcWeekday(5);
+var utcSaturday = utcWeekday(6);
+
+var utcMonth = newInterval(function(date) {
+  date.setUTCDate(1);
+  date.setUTCHours(0, 0, 0, 0);
+}, function(date, step) {
+  date.setUTCMonth(date.getUTCMonth() + step);
+}, function(start, end) {
+  return end.getUTCMonth() - start.getUTCMonth() + (end.getUTCFullYear() - start.getUTCFullYear()) * 12;
+}, function(date) {
+  return date.getUTCMonth();
+});
+
+var utcYear = newInterval(function(date) {
+  date.setUTCMonth(0, 1);
+  date.setUTCHours(0, 0, 0, 0);
+}, function(date, step) {
+  date.setUTCFullYear(date.getUTCFullYear() + step);
+}, function(start, end) {
+  return end.getUTCFullYear() - start.getUTCFullYear();
+}, function(date) {
+  return date.getUTCFullYear();
+});
+
+// An optimized implementation for this simple case.
+utcYear.every = function(k) {
+  return !isFinite(k = Math.floor(k)) || !(k > 0) ? null : newInterval(function(date) {
+    date.setUTCFullYear(Math.floor(date.getUTCFullYear() / k) * k);
+    date.setUTCMonth(0, 1);
+    date.setUTCHours(0, 0, 0, 0);
+  }, function(date, step) {
+    date.setUTCFullYear(date.getUTCFullYear() + step * k);
+  });
+};
+
+function localDate(d) {
+  if (0 <= d.y && d.y < 100) {
+    var date = new Date(-1, d.m, d.d, d.H, d.M, d.S, d.L);
+    date.setFullYear(d.y);
+    return date;
+  }
+  return new Date(d.y, d.m, d.d, d.H, d.M, d.S, d.L);
+}
+
+function utcDate(d) {
+  if (0 <= d.y && d.y < 100) {
+    var date = new Date(Date.UTC(-1, d.m, d.d, d.H, d.M, d.S, d.L));
+    date.setUTCFullYear(d.y);
+    return date;
+  }
+  return new Date(Date.UTC(d.y, d.m, d.d, d.H, d.M, d.S, d.L));
+}
+
+function newYear(y) {
+  return {y: y, m: 0, d: 1, H: 0, M: 0, S: 0, L: 0};
+}
+
+function formatLocale$1(locale) {
+  var locale_dateTime = locale.dateTime,
+      locale_date = locale.date,
+      locale_time = locale.time,
+      locale_periods = locale.periods,
+      locale_weekdays = locale.days,
+      locale_shortWeekdays = locale.shortDays,
+      locale_months = locale.months,
+      locale_shortMonths = locale.shortMonths;
+
+  var periodRe = formatRe(locale_periods),
+      periodLookup = formatLookup(locale_periods),
+      weekdayRe = formatRe(locale_weekdays),
+      weekdayLookup = formatLookup(locale_weekdays),
+      shortWeekdayRe = formatRe(locale_shortWeekdays),
+      shortWeekdayLookup = formatLookup(locale_shortWeekdays),
+      monthRe = formatRe(locale_months),
+      monthLookup = formatLookup(locale_months),
+      shortMonthRe = formatRe(locale_shortMonths),
+      shortMonthLookup = formatLookup(locale_shortMonths);
+
+  var formats = {
+    "a": formatShortWeekday,
+    "A": formatWeekday,
+    "b": formatShortMonth,
+    "B": formatMonth,
+    "c": null,
+    "d": formatDayOfMonth,
+    "e": formatDayOfMonth,
+    "f": formatMicroseconds,
+    "H": formatHour24,
+    "I": formatHour12,
+    "j": formatDayOfYear,
+    "L": formatMilliseconds,
+    "m": formatMonthNumber,
+    "M": formatMinutes,
+    "p": formatPeriod,
+    "Q": formatUnixTimestamp,
+    "s": formatUnixTimestampSeconds,
+    "S": formatSeconds,
+    "u": formatWeekdayNumberMonday,
+    "U": formatWeekNumberSunday,
+    "V": formatWeekNumberISO,
+    "w": formatWeekdayNumberSunday,
+    "W": formatWeekNumberMonday,
+    "x": null,
+    "X": null,
+    "y": formatYear,
+    "Y": formatFullYear,
+    "Z": formatZone,
+    "%": formatLiteralPercent
+  };
+
+  var utcFormats = {
+    "a": formatUTCShortWeekday,
+    "A": formatUTCWeekday,
+    "b": formatUTCShortMonth,
+    "B": formatUTCMonth,
+    "c": null,
+    "d": formatUTCDayOfMonth,
+    "e": formatUTCDayOfMonth,
+    "f": formatUTCMicroseconds,
+    "H": formatUTCHour24,
+    "I": formatUTCHour12,
+    "j": formatUTCDayOfYear,
+    "L": formatUTCMilliseconds,
+    "m": formatUTCMonthNumber,
+    "M": formatUTCMinutes,
+    "p": formatUTCPeriod,
+    "Q": formatUnixTimestamp,
+    "s": formatUnixTimestampSeconds,
+    "S": formatUTCSeconds,
+    "u": formatUTCWeekdayNumberMonday,
+    "U": formatUTCWeekNumberSunday,
+    "V": formatUTCWeekNumberISO,
+    "w": formatUTCWeekdayNumberSunday,
+    "W": formatUTCWeekNumberMonday,
+    "x": null,
+    "X": null,
+    "y": formatUTCYear,
+    "Y": formatUTCFullYear,
+    "Z": formatUTCZone,
+    "%": formatLiteralPercent
+  };
+
+  var parses = {
+    "a": parseShortWeekday,
+    "A": parseWeekday,
+    "b": parseShortMonth,
+    "B": parseMonth,
+    "c": parseLocaleDateTime,
+    "d": parseDayOfMonth,
+    "e": parseDayOfMonth,
+    "f": parseMicroseconds,
+    "H": parseHour24,
+    "I": parseHour24,
+    "j": parseDayOfYear,
+    "L": parseMilliseconds,
+    "m": parseMonthNumber,
+    "M": parseMinutes,
+    "p": parsePeriod,
+    "Q": parseUnixTimestamp,
+    "s": parseUnixTimestampSeconds,
+    "S": parseSeconds,
+    "u": parseWeekdayNumberMonday,
+    "U": parseWeekNumberSunday,
+    "V": parseWeekNumberISO,
+    "w": parseWeekdayNumberSunday,
+    "W": parseWeekNumberMonday,
+    "x": parseLocaleDate,
+    "X": parseLocaleTime,
+    "y": parseYear,
+    "Y": parseFullYear,
+    "Z": parseZone,
+    "%": parseLiteralPercent
+  };
+
+  // These recursive directive definitions must be deferred.
+  formats.x = newFormat(locale_date, formats);
+  formats.X = newFormat(locale_time, formats);
+  formats.c = newFormat(locale_dateTime, formats);
+  utcFormats.x = newFormat(locale_date, utcFormats);
+  utcFormats.X = newFormat(locale_time, utcFormats);
+  utcFormats.c = newFormat(locale_dateTime, utcFormats);
+
+  function newFormat(specifier, formats) {
+    return function(date) {
+      var string = [],
+          i = -1,
+          j = 0,
+          n = specifier.length,
+          c,
+          pad,
+          format;
+
+      if (!(date instanceof Date)) date = new Date(+date);
+
+      while (++i < n) {
+        if (specifier.charCodeAt(i) === 37) {
+          string.push(specifier.slice(j, i));
+          if ((pad = pads[c = specifier.charAt(++i)]) != null) c = specifier.charAt(++i);
+          else pad = c === "e" ? " " : "0";
+          if (format = formats[c]) c = format(date, pad);
+          string.push(c);
+          j = i + 1;
+        }
+      }
+
+      string.push(specifier.slice(j, i));
+      return string.join("");
+    };
+  }
+
+  function newParse(specifier, newDate) {
+    return function(string) {
+      var d = newYear(1900),
+          i = parseSpecifier(d, specifier, string += "", 0),
+          week, day$$1;
+      if (i != string.length) return null;
+
+      // If a UNIX timestamp is specified, return it.
+      if ("Q" in d) return new Date(d.Q);
+
+      // The am-pm flag is 0 for AM, and 1 for PM.
+      if ("p" in d) d.H = d.H % 12 + d.p * 12;
+
+      // Convert day-of-week and week-of-year to day-of-year.
+      if ("V" in d) {
+        if (d.V < 1 || d.V > 53) return null;
+        if (!("w" in d)) d.w = 1;
+        if ("Z" in d) {
+          week = utcDate(newYear(d.y)), day$$1 = week.getUTCDay();
+          week = day$$1 > 4 || day$$1 === 0 ? utcMonday.ceil(week) : utcMonday(week);
+          week = utcDay.offset(week, (d.V - 1) * 7);
+          d.y = week.getUTCFullYear();
+          d.m = week.getUTCMonth();
+          d.d = week.getUTCDate() + (d.w + 6) % 7;
+        } else {
+          week = newDate(newYear(d.y)), day$$1 = week.getDay();
+          week = day$$1 > 4 || day$$1 === 0 ? monday.ceil(week) : monday(week);
+          week = day.offset(week, (d.V - 1) * 7);
+          d.y = week.getFullYear();
+          d.m = week.getMonth();
+          d.d = week.getDate() + (d.w + 6) % 7;
+        }
+      } else if ("W" in d || "U" in d) {
+        if (!("w" in d)) d.w = "u" in d ? d.u % 7 : "W" in d ? 1 : 0;
+        day$$1 = "Z" in d ? utcDate(newYear(d.y)).getUTCDay() : newDate(newYear(d.y)).getDay();
+        d.m = 0;
+        d.d = "W" in d ? (d.w + 6) % 7 + d.W * 7 - (day$$1 + 5) % 7 : d.w + d.U * 7 - (day$$1 + 6) % 7;
+      }
+
+      // If a time zone is specified, all fields are interpreted as UTC and then
+      // offset according to the specified time zone.
+      if ("Z" in d) {
+        d.H += d.Z / 100 | 0;
+        d.M += d.Z % 100;
+        return utcDate(d);
+      }
+
+      // Otherwise, all fields are in local time.
+      return newDate(d);
+    };
+  }
+
+  function parseSpecifier(d, specifier, string, j) {
+    var i = 0,
+        n = specifier.length,
+        m = string.length,
+        c,
+        parse;
+
+    while (i < n) {
+      if (j >= m) return -1;
+      c = specifier.charCodeAt(i++);
+      if (c === 37) {
+        c = specifier.charAt(i++);
+        parse = parses[c in pads ? specifier.charAt(i++) : c];
+        if (!parse || ((j = parse(d, string, j)) < 0)) return -1;
+      } else if (c != string.charCodeAt(j++)) {
+        return -1;
+      }
+    }
+
+    return j;
+  }
+
+  function parsePeriod(d, string, i) {
+    var n = periodRe.exec(string.slice(i));
+    return n ? (d.p = periodLookup[n[0].toLowerCase()], i + n[0].length) : -1;
+  }
+
+  function parseShortWeekday(d, string, i) {
+    var n = shortWeekdayRe.exec(string.slice(i));
+    return n ? (d.w = shortWeekdayLookup[n[0].toLowerCase()], i + n[0].length) : -1;
+  }
+
+  function parseWeekday(d, string, i) {
+    var n = weekdayRe.exec(string.slice(i));
+    return n ? (d.w = weekdayLookup[n[0].toLowerCase()], i + n[0].length) : -1;
+  }
+
+  function parseShortMonth(d, string, i) {
+    var n = shortMonthRe.exec(string.slice(i));
+    return n ? (d.m = shortMonthLookup[n[0].toLowerCase()], i + n[0].length) : -1;
+  }
+
+  function parseMonth(d, string, i) {
+    var n = monthRe.exec(string.slice(i));
+    return n ? (d.m = monthLookup[n[0].toLowerCase()], i + n[0].length) : -1;
+  }
+
+  function parseLocaleDateTime(d, string, i) {
+    return parseSpecifier(d, locale_dateTime, string, i);
+  }
+
+  function parseLocaleDate(d, string, i) {
+    return parseSpecifier(d, locale_date, string, i);
+  }
+
+  function parseLocaleTime(d, string, i) {
+    return parseSpecifier(d, locale_time, string, i);
+  }
+
+  function formatShortWeekday(d) {
+    return locale_shortWeekdays[d.getDay()];
+  }
+
+  function formatWeekday(d) {
+    return locale_weekdays[d.getDay()];
+  }
+
+  function formatShortMonth(d) {
+    return locale_shortMonths[d.getMonth()];
+  }
+
+  function formatMonth(d) {
+    return locale_months[d.getMonth()];
+  }
+
+  function formatPeriod(d) {
+    return locale_periods[+(d.getHours() >= 12)];
+  }
+
+  function formatUTCShortWeekday(d) {
+    return locale_shortWeekdays[d.getUTCDay()];
+  }
+
+  function formatUTCWeekday(d) {
+    return locale_weekdays[d.getUTCDay()];
+  }
+
+  function formatUTCShortMonth(d) {
+    return locale_shortMonths[d.getUTCMonth()];
+  }
+
+  function formatUTCMonth(d) {
+    return locale_months[d.getUTCMonth()];
+  }
+
+  function formatUTCPeriod(d) {
+    return locale_periods[+(d.getUTCHours() >= 12)];
+  }
+
+  return {
+    format: function(specifier) {
+      var f = newFormat(specifier += "", formats);
+      f.toString = function() { return specifier; };
+      return f;
+    },
+    parse: function(specifier) {
+      var p = newParse(specifier += "", localDate);
+      p.toString = function() { return specifier; };
+      return p;
+    },
+    utcFormat: function(specifier) {
+      var f = newFormat(specifier += "", utcFormats);
+      f.toString = function() { return specifier; };
+      return f;
+    },
+    utcParse: function(specifier) {
+      var p = newParse(specifier, utcDate);
+      p.toString = function() { return specifier; };
+      return p;
+    }
+  };
+}
+
+var pads = {"-": "", "_": " ", "0": "0"};
+var numberRe = /^\s*\d+/;
+var percentRe = /^%/;
+var requoteRe = /[\\^$*+?|[\]().{}]/g;
+
+function pad(value, fill, width) {
+  var sign = value < 0 ? "-" : "",
+      string = (sign ? -value : value) + "",
+      length = string.length;
+  return sign + (length < width ? new Array(width - length + 1).join(fill) + string : string);
+}
+
+function requote(s) {
+  return s.replace(requoteRe, "\\$&");
+}
+
+function formatRe(names) {
+  return new RegExp("^(?:" + names.map(requote).join("|") + ")", "i");
+}
+
+function formatLookup(names) {
+  var map = {}, i = -1, n = names.length;
+  while (++i < n) map[names[i].toLowerCase()] = i;
+  return map;
+}
+
+function parseWeekdayNumberSunday(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 1));
+  return n ? (d.w = +n[0], i + n[0].length) : -1;
+}
+
+function parseWeekdayNumberMonday(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 1));
+  return n ? (d.u = +n[0], i + n[0].length) : -1;
+}
+
+function parseWeekNumberSunday(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 2));
+  return n ? (d.U = +n[0], i + n[0].length) : -1;
+}
+
+function parseWeekNumberISO(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 2));
+  return n ? (d.V = +n[0], i + n[0].length) : -1;
+}
+
+function parseWeekNumberMonday(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 2));
+  return n ? (d.W = +n[0], i + n[0].length) : -1;
+}
+
+function parseFullYear(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 4));
+  return n ? (d.y = +n[0], i + n[0].length) : -1;
+}
+
+function parseYear(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 2));
+  return n ? (d.y = +n[0] + (+n[0] > 68 ? 1900 : 2000), i + n[0].length) : -1;
+}
+
+function parseZone(d, string, i) {
+  var n = /^(Z)|([+-]\d\d)(?::?(\d\d))?/.exec(string.slice(i, i + 6));
+  return n ? (d.Z = n[1] ? 0 : -(n[2] + (n[3] || "00")), i + n[0].length) : -1;
+}
+
+function parseMonthNumber(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 2));
+  return n ? (d.m = n[0] - 1, i + n[0].length) : -1;
+}
+
+function parseDayOfMonth(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 2));
+  return n ? (d.d = +n[0], i + n[0].length) : -1;
+}
+
+function parseDayOfYear(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 3));
+  return n ? (d.m = 0, d.d = +n[0], i + n[0].length) : -1;
+}
+
+function parseHour24(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 2));
+  return n ? (d.H = +n[0], i + n[0].length) : -1;
+}
+
+function parseMinutes(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 2));
+  return n ? (d.M = +n[0], i + n[0].length) : -1;
+}
+
+function parseSeconds(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 2));
+  return n ? (d.S = +n[0], i + n[0].length) : -1;
+}
+
+function parseMilliseconds(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 3));
+  return n ? (d.L = +n[0], i + n[0].length) : -1;
+}
+
+function parseMicroseconds(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 6));
+  return n ? (d.L = Math.floor(n[0] / 1000), i + n[0].length) : -1;
+}
+
+function parseLiteralPercent(d, string, i) {
+  var n = percentRe.exec(string.slice(i, i + 1));
+  return n ? i + n[0].length : -1;
+}
+
+function parseUnixTimestamp(d, string, i) {
+  var n = numberRe.exec(string.slice(i));
+  return n ? (d.Q = +n[0], i + n[0].length) : -1;
+}
+
+function parseUnixTimestampSeconds(d, string, i) {
+  var n = numberRe.exec(string.slice(i));
+  return n ? (d.Q = (+n[0]) * 1000, i + n[0].length) : -1;
+}
+
+function formatDayOfMonth(d, p) {
+  return pad(d.getDate(), p, 2);
+}
+
+function formatHour24(d, p) {
+  return pad(d.getHours(), p, 2);
+}
+
+function formatHour12(d, p) {
+  return pad(d.getHours() % 12 || 12, p, 2);
+}
+
+function formatDayOfYear(d, p) {
+  return pad(1 + day.count(year(d), d), p, 3);
+}
+
+function formatMilliseconds(d, p) {
+  return pad(d.getMilliseconds(), p, 3);
+}
+
+function formatMicroseconds(d, p) {
+  return formatMilliseconds(d, p) + "000";
+}
+
+function formatMonthNumber(d, p) {
+  return pad(d.getMonth() + 1, p, 2);
+}
+
+function formatMinutes(d, p) {
+  return pad(d.getMinutes(), p, 2);
+}
+
+function formatSeconds(d, p) {
+  return pad(d.getSeconds(), p, 2);
+}
+
+function formatWeekdayNumberMonday(d) {
+  var day$$1 = d.getDay();
+  return day$$1 === 0 ? 7 : day$$1;
+}
+
+function formatWeekNumberSunday(d, p) {
+  return pad(sunday.count(year(d), d), p, 2);
+}
+
+function formatWeekNumberISO(d, p) {
+  var day$$1 = d.getDay();
+  d = (day$$1 >= 4 || day$$1 === 0) ? thursday(d) : thursday.ceil(d);
+  return pad(thursday.count(year(d), d) + (year(d).getDay() === 4), p, 2);
+}
+
+function formatWeekdayNumberSunday(d) {
+  return d.getDay();
+}
+
+function formatWeekNumberMonday(d, p) {
+  return pad(monday.count(year(d), d), p, 2);
+}
+
+function formatYear(d, p) {
+  return pad(d.getFullYear() % 100, p, 2);
+}
+
+function formatFullYear(d, p) {
+  return pad(d.getFullYear() % 10000, p, 4);
+}
+
+function formatZone(d) {
+  var z = d.getTimezoneOffset();
+  return (z > 0 ? "-" : (z *= -1, "+"))
+      + pad(z / 60 | 0, "0", 2)
+      + pad(z % 60, "0", 2);
+}
+
+function formatUTCDayOfMonth(d, p) {
+  return pad(d.getUTCDate(), p, 2);
+}
+
+function formatUTCHour24(d, p) {
+  return pad(d.getUTCHours(), p, 2);
+}
+
+function formatUTCHour12(d, p) {
+  return pad(d.getUTCHours() % 12 || 12, p, 2);
+}
+
+function formatUTCDayOfYear(d, p) {
+  return pad(1 + utcDay.count(utcYear(d), d), p, 3);
+}
+
+function formatUTCMilliseconds(d, p) {
+  return pad(d.getUTCMilliseconds(), p, 3);
+}
+
+function formatUTCMicroseconds(d, p) {
+  return formatUTCMilliseconds(d, p) + "000";
+}
+
+function formatUTCMonthNumber(d, p) {
+  return pad(d.getUTCMonth() + 1, p, 2);
+}
+
+function formatUTCMinutes(d, p) {
+  return pad(d.getUTCMinutes(), p, 2);
+}
+
+function formatUTCSeconds(d, p) {
+  return pad(d.getUTCSeconds(), p, 2);
+}
+
+function formatUTCWeekdayNumberMonday(d) {
+  var dow = d.getUTCDay();
+  return dow === 0 ? 7 : dow;
+}
+
+function formatUTCWeekNumberSunday(d, p) {
+  return pad(utcSunday.count(utcYear(d), d), p, 2);
+}
+
+function formatUTCWeekNumberISO(d, p) {
+  var day$$1 = d.getUTCDay();
+  d = (day$$1 >= 4 || day$$1 === 0) ? utcThursday(d) : utcThursday.ceil(d);
+  return pad(utcThursday.count(utcYear(d), d) + (utcYear(d).getUTCDay() === 4), p, 2);
+}
+
+function formatUTCWeekdayNumberSunday(d) {
+  return d.getUTCDay();
+}
+
+function formatUTCWeekNumberMonday(d, p) {
+  return pad(utcMonday.count(utcYear(d), d), p, 2);
+}
+
+function formatUTCYear(d, p) {
+  return pad(d.getUTCFullYear() % 100, p, 2);
+}
+
+function formatUTCFullYear(d, p) {
+  return pad(d.getUTCFullYear() % 10000, p, 4);
+}
+
+function formatUTCZone() {
+  return "+0000";
+}
+
+function formatLiteralPercent() {
+  return "%";
+}
+
+function formatUnixTimestamp(d) {
+  return +d;
+}
+
+function formatUnixTimestampSeconds(d) {
+  return Math.floor(+d / 1000);
+}
+
+var locale$1;
+var timeFormat;
+var timeParse;
+var utcFormat;
+var utcParse;
+
+defaultLocale$1({
+  dateTime: "%x, %X",
+  date: "%-m/%-d/%Y",
+  time: "%-I:%M:%S %p",
+  periods: ["AM", "PM"],
+  days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+  shortDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+  months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+  shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+});
+
+function defaultLocale$1(definition) {
+  locale$1 = formatLocale$1(definition);
+  timeFormat = locale$1.format;
+  timeParse = locale$1.parse;
+  utcFormat = locale$1.utcFormat;
+  utcParse = locale$1.utcParse;
+  return locale$1;
+}
+
+var isoSpecifier = "%Y-%m-%dT%H:%M:%S.%LZ";
+
+function formatIsoNative(date) {
+  return date.toISOString();
+}
+
+var formatIso = Date.prototype.toISOString
+    ? formatIsoNative
+    : utcFormat(isoSpecifier);
+
+function parseIsoNative(string) {
+  var date = new Date(string);
+  return isNaN(date) ? null : date;
+}
+
+var parseIso = +new Date("2000-01-01T00:00:00.000Z")
+    ? parseIsoNative
+    : utcParse(isoSpecifier);
+
+function colors(s) {
+  return s.match(/.{6}/g).map(function(x) {
+    return "#" + x;
+  });
+}
+
+colors("1f77b4ff7f0e2ca02cd627289467bd8c564be377c27f7f7fbcbd2217becf");
+
+colors("393b795254a36b6ecf9c9ede6379398ca252b5cf6bcedb9c8c6d31bd9e39e7ba52e7cb94843c39ad494ad6616be7969c7b4173a55194ce6dbdde9ed6");
+
+colors("3182bd6baed69ecae1c6dbefe6550dfd8d3cfdae6bfdd0a231a35474c476a1d99bc7e9c0756bb19e9ac8bcbddcdadaeb636363969696bdbdbdd9d9d9");
+
+colors("1f77b4aec7e8ff7f0effbb782ca02c98df8ad62728ff98969467bdc5b0d58c564bc49c94e377c2f7b6d27f7f7fc7c7c7bcbd22dbdb8d17becf9edae5");
+
+cubehelixLong(cubehelix(300, 0.5, 0.0), cubehelix(-240, 0.5, 1.0));
+
+var warm = cubehelixLong(cubehelix(-100, 0.75, 0.35), cubehelix(80, 1.50, 0.8));
+
+var cool = cubehelixLong(cubehelix(260, 0.75, 0.35), cubehelix(80, 1.50, 0.8));
+
+var rainbow = cubehelix();
+
+function ramp(range) {
+  var n = range.length;
+  return function(t) {
+    return range[Math.max(0, Math.min(n - 1, Math.floor(t * n)))];
+  };
+}
+
+ramp(colors("44015444025645045745055946075a46085c460a5d460b5e470d60470e6147106347116447136548146748166848176948186a481a6c481b6d481c6e481d6f481f70482071482173482374482475482576482677482878482979472a7a472c7a472d7b472e7c472f7d46307e46327e46337f463480453581453781453882443983443a83443b84433d84433e85423f854240864241864142874144874045884046883f47883f48893e49893e4a893e4c8a3d4d8a3d4e8a3c4f8a3c508b3b518b3b528b3a538b3a548c39558c39568c38588c38598c375a8c375b8d365c8d365d8d355e8d355f8d34608d34618d33628d33638d32648e32658e31668e31678e31688e30698e306a8e2f6b8e2f6c8e2e6d8e2e6e8e2e6f8e2d708e2d718e2c718e2c728e2c738e2b748e2b758e2a768e2a778e2a788e29798e297a8e297b8e287c8e287d8e277e8e277f8e27808e26818e26828e26828e25838e25848e25858e24868e24878e23888e23898e238a8d228b8d228c8d228d8d218e8d218f8d21908d21918c20928c20928c20938c1f948c1f958b1f968b1f978b1f988b1f998a1f9a8a1e9b8a1e9c891e9d891f9e891f9f881fa0881fa1881fa1871fa28720a38620a48621a58521a68522a78522a88423a98324aa8325ab8225ac8226ad8127ad8128ae8029af7f2ab07f2cb17e2db27d2eb37c2fb47c31b57b32b67a34b67935b77937b87838b9773aba763bbb753dbc743fbc7340bd7242be7144bf7046c06f48c16e4ac16d4cc26c4ec36b50c46a52c56954c56856c66758c7655ac8645cc8635ec96260ca6063cb5f65cb5e67cc5c69cd5b6ccd5a6ece5870cf5773d05675d05477d1537ad1517cd2507fd34e81d34d84d44b86d54989d5488bd6468ed64590d74393d74195d84098d83e9bd93c9dd93ba0da39a2da37a5db36a8db34aadc32addc30b0dd2fb2dd2db5de2bb8de29bade28bddf26c0df25c2df23c5e021c8e020cae11fcde11dd0e11cd2e21bd5e21ad8e219dae319dde318dfe318e2e418e5e419e7e419eae51aece51befe51cf1e51df4e61ef6e620f8e621fbe723fde725"));
+
+var magma = ramp(colors("00000401000501010601010802010902020b02020d03030f03031204041405041606051806051a07061c08071e0907200a08220b09240c09260d0a290e0b2b100b2d110c2f120d31130d34140e36150e38160f3b180f3d19103f1a10421c10441d11471e114920114b21114e22115024125325125527125829115a2a115c2c115f2d11612f116331116533106734106936106b38106c390f6e3b0f703d0f713f0f72400f74420f75440f764510774710784910784a10794c117a4e117b4f127b51127c52137c54137d56147d57157e59157e5a167e5c167f5d177f5f187f601880621980641a80651a80671b80681c816a1c816b1d816d1d816e1e81701f81721f817320817521817621817822817922827b23827c23827e24828025828125818326818426818627818827818928818b29818c29818e2a81902a81912b81932b80942c80962c80982d80992d809b2e7f9c2e7f9e2f7fa02f7fa1307ea3307ea5317ea6317da8327daa337dab337cad347cae347bb0357bb2357bb3367ab5367ab73779b83779ba3878bc3978bd3977bf3a77c03a76c23b75c43c75c53c74c73d73c83e73ca3e72cc3f71cd4071cf4070d0416fd2426fd3436ed5446dd6456cd8456cd9466bdb476adc4869de4968df4a68e04c67e24d66e34e65e44f64e55064e75263e85362e95462ea5661eb5760ec5860ed5a5fee5b5eef5d5ef05f5ef1605df2625df2645cf3655cf4675cf4695cf56b5cf66c5cf66e5cf7705cf7725cf8745cf8765cf9785df9795df97b5dfa7d5efa7f5efa815ffb835ffb8560fb8761fc8961fc8a62fc8c63fc8e64fc9065fd9266fd9467fd9668fd9869fd9a6afd9b6bfe9d6cfe9f6dfea16efea36ffea571fea772fea973feaa74feac76feae77feb078feb27afeb47bfeb67cfeb77efeb97ffebb81febd82febf84fec185fec287fec488fec68afec88cfeca8dfecc8ffecd90fecf92fed194fed395fed597fed799fed89afdda9cfddc9efddea0fde0a1fde2a3fde3a5fde5a7fde7a9fde9aafdebacfcecaefceeb0fcf0b2fcf2b4fcf4b6fcf6b8fcf7b9fcf9bbfcfbbdfcfdbf"));
+
+var inferno = ramp(colors("00000401000501010601010802010a02020c02020e03021004031204031405041706041907051b08051d09061f0a07220b07240c08260d08290e092b10092d110a30120a32140b34150b37160b39180c3c190c3e1b0c411c0c431e0c451f0c48210c4a230c4c240c4f260c51280b53290b552b0b572d0b592f0a5b310a5c320a5e340a5f3609613809623909633b09643d09653e0966400a67420a68440a68450a69470b6a490b6a4a0c6b4c0c6b4d0d6c4f0d6c510e6c520e6d540f6d550f6d57106e59106e5a116e5c126e5d126e5f136e61136e62146e64156e65156e67166e69166e6a176e6c186e6d186e6f196e71196e721a6e741a6e751b6e771c6d781c6d7a1d6d7c1d6d7d1e6d7f1e6c801f6c82206c84206b85216b87216b88226a8a226a8c23698d23698f24699025689225689326679526679727669827669a28659b29649d29649f2a63a02a63a22b62a32c61a52c60a62d60a82e5fa92e5eab2f5ead305dae305cb0315bb1325ab3325ab43359b63458b73557b93556ba3655bc3754bd3853bf3952c03a51c13a50c33b4fc43c4ec63d4dc73e4cc83f4bca404acb4149cc4248ce4347cf4446d04545d24644d34743d44842d54a41d74b3fd84c3ed94d3dda4e3cdb503bdd513ade5238df5337e05536e15635e25734e35933e45a31e55c30e65d2fe75e2ee8602de9612bea632aeb6429eb6628ec6726ed6925ee6a24ef6c23ef6e21f06f20f1711ff1731df2741cf3761bf37819f47918f57b17f57d15f67e14f68013f78212f78410f8850ff8870ef8890cf98b0bf98c0af98e09fa9008fa9207fa9407fb9606fb9706fb9906fb9b06fb9d07fc9f07fca108fca309fca50afca60cfca80dfcaa0ffcac11fcae12fcb014fcb216fcb418fbb61afbb81dfbba1ffbbc21fbbe23fac026fac228fac42afac62df9c72ff9c932f9cb35f8cd37f8cf3af7d13df7d340f6d543f6d746f5d949f5db4cf4dd4ff4df53f4e156f3e35af3e55df2e661f2e865f2ea69f1ec6df1ed71f1ef75f1f179f2f27df2f482f3f586f3f68af4f88ef5f992f6fa96f8fb9af9fc9dfafda1fcffa4"));
+
+var plasma = ramp(colors("0d088710078813078916078a19068c1b068d1d068e20068f2206902406912605912805922a05932c05942e05952f059631059733059735049837049938049a3a049a3c049b3e049c3f049c41049d43039e44039e46039f48039f4903a04b03a14c02a14e02a25002a25102a35302a35502a45601a45801a45901a55b01a55c01a65e01a66001a66100a76300a76400a76600a76700a86900a86a00a86c00a86e00a86f00a87100a87201a87401a87501a87701a87801a87a02a87b02a87d03a87e03a88004a88104a78305a78405a78606a68707a68808a68a09a58b0aa58d0ba58e0ca48f0da4910ea3920fa39410a29511a19613a19814a099159f9a169f9c179e9d189d9e199da01a9ca11b9ba21d9aa31e9aa51f99a62098a72197a82296aa2395ab2494ac2694ad2793ae2892b02991b12a90b22b8fb32c8eb42e8db52f8cb6308bb7318ab83289ba3388bb3488bc3587bd3786be3885bf3984c03a83c13b82c23c81c33d80c43e7fc5407ec6417dc7427cc8437bc9447aca457acb4679cc4778cc4977cd4a76ce4b75cf4c74d04d73d14e72d24f71d35171d45270d5536fd5546ed6556dd7566cd8576bd9586ada5a6ada5b69db5c68dc5d67dd5e66de5f65de6164df6263e06363e16462e26561e26660e3685fe4695ee56a5de56b5de66c5ce76e5be76f5ae87059e97158e97257ea7457eb7556eb7655ec7754ed7953ed7a52ee7b51ef7c51ef7e50f07f4ff0804ef1814df1834cf2844bf3854bf3874af48849f48948f58b47f58c46f68d45f68f44f79044f79143f79342f89441f89540f9973ff9983ef99a3efa9b3dfa9c3cfa9e3bfb9f3afba139fba238fca338fca537fca636fca835fca934fdab33fdac33fdae32fdaf31fdb130fdb22ffdb42ffdb52efeb72dfeb82cfeba2cfebb2bfebd2afebe2afec029fdc229fdc328fdc527fdc627fdc827fdca26fdcb26fccd25fcce25fcd025fcd225fbd324fbd524fbd724fad824fada24f9dc24f9dd25f8df25f8e125f7e225f7e425f6e626f6e826f5e926f5eb27f4ed27f3ee27f3f027f2f227f1f426f1f525f0f724f0f921"));
+
 var d2r;
 
 d2r = Math.PI / 180;
 
 function vertical(stereonet) {
   return function(opts = {}) {
-    var a, at, az, dip, dy, feat, g, grat, innerRadius, labels, locs, lon, m, proj, sel, v, x;
+    var a, alignmentBaseline, at, az, dip, dipLabels, dy, feat, g, grat, innerRadius, labels, locs, lon, m, nLabels, proj, sel, sphereId, textAnchor;
     if (opts.startOffset == null) {
       opts.startOffset = 10;
     }
     // correct for start at bottom
     opts.startOffset += 100;
     if (opts.labelPadding == null) {
-      opts.labelPadding = 8;
+      opts.labelPadding = 2;
     }
+    ({dipLabels, nLabels} = opts);
+    if (nLabels == null) {
+      nLabels = 2;
+    }
+    dy = opts.labelPadding;
     g = stereonet.overlay();
     grat = stereonet.graticule();
     console.log(grat);
     labels = ["N", "E", "S", "W"];
+    textAnchor = ['middle', 'start', 'middle', 'end'];
+    alignmentBaseline = [null, 'middle', 'hanging', 'middle'];
     locs = [0, 90, 180, 270];
     az = g.append('g').attr('class', 'azimuthLabels');
     m = stereonet.margin();
@@ -4109,15 +5720,21 @@ function vertical(stereonet) {
     sel = az.selectAll('text').data(labels);
     sel.enter().append('text').text(function(d) {
       return d;
-    }).attrs(function(d, i) {
-      var angle, szm;
+    }).styles(function(d, i) {
+      return {
+        'alignment-baseline': alignmentBaseline[i],
+        'text-anchor': textAnchor[i]
+      };
+    }).attr('transform', function(d, i) {
+      var angle, szm, x, y;
       szm = innerRadius + m;
       angle = (locs[i] - 90) * Math.PI / 180;
-      return {
-        transform: `translate(${szm} ${szm})`,
-        x: Math.cos(angle) * (innerRadius + opts.labelPadding),
-        y: Math.sin(angle) * (innerRadius + opts.labelPadding)
-      };
+      x = szm + Math.cos(angle) * (innerRadius + opts.labelPadding);
+      y = szm + Math.sin(angle) * (innerRadius + opts.labelPadding);
+      if (i === 0) {
+        y -= 3;
+      }
+      return `translate(${x} ${y})`;
     });
     dip = g.append('g').attr('class', 'dipLabels');
     lon = 220;
@@ -4131,37 +5748,33 @@ function vertical(stereonet) {
         }
       };
     };
-    dy = 8;
     a = stereonet.clipAngle();
-    v = (function() {
-      var j, ref, results;
-      results = [];
-      for (x = j = 5, ref = a; j <= ref; x = j += 5) {
-        results.push(x);
-      }
-      return results;
-    })();
+    if (dipLabels == null) {
+      dipLabels = linear([0, a]).ticks(nLabels);
+    }
     proj = stereonet.projection();
-    sel = dip.selectAll('text').data(v.map(feat));
-    sel.enter().append('text').text(function(d) {
+    sel = dip.selectAll('text').data(dipLabels.map(feat));
+    sel.enter().append('text').attr('class', 'inner').text(function(d) {
       return d.label;
     }).attr("transform", function(d) {
+      var v;
       v = proj(d.geometry.coordinates);
       return `translate(${v[0]}, ${v[1]}) rotate(${180 - lon})`;
     });
+    sphereId = `#${stereonet.uid()}-sphere`;
     at = {
-      class: 'outer',
-      dy: -dy
+      dy: -dy - 3,
+      class: 'outer'
     };
     // Labels
     az.append('text').attrs(at).append('textPath').text('Azimuth →').attrs({
-      'xlink:href': '#sphere',
+      'xlink:href': sphereId,
       startOffset: `${innerRadius * opts.startOffset * d2r}`,
       method: 'stretch'
     });
     return dip.append('text').attrs(at).append('textPath').text('Dip').attrs({
       method: 'stretch',
-      'xlink:href': '#sphere',
+      'xlink:href': sphereId,
       startOffset: `${innerRadius * 70 * d2r}`
     });
   };
@@ -4321,6 +5934,179 @@ globalLabels = function() {
   };
 };
 
+// Unique ID creation requires a high quality random # generator.  In node.js
+// this is pretty straight-forward - we use the crypto API.
+
+
+
+var rng = function nodeRNG() {
+  return crypto$1.randomBytes(16);
+};
+
+/**
+ * Convert array of 16 byte values to UUID string format of the form:
+ * XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+ */
+var byteToHex = [];
+for (var i = 0; i < 256; ++i) {
+  byteToHex[i] = (i + 0x100).toString(16).substr(1);
+}
+
+function bytesToUuid(buf, offset) {
+  var i = offset || 0;
+  var bth = byteToHex;
+  return bth[buf[i++]] + bth[buf[i++]] +
+          bth[buf[i++]] + bth[buf[i++]] + '-' +
+          bth[buf[i++]] + bth[buf[i++]] + '-' +
+          bth[buf[i++]] + bth[buf[i++]] + '-' +
+          bth[buf[i++]] + bth[buf[i++]] + '-' +
+          bth[buf[i++]] + bth[buf[i++]] +
+          bth[buf[i++]] + bth[buf[i++]] +
+          bth[buf[i++]] + bth[buf[i++]];
+}
+
+var bytesToUuid_1 = bytesToUuid;
+
+// **`v1()` - Generate time-based UUID**
+//
+// Inspired by https://github.com/LiosK/UUID.js
+// and http://docs.python.org/library/uuid.html
+
+var _nodeId;
+var _clockseq;
+
+// Previous uuid creation time
+var _lastMSecs = 0;
+var _lastNSecs = 0;
+
+// See https://github.com/broofa/node-uuid for API details
+function v1(options, buf, offset) {
+  var i = buf && offset || 0;
+  var b = buf || [];
+
+  options = options || {};
+  var node = options.node || _nodeId;
+  var clockseq = options.clockseq !== undefined ? options.clockseq : _clockseq;
+
+  // node and clockseq need to be initialized to random values if they're not
+  // specified.  We do this lazily to minimize issues related to insufficient
+  // system entropy.  See #189
+  if (node == null || clockseq == null) {
+    var seedBytes = rng();
+    if (node == null) {
+      // Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
+      node = _nodeId = [
+        seedBytes[0] | 0x01,
+        seedBytes[1], seedBytes[2], seedBytes[3], seedBytes[4], seedBytes[5]
+      ];
+    }
+    if (clockseq == null) {
+      // Per 4.2.2, randomize (14 bit) clockseq
+      clockseq = _clockseq = (seedBytes[6] << 8 | seedBytes[7]) & 0x3fff;
+    }
+  }
+
+  // UUID timestamps are 100 nano-second units since the Gregorian epoch,
+  // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
+  // time is handled internally as 'msecs' (integer milliseconds) and 'nsecs'
+  // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
+  var msecs = options.msecs !== undefined ? options.msecs : new Date().getTime();
+
+  // Per 4.2.1.2, use count of uuid's generated during the current clock
+  // cycle to simulate higher resolution clock
+  var nsecs = options.nsecs !== undefined ? options.nsecs : _lastNSecs + 1;
+
+  // Time since last uuid creation (in msecs)
+  var dt = (msecs - _lastMSecs) + (nsecs - _lastNSecs)/10000;
+
+  // Per 4.2.1.2, Bump clockseq on clock regression
+  if (dt < 0 && options.clockseq === undefined) {
+    clockseq = clockseq + 1 & 0x3fff;
+  }
+
+  // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
+  // time interval
+  if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === undefined) {
+    nsecs = 0;
+  }
+
+  // Per 4.2.1.2 Throw error if too many uuids are requested
+  if (nsecs >= 10000) {
+    throw new Error('uuid.v1(): Can\'t create more than 10M uuids/sec');
+  }
+
+  _lastMSecs = msecs;
+  _lastNSecs = nsecs;
+  _clockseq = clockseq;
+
+  // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
+  msecs += 12219292800000;
+
+  // `time_low`
+  var tl = ((msecs & 0xfffffff) * 10000 + nsecs) % 0x100000000;
+  b[i++] = tl >>> 24 & 0xff;
+  b[i++] = tl >>> 16 & 0xff;
+  b[i++] = tl >>> 8 & 0xff;
+  b[i++] = tl & 0xff;
+
+  // `time_mid`
+  var tmh = (msecs / 0x100000000 * 10000) & 0xfffffff;
+  b[i++] = tmh >>> 8 & 0xff;
+  b[i++] = tmh & 0xff;
+
+  // `time_high_and_version`
+  b[i++] = tmh >>> 24 & 0xf | 0x10; // include version
+  b[i++] = tmh >>> 16 & 0xff;
+
+  // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
+  b[i++] = clockseq >>> 8 | 0x80;
+
+  // `clock_seq_low`
+  b[i++] = clockseq & 0xff;
+
+  // `node`
+  for (var n = 0; n < 6; ++n) {
+    b[i + n] = node[n];
+  }
+
+  return buf ? buf : bytesToUuid_1(b);
+}
+
+var v1_1 = v1;
+
+function v4(options, buf, offset) {
+  var i = buf && offset || 0;
+
+  if (typeof(options) == 'string') {
+    buf = options === 'binary' ? new Array(16) : null;
+    options = null;
+  }
+  options = options || {};
+
+  var rnds = options.random || (options.rng || rng)();
+
+  // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
+  rnds[6] = (rnds[6] & 0x0f) | 0x40;
+  rnds[8] = (rnds[8] & 0x3f) | 0x80;
+
+  // Copy bytes to buffer, if provided
+  if (buf) {
+    for (var ii = 0; ii < 16; ++ii) {
+      buf[i + ii] = rnds[ii];
+    }
+  }
+
+  return buf || bytesToUuid_1(rnds);
+}
+
+var v4_1 = v4;
+
+var uuid = v4_1;
+uuid.v1 = v1_1;
+uuid.v4 = v4_1;
+
+var uuid_1 = uuid;
+
 var Stereonet;
 var getterSetter;
 var opacityByCertainty;
@@ -4355,7 +6141,7 @@ getterSetter = function(main) {
 };
 
 Stereonet = function() {
-  var _, __getSet, __redraw, __setScale, callStack, clipAngle, data, dataArea, dispatch$$1, drawEllipses, drawPlanes, el, ell, ellipses, f, graticule, margin, overlay, path, planes, proj, s, scale, setGraticule, shouldClip;
+  var _, __getSet, __redraw, __setScale, callStack, clipAngle, data, dataArea, dispatch$$1, drawEllipses, drawPlanes, el, ell, ellipses, f, graticule, margin, overlay, path, planes, proj, s, scale, setGraticule, shouldClip, uid;
   data = null;
   el = null;
   dataArea = null;
@@ -4365,6 +6151,7 @@ Stereonet = function() {
   clipAngle = 90;
   s = 0.00001;
   shouldClip = true;
+  uid = uuid_1.v4();
   graticule = d3$1.geoGraticule().stepMinor([10, 10]).stepMajor([90, 10]).extentMinor([[-180, -80 - s], [180, 80 + s]]).extentMajor([[-180, -90 + s], [180, 90 - s]]);
   proj = d3$1.geoOrthographic().clipAngle(clipAngle).precision(0.01).rotate([0, 0]).scale(300);
   path = d3$1.geoPath().projection(proj).pointRadius(2);
@@ -4391,7 +6178,7 @@ Stereonet = function() {
       } else {
         color = o.color;
       }
-      e = select$1(this);
+      e = d3$1.select(this);
       e.selectAll('path.error').attrs({
         fill: color
       });
@@ -4412,7 +6199,7 @@ Stereonet = function() {
     }
     fn = createErrorEllipse(opts);
     createEllipse = function(d) {
-      return select$1(this).append('path').attr('class', 'error').datum(fn(d));
+      return d3$1.select(this).append('path').attr('class', 'error').datum(fn(d));
     };
     con = dataArea.append('g').attr('class', 'normal-vectors');
     sel = con.selectAll('g.normal').data(data).enter().append('g').classed('normal', true).each(createEllipse);
@@ -4423,7 +6210,7 @@ Stereonet = function() {
       } else {
         color = o.color;
       }
-      return e = select$1(this).selectAll('path.error').attrs({
+      return e = d3$1.select(this).selectAll('path.error').attrs({
         fill: color
       });
     });
@@ -4462,20 +6249,23 @@ Stereonet = function() {
   };
   dispatch$$1 = d3$1.dispatch('rotate', 'redraw');
   f = function(_el, opts = {}) {
-    var int, item, j, len;
+    var int, item, j, len, neatlineId, sphereId;
     // This should be integrated into a reusable
     // component
     el = _el;
     __setScale(); // Scale the stereonet
+    sphereId = `#${uid}-sphere`;
     el.append("defs").append("path").datum({
       type: "Sphere"
     }).attrs({
       d: path,
-      id: "sphere"
+      id: sphereId.slice(1)
     });
-    el.append("clipPath").attr("id", "neatline-clip").append("use").attr("xlink:href", "#sphere");
+    neatlineId = `#${uid}-neatline-clip`;
+    el.append("clipPath").attr("id", neatlineId.slice(1)).append("use").attr("xlink:href", sphereId);
     el.append("use").attrs({
       class: 'background',
+      'xlink:href': sphereId,
       fill: 'white',
       stroke: '#aaaaaa'
     });
@@ -4492,9 +6282,9 @@ Stereonet = function() {
     if (shouldClip) {
       el.append("use").attrs({
         class: 'neatline',
-        "xlink:href": "#sphere"
+        "xlink:href": sphereId
       });
-      int.attr('clip-path', "url(#neatline-clip)");
+      int.attr('clip-path', `url(${neatlineId})`);
     }
     overlay = el.append("g").attrs({
       class: "overlay"
@@ -4535,6 +6325,9 @@ Stereonet = function() {
   }, function(c) {
     return shouldClip = c;
   });
+  f.uid = function() {
+    return uid;
+  };
   f.refresh = function() {
     return __redraw();
   };
@@ -4629,11 +6422,11 @@ opacityByCertainty = function(colorFunc, accessor = null) {
     color = chroma(colorFunc(d));
     fill = color.alpha(al).css();
     stroke = color.alpha(al + darkenStroke).css();
-    e = select$1(this);
+    e = d3$1.select(this);
     if (accessor != null) {
       e = e.selectAll('path.error');
     }
-    return e.at({fill, stroke});
+    return e.attr('fill', fill).attr('stroke', stroke);
   };
   __getSet = getterSetter(f);
   f.angularError = __getSet(angularError, function(v) {
@@ -4654,7 +6447,7 @@ var isBigNumber = function isBigNumber(x) {
   return x && x.constructor.prototype.isBigNumber || false
 };
 
-var object = createCommonjsModule(function (module, exports) {
+var object$1 = createCommonjsModule(function (module, exports) {
 exports.clone = function clone(x) {
   var type = typeof x;
 
@@ -4906,15 +6699,15 @@ exports.isFactory = function (object) {
 };
 });
 
-var object_1 = object.clone;
-var object_2 = object.map;
-var object_3 = object.extend;
-var object_4 = object.deepExtend;
-var object_5 = object.deepEqual;
-var object_6 = object.canDefineProperty;
-var object_7 = object.lazy;
-var object_8 = object.traverse;
-var object_9 = object.isFactory;
+var object_1 = object$1.clone;
+var object_2 = object$1.map;
+var object_3 = object$1.extend;
+var object_4 = object$1.deepExtend;
+var object_5 = object$1.deepEqual;
+var object_6 = object$1.canDefineProperty;
+var object_7 = object$1.lazy;
+var object_8 = object$1.traverse;
+var object_9 = object$1.isFactory;
 
 var typedFunction = createCommonjsModule(function (module, exports) {
 /**
@@ -6304,7 +8097,7 @@ var typedFunction = createCommonjsModule(function (module, exports) {
 }));
 });
 
-var number = createCommonjsModule(function (module, exports) {
+var number$3 = createCommonjsModule(function (module, exports) {
 exports.isNumber = function(value) {
   return typeof value === 'number';
 };
@@ -6802,19 +8595,19 @@ exports.nearlyEqual = function(x, y, epsilon) {
 };
 });
 
-var number_1 = number.isNumber;
-var number_2 = number.isInteger;
-var number_3 = number.sign;
-var number_4 = number.format;
-var number_5 = number.splitNumber;
-var number_6 = number.toEngineering;
-var number_7 = number.toFixed;
-var number_8 = number.toExponential;
-var number_9 = number.toPrecision;
-var number_10 = number.roundDigits;
-var number_11 = number.digits;
-var number_12 = number.DBL_EPSILON;
-var number_13 = number.nearlyEqual;
+var number_1 = number$3.isNumber;
+var number_2 = number$3.isInteger;
+var number_3 = number$3.sign;
+var number_4 = number$3.format;
+var number_5 = number$3.splitNumber;
+var number_6 = number$3.toEngineering;
+var number_7 = number$3.toFixed;
+var number_8 = number$3.toExponential;
+var number_9 = number$3.toPrecision;
+var number_10 = number$3.roundDigits;
+var number_11 = number$3.digits;
+var number_12 = number$3.DBL_EPSILON;
+var number_13 = number$3.nearlyEqual;
 
 /**
  * Test whether a value is a Matrix
@@ -6826,7 +8619,7 @@ var isMatrix = function isMatrix (x) {
   return x && x.constructor.prototype.isMatrix || false;
 };
 
-var digits = number.digits;
+var digits = number$3.digits;
 
 
 
@@ -7121,12 +8914,12 @@ var typed = {
 	create: create$2
 };
 
-function E () {
+function E$1 () {
   // Keep this empty so it's easier to inherit from
   // (via https://github.com/lipsmack from https://github.com/scottcorgan/tiny-emitter/issues/3)
 }
 
-E.prototype = {
+E$1.prototype = {
   on: function (name, callback, ctx) {
     var e = this.e || (this.e = {});
 
@@ -7186,7 +8979,7 @@ E.prototype = {
   }
 };
 
-var tinyEmitter = E;
+var tinyEmitter = E$1;
 
 /**
  * Extend given object with emitter functions `on`, `off`, `once`, `emit`
@@ -7243,9 +9036,9 @@ ArgumentsError.prototype.isArgumentsError = true;
 
 var ArgumentsError_1 = ArgumentsError;
 
-var lazy = object.lazy;
-var isFactory$1 = object.isFactory;
-var traverse = object.traverse;
+var lazy = object$1.lazy;
+var isFactory$1 = object$1.isFactory;
+var traverse = object$1.traverse;
 
 
 function factory (type, config, load, typed, math) {
@@ -7296,7 +9089,7 @@ function factory (type, config, load, typed, math) {
    * @param {Object | Array} object   Object with functions to be imported.
    * @param {Object} [options]        Import options.
    */
-  function math_import(object$$1, options) {
+  function math_import(object, options) {
     var num = arguments.length;
     if (num !== 1 && num !== 2) {
       throw new ArgumentsError_1('import', num, 1, 2);
@@ -7306,25 +9099,25 @@ function factory (type, config, load, typed, math) {
       options = {};
     }
 
-    if (isFactory$1(object$$1)) {
-      _importFactory(object$$1, options);
+    if (isFactory$1(object)) {
+      _importFactory(object, options);
     }
     // TODO: allow a typed-function with name too
-    else if (Array.isArray(object$$1)) {
-      object$$1.forEach(function (entry) {
+    else if (Array.isArray(object)) {
+      object.forEach(function (entry) {
         math_import(entry, options);
       });
     }
-    else if (typeof object$$1 === 'object') {
+    else if (typeof object === 'object') {
       // a map with functions
-      for (var name in object$$1) {
-        if (object$$1.hasOwnProperty(name)) {
-          var value = object$$1[name];
+      for (var name in object) {
+        if (object.hasOwnProperty(name)) {
+          var value = object[name];
           if (isSupportedType(value)) {
             _import(name, value, options);
           }
-          else if (isFactory$1(object$$1)) {
-            _importFactory(object$$1, options);
+          else if (isFactory$1(object)) {
+            _importFactory(object, options);
           }
           else {
             math_import(value, options);
@@ -7500,18 +9293,18 @@ function factory (type, config, load, typed, math) {
    * @return {boolean}
    * @private
    */
-  function isSupportedType(object$$1) {
-    return typeof object$$1 === 'function'
-        || typeof object$$1 === 'number'
-        || typeof object$$1 === 'string'
-        || typeof object$$1 === 'boolean'
-        || object$$1 === null
-        || (object$$1 && type.isUnit(object$$1))
-        || (object$$1 && type.isComplex(object$$1))
-        || (object$$1 && type.isBigNumber(object$$1))
-        || (object$$1 && type.isFraction(object$$1))
-        || (object$$1 && type.isMatrix(object$$1))
-        || (object$$1 && Array.isArray(object$$1))
+  function isSupportedType(object) {
+    return typeof object === 'function'
+        || typeof object === 'number'
+        || typeof object === 'string'
+        || typeof object === 'boolean'
+        || object === null
+        || (object && type.isUnit(object))
+        || (object && type.isComplex(object))
+        || (object && type.isBigNumber(object))
+        || (object && type.isFraction(object))
+        || (object && type.isMatrix(object))
+        || (object && Array.isArray(object))
   }
 
   /**
@@ -7596,18 +9389,18 @@ function factory$1 (type, config, load, typed, math) {
    */
   function _config(options) {
     if (options) {
-      var prev = object.map(config, object.clone);
+      var prev = object$1.map(config, object$1.clone);
 
       // validate some of the options
       validateOption(options, 'matrix', MATRIX);
       validateOption(options, 'number', NUMBER);
 
       // merge options
-      object.deepExtend(config, options);
+      object$1.deepExtend(config, options);
 
-      var curr = object.map(config, object.clone);
+      var curr = object$1.map(config, object$1.clone);
 
-      var changes = object.map(options, object.clone);
+      var changes = object$1.map(options, object$1.clone);
 
       // emit 'config' event
       math.emit('config', curr, prev, changes);
@@ -7615,7 +9408,7 @@ function factory$1 (type, config, load, typed, math) {
       return curr;
     }
     else {
-      return object.map(config, object.clone);
+      return object$1.map(config, object$1.clone);
     }
   }
 
@@ -7683,7 +9476,7 @@ var config = {
 	factory: factory_1$1
 };
 
-var isFactory = object.isFactory;
+var isFactory = object$1.isFactory;
 
 
 
@@ -13068,8 +14861,8 @@ var formatter_1 = formatter.format;
 var formatter_2 = formatter.toExponential;
 var formatter_3 = formatter.toFixed;
 
-var string = createCommonjsModule(function (module, exports) {
-var formatNumber = number.format;
+var string$1 = createCommonjsModule(function (module, exports) {
+var formatNumber = number$3.format;
 var formatBigNumber = formatter.format;
 
 
@@ -13279,14 +15072,14 @@ function looksLikeFraction (value) {
 }
 });
 
-var string_1 = string.isString;
-var string_2 = string.endsWith;
-var string_3 = string.format;
-var string_4 = string.stringify;
-var string_5 = string.escape;
+var string_1 = string$1.isString;
+var string_2 = string$1.endsWith;
+var string_3 = string$1.format;
+var string_4 = string$1.stringify;
+var string_5 = string$1.escape;
 
-var format = string.format;
-var lazy$1 = object.lazy;
+var format$1 = string$1.format;
+var lazy$1 = object$1.lazy;
 
 function factory$5 (type, config, load, typed, math) {
   /**
@@ -13349,7 +15142,7 @@ function factory$5 (type, config, load, typed, math) {
    * @returns {string}
    */
   Chain.prototype.toString = function () {
-    return format(this.value);
+    return format$1(this.value);
   };
 
   /**
@@ -14765,8 +16558,8 @@ var complex$2 = createCommonjsModule(function (module, exports) {
 })(commonjsGlobal);
 });
 
-var format$1 = number.format;
-var isNumber = number.isNumber;
+var format$2 = number$3.format;
+var isNumber = number$3.isNumber;
 
 function factory$7 (type, config, load, typed, math) {
 
@@ -14815,8 +16608,8 @@ function factory$7 (type, config, load, typed, math) {
     var str = '';
     var im = this.im;
     var re = this.re;
-    var strRe = format$1(this.re, options);
-    var strIm = format$1(this.im, options);
+    var strRe = format$2(this.re, options);
+    var strIm = format$2(this.im, options);
 
     // round either re or im when smaller than the configured precision
     var precision = isNumber(options) ? options : options ? options.precision : null;
@@ -16218,7 +18011,7 @@ IndexError.prototype.isIndexError = true;
 
 var IndexError_1 = IndexError;
 
-var array = createCommonjsModule(function (module, exports) {
+var array$3 = createCommonjsModule(function (module, exports) {
 exports.size = function (x) {
   var s = [];
 
@@ -16296,7 +18089,7 @@ exports.validate = function(array, size) {
  * @param {number} [length] Length of the array
  */
 exports.validateIndex = function(index, length) {
-  if (!number.isNumber(index) || !number.isInteger(index)) {
+  if (!number$3.isNumber(index) || !number$3.isInteger(index)) {
     throw new TypeError('Index must be an integer (value: ' + index + ')');
   }
   if (index < 0 || (typeof length === 'number' && index >= length)) {
@@ -16329,9 +18122,9 @@ exports.resize = function(array, size, defaultValue) {
 
   // check whether size contains positive integers
   size.forEach(function (value) {
-    if (!number.isNumber(value) || !number.isInteger(value) || value < 0) {
+    if (!number$3.isNumber(value) || !number$3.isInteger(value) || value < 0) {
       throw new TypeError('Invalid size, must contain positive integers ' +
-          '(size: ' + string.format(size) + ')');
+          '(size: ' + string$1.format(size) + ')');
     }
   });
 
@@ -16737,23 +18530,23 @@ exports.generalize = function(a) {
 exports.isArray = Array.isArray;
 });
 
-var array_1 = array.size;
-var array_2 = array.validate;
-var array_3 = array.validateIndex;
-var array_4 = array.UNINITIALIZED;
-var array_5 = array.resize;
-var array_6 = array.reshape;
-var array_7 = array.squeeze;
-var array_8 = array.unsqueeze;
-var array_9 = array.flatten;
-var array_10 = array.map;
-var array_11 = array.forEach;
-var array_12 = array.filter;
-var array_13 = array.filterRegExp;
-var array_14 = array.join;
-var array_15 = array.identify;
-var array_16 = array.generalize;
-var array_17 = array.isArray;
+var array_1 = array$3.size;
+var array_2 = array$3.validate;
+var array_3 = array$3.validateIndex;
+var array_4 = array$3.UNINITIALIZED;
+var array_5 = array$3.resize;
+var array_6 = array$3.reshape;
+var array_7 = array$3.squeeze;
+var array_8 = array$3.unsqueeze;
+var array_9 = array$3.flatten;
+var array_10 = array$3.map;
+var array_11 = array$3.forEach;
+var array_12 = array$3.filter;
+var array_13 = array$3.filterRegExp;
+var array_14 = array$3.join;
+var array_15 = array$3.identify;
+var array_16 = array$3.generalize;
+var array_17 = array$3.isArray;
 
 /**
  * Test whether value is a boolean
@@ -16835,12 +18628,12 @@ var _function = {
 };
 
 var utils = createCommonjsModule(function (module, exports) {
-exports.array = array;
+exports.array = array$3;
 exports['boolean'] = boolean_1$2;
 exports['function'] = _function;
-exports.number = number;
-exports.object = object;
-exports.string = string;
+exports.number = number$3;
+exports.object = object$1;
+exports.string = string$1;
 exports.types = types;
 exports.emitter = emitter;
 });
@@ -16852,9 +18645,9 @@ var utils_4 = utils.string;
 var utils_5 = utils.types;
 var utils_6 = utils.emitter;
 
-var string$2 = utils.string;
+var string$3 = utils.string;
 
-var isString = string$2.isString;
+var isString = string$3.isString;
 
 function factory$11 (type, config, load, typed) {
   /**
@@ -17121,7 +18914,7 @@ var Matrix = {
 	factory: factory_1$11
 };
 
-var hasOwnProperty = object.hasOwnProperty;
+var hasOwnProperty = object$1.hasOwnProperty;
 
 /**
  * Get a property of a plain object
@@ -17131,13 +18924,13 @@ var hasOwnProperty = object.hasOwnProperty;
  * @param {string} prop
  * @return {*} Returns the property value when safe
  */
-function getSafeProperty$1 (object$$2, prop) {
+function getSafeProperty$1 (object, prop) {
   // only allow getting safe properties of a plain object
-  if (isPlainObject(object$$2) && isSafeProperty(object$$2, prop)) {
-    return object$$2[prop];
+  if (isPlainObject(object) && isSafeProperty(object, prop)) {
+    return object[prop];
   }
 
-  if (typeof object$$2[prop] === 'function' && isSafeMethod(object$$2, prop)) {
+  if (typeof object[prop] === 'function' && isSafeMethod(object, prop)) {
     throw new Error('Cannot access method "' + prop + '" as a property');
   }
 
@@ -17154,10 +18947,10 @@ function getSafeProperty$1 (object$$2, prop) {
  * @return {*} Returns the value
  */
 // TODO: merge this function into access.js?
-function setSafeProperty$1 (object$$2, prop, value) {
+function setSafeProperty$1 (object, prop, value) {
   // only allow setting safe properties of a plain object
-  if (isPlainObject(object$$2) && isSafeProperty(object$$2, prop)) {
-    return object$$2[prop] = value;
+  if (isPlainObject(object) && isSafeProperty(object, prop)) {
+    return object[prop] = value;
   }
 
   throw new Error('No access to property "' + prop + '"');
@@ -17169,8 +18962,8 @@ function setSafeProperty$1 (object$$2, prop, value) {
  * @param {string} prop
  * @return {boolean} Returns true when safe
  */
-function isSafeProperty (object$$2, prop) {
-  if (!object$$2 || typeof object$$2 !== 'object') {
+function isSafeProperty (object, prop) {
+  if (!object || typeof object !== 'object') {
     return false;
   }
   // SAFE: whitelisted
@@ -17204,8 +18997,8 @@ function isSafeProperty (object$$2, prop) {
  * @param {string} method
  */
 // TODO: merge this function into assign.js?
-function validateSafeMethod (object$$2, method) {
-  if (!isSafeMethod(object$$2, method)) {
+function validateSafeMethod (object, method) {
+  if (!isSafeMethod(object, method)) {
     throw new Error('No access to method "' + method + '"');
   }
 }
@@ -17217,15 +19010,15 @@ function validateSafeMethod (object$$2, method) {
  * @param {string} method
  * @return {boolean} Returns true when safe, false otherwise
  */
-function isSafeMethod (object$$2, method) {
-  if (!object$$2 || typeof object$$2[method] !== 'function') {
+function isSafeMethod (object, method) {
+  if (!object || typeof object[method] !== 'function') {
     return false;
   }
   // UNSAFE: ghosted
   // e.g overridden toString
   // Note that IE10 doesn't support __proto__ and we can't do this check there.
-  if (hasOwnProperty(object$$2, method) &&
-      (object$$2.__proto__ && (method in object$$2.__proto__))) {
+  if (hasOwnProperty(object, method) &&
+      (object.__proto__ && (method in object.__proto__))) {
     return false;
   }
   // SAFE: whitelisted
@@ -17252,8 +19045,8 @@ function isSafeMethod (object$$2, method) {
   return true;
 }
 
-function isPlainObject (object$$2) {
-  return typeof object$$2 === 'object' && object$$2 && object$$2.constructor === Object;
+function isPlainObject (object) {
+  return typeof object === 'object' && object && object.constructor === Object;
 }
 
 var safeNativeProperties = {
@@ -17283,17 +19076,17 @@ var customs = {
 	isPlainObject: isPlainObject_1
 };
 
-var string$3 = utils.string;
-var array$2 = utils.array;
-var object$3 = utils.object;
-var number$2 = utils.number;
+var string$4 = utils.string;
+var array$5 = utils.array;
+var object$4 = utils.object;
+var number$5 = utils.number;
 
 var isArray = Array.isArray;
-var isNumber$1 = number$2.isNumber;
-var isInteger = number$2.isInteger;
-var isString$1 = string$3.isString;
+var isNumber$1 = number$5.isNumber;
+var isInteger = number$5.isInteger;
+var isString$1 = string$4.isString;
 
-var validateIndex = array$2.validateIndex;
+var validateIndex = array$5.validateIndex;
 
 function factory$12 (type, config, load, typed) {
   var Matrix$$1 = load(Matrix); // force loading Matrix (do not use via type.Matrix)
@@ -17312,8 +19105,8 @@ function factory$12 (type, config, load, typed) {
       // check data is a DenseMatrix
       if (data.type === 'DenseMatrix') {
         // clone data & size
-        this._data = object$3.clone(data._data);
-        this._size = object$3.clone(data._size);
+        this._data = object$4.clone(data._data);
+        this._size = object$4.clone(data._size);
         this._datatype = datatype || data._datatype;
       }
       else {
@@ -17333,9 +19126,9 @@ function factory$12 (type, config, load, typed) {
       // replace nested Matrices with Arrays
       this._data = preprocess(data);
       // get the dimensions of the array
-      this._size = array$2.size(this._data);
+      this._size = array$5.size(this._data);
       // verify the dimensions of the array, TODO: compute size while processing array
-      array$2.validate(this._data, this._size);
+      array$5.validate(this._data, this._size);
       // data type unknown
       this._datatype = datatype;
     }
@@ -17586,7 +19379,7 @@ function factory$12 (type, config, load, typed) {
       submatrix = submatrix.valueOf();
     }
     else {
-      sSize = array$2.size(submatrix);
+      sSize = array$5.size(submatrix);
     }
 
     if (isScalar) {
@@ -17620,11 +19413,11 @@ function factory$12 (type, config, load, typed) {
         }
 
         // unsqueeze both outer and inner dimensions
-        submatrix = array$2.unsqueeze(submatrix, iSize.length, outer, sSize);
+        submatrix = array$5.unsqueeze(submatrix, iSize.length, outer, sSize);
       }
 
       // check whether the size of the submatrix matches the index size
-      if (!object$3.deepEqual(iSize, sSize)) {
+      if (!object$4.deepEqual(iSize, sSize)) {
         throw new DimensionError_1(iSize, sSize, '>');
       }
 
@@ -17708,7 +19501,7 @@ function factory$12 (type, config, load, typed) {
     }
     // resize matrix
     matrix._size = size.slice(0); // copy the array
-    matrix._data = array$2.resize(matrix._data, matrix._size, defaultValue);
+    matrix._data = array$5.resize(matrix._data, matrix._size, defaultValue);
     // return matrix
     return matrix;
   };
@@ -17730,7 +19523,7 @@ function factory$12 (type, config, load, typed) {
   DenseMatrix.prototype.reshape = function (size, copy) {
     var m = copy ? this.clone() : this;
 
-    m._data = array$2.reshape(m._data, size);
+    m._data = array$5.reshape(m._data, size);
     m._size = size.slice(0);
     return m;
   };
@@ -17775,8 +19568,8 @@ function factory$12 (type, config, load, typed) {
    */
   DenseMatrix.prototype.clone = function () {
     var m = new DenseMatrix({
-      data: object$3.clone(this._data),
-      size: object$3.clone(this._size),
+      data: object$4.clone(this._data),
+      size: object$4.clone(this._size),
       datatype: this._datatype
     });
     return m;
@@ -17817,7 +19610,7 @@ function factory$12 (type, config, load, typed) {
     // return dense format
     return new DenseMatrix({
       data: recurse(this._data, []),
-      size: object$3.clone(this._size),
+      size: object$4.clone(this._size),
       datatype: this._datatype
     });
   };
@@ -17851,7 +19644,7 @@ function factory$12 (type, config, load, typed) {
    * @returns {Array} array
    */
   DenseMatrix.prototype.toArray = function () {
-    return object$3.clone(this._data);
+    return object$4.clone(this._data);
   };
   
   /**
@@ -17873,7 +19666,7 @@ function factory$12 (type, config, load, typed) {
    * @returns {string} str
    */
   DenseMatrix.prototype.format = function (options) {
-    return string$3.format(this._data, options);
+    return string$4.format(this._data, options);
   };
   
   /**
@@ -17882,7 +19675,7 @@ function factory$12 (type, config, load, typed) {
    * @returns {string} str
    */
   DenseMatrix.prototype.toString = function () {
-    return string$3.format(this._data);
+    return string$4.format(this._data);
   };
   
   /**
@@ -18060,7 +19853,7 @@ function factory$12 (type, config, load, typed) {
     // check we need to resize array
     if (size.length > 0) {
       // resize array
-      data = array$2.resize(data, size, defaultValue);
+      data = array$5.resize(data, size, defaultValue);
       // fill diagonal
       for (var d = 0; d < n; d++) {
         data[d + kSub][d + kSuper] = _value(d);
@@ -18212,7 +20005,7 @@ var nearlyEqual$1 = function nearlyEqual(x, y, epsilon) {
   return false;
 };
 
-var nearlyEqual = number.nearlyEqual;
+var nearlyEqual = number$3.nearlyEqual;
 
 
 function factory$14 (type, config, load, typed) {
@@ -18268,17 +20061,17 @@ var equalScalar = {
 	factory: factory_1$14
 };
 
-var array$3 = utils.array;
-var object$4 = utils.object;
-var string$4 = utils.string;
-var number$3 = utils.number;
+var array$6 = utils.array;
+var object$5 = utils.object;
+var string$5 = utils.string;
+var number$6 = utils.number;
 
 var isArray$1 = Array.isArray;
-var isNumber$2 = number$3.isNumber;
-var isInteger$1 = number$3.isInteger;
-var isString$2 = string$4.isString;
+var isNumber$2 = number$6.isNumber;
+var isInteger$1 = number$6.isInteger;
+var isString$2 = string$5.isString;
 
-var validateIndex$1 = array$3.validateIndex;
+var validateIndex$1 = array$6.validateIndex;
 
 function factory$13 (type, config, load, typed) {
   var Matrix$$2 = load(Matrix); // force loading Matrix (do not use via type.Matrix)
@@ -18329,10 +20122,10 @@ function factory$13 (type, config, load, typed) {
     // check matrix type
     if (source.type === 'SparseMatrix') {
       // clone arrays
-      matrix._values = source._values ? object$4.clone(source._values) : undefined;
-      matrix._index = object$4.clone(source._index);
-      matrix._ptr = object$4.clone(source._ptr);
-      matrix._size = object$4.clone(source._size);
+      matrix._values = source._values ? object$5.clone(source._values) : undefined;
+      matrix._index = object$5.clone(source._index);
+      matrix._ptr = object$5.clone(source._ptr);
+      matrix._size = object$5.clone(source._size);
       matrix._datatype = datatype || source._datatype;
     }
     else {
@@ -18615,7 +20408,7 @@ function factory$13 (type, config, load, typed) {
     }
     else {
       // get submatrix size (array, scalar)
-      sSize = array$3.size(submatrix);
+      sSize = array$6.size(submatrix);
     }
     
     // check index is a scalar
@@ -18646,11 +20439,11 @@ function factory$13 (type, config, load, typed) {
           i++;
         }
         // unsqueeze both outer and inner dimensions
-        submatrix = array$3.unsqueeze(submatrix, iSize.length, outer, sSize);
+        submatrix = array$6.unsqueeze(submatrix, iSize.length, outer, sSize);
       }
       
       // check whether the size of the submatrix matches the index size
-      if (!object$4.deepEqual(iSize, sSize)) {
+      if (!object$5.deepEqual(iSize, sSize)) {
         throw new DimensionError_1(iSize, sSize, '>');
       }
       
@@ -18839,9 +20632,9 @@ function factory$13 (type, config, load, typed) {
 
     // check sizes
     size.forEach(function (value) {
-      if (!number$3.isNumber(value) || !number$3.isInteger(value) || value < 0) {
+      if (!number$6.isNumber(value) || !number$6.isInteger(value) || value < 0) {
         throw new TypeError('Invalid size, must contain positive integers ' +
-                            '(size: ' + string$4.format(size) + ')');
+                            '(size: ' + string$5.format(size) + ')');
       }
     });
     
@@ -18995,9 +20788,9 @@ function factory$13 (type, config, load, typed) {
 
     // check sizes
     size.forEach(function (value) {
-      if (!number$3.isNumber(value) || !number$3.isInteger(value) || value < 0) {
+      if (!number$6.isNumber(value) || !number$6.isInteger(value) || value < 0) {
         throw new TypeError('Invalid size, must contain positive integers ' +
-                            '(size: ' + string$4.format(size) + ')');
+                            '(size: ' + string$5.format(size) + ')');
       }
     });
 
@@ -19074,10 +20867,10 @@ function factory$13 (type, config, load, typed) {
    */
   SparseMatrix.prototype.clone = function () {
     var m = new SparseMatrix({
-      values: this._values ? object$4.clone(this._values) : undefined,
-      index: object$4.clone(this._index),
-      ptr: object$4.clone(this._ptr),
-      size: object$4.clone(this._size),
+      values: this._values ? object$5.clone(this._values) : undefined,
+      index: object$5.clone(this._index),
+      ptr: object$5.clone(this._ptr),
+      size: object$5.clone(this._size),
       datatype: this._datatype
     });
     return m;
@@ -19289,7 +21082,7 @@ function factory$13 (type, config, load, typed) {
         // row index
         i = index[k];
         // set value (use one for pattern matrix)
-        a[i][j] = values ? (copy ? object$4.clone(values[k]) : values[k]) : 1;
+        a[i][j] = values ? (copy ? object$5.clone(values[k]) : values[k]) : 1;
       }
     }
     return a;
@@ -19311,7 +21104,7 @@ function factory$13 (type, config, load, typed) {
     // density
     var density = this.density();
     // rows & columns
-    var str = 'Sparse Matrix [' + string$4.format(rows, options) + ' x ' + string$4.format(columns, options) + '] density: ' + string$4.format(density, options) + '\n';
+    var str = 'Sparse Matrix [' + string$5.format(rows, options) + ' x ' + string$5.format(columns, options) + '] density: ' + string$5.format(density, options) + '\n';
     // loop columns
     for (var j = 0; j < columns; j++) {
       // k0 <= k < k1 where k0 = _ptr[j] && k1 = _ptr[j+1]
@@ -19322,7 +21115,7 @@ function factory$13 (type, config, load, typed) {
         // row index
         var i = this._index[k];
         // append value
-        str += '\n    (' + string$4.format(i, options) + ', ' + string$4.format(j, options) + ') ==> ' + (this._values ? string$4.format(this._values[k], options) : 'X');
+        str += '\n    (' + string$5.format(i, options) + ', ' + string$5.format(j, options) + ') ==> ' + (this._values ? string$5.format(this._values[k], options) : 'X');
       }
     }
     return str;
@@ -19334,7 +21127,7 @@ function factory$13 (type, config, load, typed) {
    * @returns {string} str
    */
   SparseMatrix.prototype.toString = function () {
-    return string$4.format(this.toArray());
+    return string$5.format(this.toArray());
   };
   
   /**
@@ -20270,8 +22063,8 @@ var algorithm10 = {
 	factory: factory_1$21
 };
 
-var string$5 = utils.string;
-var isString$3 = string$5.isString;
+var string$6 = utils.string;
+var isString$3 = string$6.isString;
 
 function factory$22 (type, config, load, typed) {
 
@@ -20375,7 +22168,7 @@ var algorithm13 = {
 	factory: factory_1$22
 };
 
-var clone = object.clone;
+var clone = object$1.clone;
 
 function factory$23 (type, config, load, typed) {
 
@@ -20461,7 +22254,7 @@ var algorithm14 = {
 	factory: factory_1$23
 };
 
-var extend = object.extend;
+var extend$1 = object$1.extend;
 
 function factory$16 (type, config, load, typed) {
 
@@ -20509,7 +22302,7 @@ function factory$16 (type, config, load, typed) {
    * @param  {number | BigNumber | Fraction | Complex | Unit | Array | Matrix} y Second value to add
    * @return {number | BigNumber | Fraction | Complex | Unit | Array | Matrix} Sum of `x` and `y`
    */
-  var add = typed('add', extend({
+  var add = typed('add', extend$1({
     // we extend the signatures of addScalar with signatures dealing with matrices
 
     'Matrix, Matrix': function (x, y) {
@@ -21142,7 +22935,7 @@ var algorithm12 = {
 	factory: factory_1$28
 };
 
-var nearlyEqual$3 = number.nearlyEqual;
+var nearlyEqual$3 = number$3.nearlyEqual;
 
 
 function factory$25 (type, config, load, typed) {
@@ -21325,7 +23118,7 @@ var smaller = {
 	factory: factory_1$25
 };
 
-var nearlyEqual$4 = number.nearlyEqual;
+var nearlyEqual$4 = number$3.nearlyEqual;
 
 
 function factory$29 (type, config, load, typed) {
@@ -21862,11 +23655,11 @@ var FibonacciHeap = {
 	factory: factory_1$24
 };
 
-var string$6 = utils.string;
-var object$5 = utils.object;
+var string$7 = utils.string;
+var object$6 = utils.object;
 
 var isArray$2 = Array.isArray;
-var isString$4 = string$6.isString;
+var isString$4 = string$7.isString;
 
 function factory$30 (type, config, load) {
 
@@ -22003,8 +23796,8 @@ function factory$30 (type, config, load) {
    */
   ImmutableDenseMatrix.prototype.clone = function () {
     var m = new ImmutableDenseMatrix({
-      data: object$5.clone(this._data),
-      size: object$5.clone(this._size),
+      data: object$6.clone(this._data),
+      size: object$6.clone(this._size),
       datatype: this._datatype
     });
     return m;
@@ -22098,8 +23891,8 @@ var ImmutableDenseMatrix = {
 	factory: factory_1$30
 };
 
-var clone$1 = object.clone;
-var isInteger$2 = number.isInteger;
+var clone$1 = object$1.clone;
+var isInteger$2 = number$3.isInteger;
 
 function factory$31 (type) {
   
@@ -22508,7 +24301,7 @@ function factory$32 (type, config, load, typed) {
         end = this.end,
         diff = end - start;
 
-    if (number.sign(step) == number.sign(diff)) {
+    if (number$3.sign(step) == number$3.sign(diff)) {
       len = Math.ceil((diff) / step);
     }
     else if (diff == 0) {
@@ -22648,12 +24441,12 @@ function factory$32 (type, config, load, typed) {
    * @returns {string} str
    */
   Range.prototype.format = function (options) {
-    var str = number.format(this.start, options);
+    var str = number$3.format(this.start, options);
 
     if (this.step != 1) {
-      str += ':' + number.format(this.step, options);
+      str += ':' + number$3.format(this.step, options);
     }
-    str += ':' + number.format(this.end, options);
+    str += ':' + number$3.format(this.end, options);
     return str;
   };
 
@@ -22931,7 +24724,7 @@ function factory$35 (type, config, load, typed) {
 var name$33 = 'number';
 var factory_1$35 = factory$35;
 
-var number$4 = {
+var number$7 = {
 	name: name$33,
 	factory: factory_1$35
 };
@@ -23048,7 +24841,7 @@ function factory$37 (type, config, load, typed) {
       return '';
     },
 
-    'number': number.format,
+    'number': number$3.format,
 
     'null': function (x) {
       return 'null';
@@ -23082,7 +24875,7 @@ function factory$37 (type, config, load, typed) {
 var name$35 = 'string';
 var factory_1$37 = factory$37;
 
-var string$7 = {
+var string$8 = {
 	name: name$35,
 	factory: factory_1$37
 };
@@ -23717,7 +25510,7 @@ var divideScalar = {
 	factory: factory_1$43
 };
 
-var isInteger$4 = number.isInteger;
+var isInteger$4 = number$3.isInteger;
 
 function factory$45 (type, config, load, typed) {
   
@@ -23845,7 +25638,7 @@ function factory$45 (type, config, load, typed) {
     }
     
     // create and resize array
-    var res = array.resize([], size, defaultValue);
+    var res = array$3.resize([], size, defaultValue);
     // fill in ones on the diagonal
     var minimum = rows < cols ? rows : cols;
     // fill diagonal
@@ -23977,7 +25770,7 @@ var algorithm11 = {
 	factory: factory_1$47
 };
 
-var extend$1 = object.extend;
+var extend$2 = object$1.extend;
 
 
 function factory$46 (type, config, load, typed) {
@@ -24027,12 +25820,12 @@ function factory$46 (type, config, load, typed) {
    * @param  {number | BigNumber | Fraction | Complex | Unit | Array | Matrix} y Second value to multiply
    * @return {number | BigNumber | Fraction | Complex | Unit | Array | Matrix} Multiplication of `x` and `y`
    */
-  var multiply = typed('multiply', extend$1({
+  var multiply = typed('multiply', extend$2({
     // we extend the signatures of multiplyScalar with signatures dealing with matrices
 
     'Array, Array': function (x, y) {
       // check dimensions
-      _validateMatrixDimensions(array.size(x), array.size(y));
+      _validateMatrixDimensions(array$3.size(x), array$3.size(y));
 
       // use dense matrix implementation
       var m = multiply(matrix(x), matrix(y));
@@ -24951,8 +26744,8 @@ var multiply = {
 	factory: factory_1$46
 };
 
-var isInteger$3 = number.isInteger;
-var size = array.size;
+var isInteger$3 = number$3.isInteger;
+var size = array$3.size;
 
 function factory$44 (type, config, load, typed) {
   var latex$$2 = latex;
@@ -24960,7 +26753,7 @@ function factory$44 (type, config, load, typed) {
   var multiply$$1 = load(multiply);
   var matrix = load(matrix$3);
   var fraction = load(fraction$4);
-  var number$$2 = load(number$4);
+  var number = load(number$7);
 
   /**
    * Calculates the power of x to y, `x ^ y`.
@@ -25057,7 +26850,7 @@ function factory$44 (type, config, load, typed) {
       // Check to see if y can be represented as a fraction
       try {
         var yFrac = fraction(y);
-        var yNum = number$$2(yFrac);
+        var yNum = number(yFrac);
         if(y === yNum || Math.abs((y - yNum) / y) < 1e-14) {
           if(yFrac.d % 2 === 1) {
             return (yFrac.n % 2 === 0 ? 1 : -1) * Math.pow(-x, y);
@@ -25151,7 +26944,7 @@ function factory$44 (type, config, load, typed) {
 var name$40 = 'pow';
 var factory_1$44 = factory$44;
 
-var pow = {
+var pow$1 = {
 	name: name$40,
 	factory: factory_1$44
 };
@@ -25286,8 +27079,8 @@ var fix = {
 	factory: factory_1$49
 };
 
-var isInteger$6 = number.isInteger;
-var resize = array.resize;
+var isInteger$6 = number$3.isInteger;
+var resize = array$3.resize;
 
 function factory$51 (type, config, load, typed) {
   var matrix = load(matrix$3);
@@ -25424,8 +27217,8 @@ var zeros = {
 	factory: factory_1$51
 };
 
-var isInteger$5 = number.isInteger;
-var toFixed = number.toFixed;
+var isInteger$5 = number$3.isInteger;
+var toFixed = number$3.toFixed;
 
 
 var NO_INT = 'Number of decimals in function round must be an integer';
@@ -25928,8 +27721,8 @@ function factory$54 (type, config, load, typed) {
    * @return {string} The formatted value
    */
   var format = typed('format', {
-    'any': string.format,
-    'any, Object | function | number': string.format
+    'any': string$1.format,
+    'any, Object | function | number': string$1.format
   });
 
   format.toTex = undefined; // use default template
@@ -25940,7 +27733,7 @@ function factory$54 (type, config, load, typed) {
 var name$50 = 'format';
 var factory_1$54 = factory$54;
 
-var format$2 = {
+var format$3 = {
 	name: name$50,
 	factory: factory_1$54
 };
@@ -26024,8 +27817,8 @@ var _typeof = {
 	factory: factory_1$55
 };
 
-var endsWith = string.endsWith;
-var clone$2 = object.clone;
+var endsWith = string$1.endsWith;
+var clone$2 = object$1.clone;
 
 
 function factory$38 (type, config, load, typed, math) {
@@ -26033,15 +27826,15 @@ function factory$38 (type, config, load, typed, math) {
   var subtract$$1  = load(subtract);
   var multiply  = load(multiplyScalar);
   var divide    = load(divideScalar);
-  var pow$$1       = load(pow);
+  var pow       = load(pow$1);
   var abs$$1       = load(abs);
   var fix$$1       = load(fix);
   var round$$1     = load(round);
   var equal$$1     = load(equal);
   var isNumeric$$1 = load(isNumeric);
-  var format    = load(format$2);
+  var format    = load(format$3);
   var getTypeOf = load(_typeof);
-  var toNumber  = load(number$4);
+  var toNumber  = load(number$7);
   var Complex   = load(Complex_1);
 
   /**
@@ -26496,7 +28289,7 @@ function factory$38 (type, config, load, typed, math) {
         unitValue       = convert(this.units[i].unit.value);
         unitPrefixValue = convert(this.units[i].prefix.value);
         unitPower       = convert(this.units[i].power);
-        res = multiply(res, pow$$1(multiply(unitValue, unitPrefixValue), unitPower));
+        res = multiply(res, pow(multiply(unitValue, unitPrefixValue), unitPower));
       }
 
       return res;
@@ -26539,7 +28332,7 @@ function factory$38 (type, config, load, typed, math) {
         unitValue       = convert(this.units[i].unit.value);
         unitPrefixValue = convert(this.units[i].prefix.value);
         unitPower       = convert(this.units[i].power);
-        res = divide(res, pow$$1(multiply(unitValue, unitPrefixValue), unitPower));
+        res = divide(res, pow(multiply(unitValue, unitPrefixValue), unitPower));
       }
 
       return res;
@@ -26770,7 +28563,7 @@ function factory$38 (type, config, load, typed, math) {
     }
 
     if(res.value != null) {
-      res.value = pow$$1(res.value, p);
+      res.value = pow(res.value, p);
 
       // only allow numeric output, we don't want to return a Complex number
       //if (!isNumeric(res.value)) {
@@ -29369,7 +31162,7 @@ function factory$56 (type, config, load, typed) {
 var name$52 = 'unit';
 var factory_1$56 = factory$56;
 
-var unit$2 = {
+var unit$3 = {
 	name: name$52,
 	factory: factory_1$56
 };
@@ -29500,7 +31293,7 @@ var splitUnit = {
 	factory: factory_1$58
 };
 
-var lazy$4 = object.lazy;
+var lazy$4 = object$1.lazy;
 
 
 function factory$59 (type, config, load, typed, math) {
@@ -29597,12 +31390,12 @@ var physicalConstants = {
 	math: math$7
 };
 
-var unit = [
+var unit$1 = [
   // type
   Unit,
 
   // construction function
-  unit$2,
+  unit$3,
 
   // create new units
   createUnit,
@@ -29621,13 +31414,13 @@ var type = [
   complex,
   fraction,
   matrix$1,
-  number$4,
+  number$7,
   resultset,
-  string$7,
-  unit
+  string$8,
+  unit$1
 ];
 
-var version = '3.18.1';
+var version = '3.20.1';
 
 function factory$60 (type, config, load, typed, math) {
   // listen for changed in the configuration, automatically reload
@@ -29641,7 +31434,7 @@ function factory$60 (type, config, load, typed, math) {
   setConstant(math, 'true', true);
   setConstant(math, 'false', false);
   setConstant(math, 'null', null);
-  setConstant(math, 'uninitialized', array.UNINITIALIZED);
+  setConstant(math, 'uninitialized', array$3.UNINITIALIZED);
 
   if (config.number === 'BigNumber') {
     setConstant(math, 'Infinity', new type.BigNumber(Infinity));
@@ -29697,8 +31490,8 @@ function setConstant(math, name, value) {
 
 // create a lazy constant in both math and mathWithTransform
 function setLazyConstant$1 (math, name, resolver) {
-  object.lazy(math, name,  resolver);
-  object.lazy(math.expression.mathWithTransform, name,  resolver);
+  object$1.lazy(math, name,  resolver);
+  object$1.lazy(math.expression.mathWithTransform, name,  resolver);
 }
 
 var factory_1$60 = factory$60;
@@ -29862,7 +31655,7 @@ var matrix$5 = {
   ]
 };
 
-var number$6 = {
+var number$9 = {
   'name': 'number',
   'category': 'Construction',
   'syntax': [
@@ -29923,7 +31716,7 @@ var splitUnit$2 = {
   ]
 };
 
-var string$9 = {
+var string$10 = {
   'name': 'string',
   'category': 'Construction',
   'syntax': [
@@ -29942,7 +31735,7 @@ var string$9 = {
   ]
 };
 
-var unit$4 = {
+var unit$5 = {
   'name': 'unit',
   'category': 'Construction',
   'syntax': [
@@ -29992,7 +31785,7 @@ var _false = {
   'seealso': ['true']
 };
 
-var i = {
+var i$1 = {
   'name': 'i',
   'category': 'Constants',
   'syntax': [
@@ -30636,7 +32429,7 @@ var lcm = {
   'seealso': [ 'gcd' ]
 };
 
-var log = {
+var log$1 = {
   'name': 'log',
   'category': 'Arithmetic',
   'syntax': [
@@ -30764,7 +32557,7 @@ var nthRoot = {
   ]
 };
 
-var pow$2 = {
+var pow$3 = {
   'name': 'pow',
   'category': 'Operators',
   'syntax': [
@@ -30819,7 +32612,7 @@ var sign = {
   ]
 };
 
-var sqrt = {
+var sqrt$1 = {
   'name': 'sqrt',
   'category': 'Arithmetic',
   'syntax': [
@@ -31199,7 +32992,7 @@ var conj = {
   ]
 };
 
-var re = {
+var re$1 = {
   'name': 're',
   'category': 'Complex',
   'syntax': [
@@ -31395,7 +33188,7 @@ var concat = {
   ]
 };
 
-var cross = {
+var cross$1 = {
   'name': 'cross',
   'category': 'Matrix',
   'syntax': [
@@ -31567,7 +33360,7 @@ var kron = {
   ]
 };
 
-var map = {
+var map$4 = {
   'name': 'map',
   'category': 'Matrix',
   'syntax': [
@@ -31619,7 +33412,7 @@ var partitionSelect = {
   'seealso': ['sort']
 };
 
-var range = {
+var range$1 = {
   'name': 'range',
   'category': 'Type',
   'syntax': [
@@ -31779,7 +33572,7 @@ var trace = {
   ]
 };
 
-var transpose$2 = {
+var transpose$3 = {
   'name': 'transpose',
   'category': 'Matrix',
   'syntax': [
@@ -31849,7 +33642,7 @@ var factorial = {
   'seealso': ['combinations', 'permutations', 'gamma']
 };
 
-var gamma = {
+var gamma$1 = {
   'name': 'gamma',
   'category': 'Probability',
   'syntax': [
@@ -32365,7 +34158,7 @@ var mad = {
   ]
 };
 
-var max = {
+var max$1 = {
   'name': 'max',
   'category': 'Statistics',
   'syntax': [
@@ -32422,7 +34215,7 @@ var mean$1 = {
   ]
 };
 
-var median = {
+var median$1 = {
   'name': 'median',
   'category': 'Statistics',
   'syntax': [
@@ -32446,7 +34239,7 @@ var median = {
   ]
 };
 
-var min = {
+var min$1 = {
   'name': 'min',
   'category': 'Statistics',
   'syntax': [
@@ -32581,7 +34374,7 @@ var std = {
   ]
 };
 
-var sum$1 = {
+var sum$2 = {
   'name': 'sum',
   'category': 'Statistics',
   'syntax': [
@@ -32885,7 +34678,7 @@ var cos = {
   ]
 };
 
-var cosh = {
+var cosh$1 = {
   'name': 'cosh',
   'category': 'Trigonometry',
   'syntax': [
@@ -33031,7 +34824,7 @@ var sin = {
   ]
 };
 
-var sinh = {
+var sinh$1 = {
   'name': 'sinh',
   'category': 'Trigonometry',
   'syntax': [
@@ -33067,7 +34860,7 @@ var tan = {
   ]
 };
 
-var tanh = {
+var tanh$1 = {
   'name': 'tanh',
   'category': 'Trigonometry',
   'syntax': [
@@ -33117,7 +34910,7 @@ var clone$3 = {
   'seealso': []
 };
 
-var format$4 = {
+var format$5 = {
   'name': 'format',
   'category': 'Utils',
   'syntax': [
@@ -33276,17 +35069,17 @@ function factory$61 (construction$$1, config, load, typed) {
   docs.fraction = fraction$6;
   docs.index = construction;
   docs.matrix = matrix$5;
-  docs.number = number$6;
+  docs.number = number$9;
   docs.sparse = sparse$3;
   docs.splitUnit = splitUnit$2;
-  docs.string = string$9;
-  docs.unit = unit$4;
+  docs.string = string$10;
+  docs.unit = unit$5;
 
   // constants
   docs.e = e;
   docs.E = e;
   docs['false'] = _false;
-  docs.i = i;
+  docs.i = i$1;
   docs['Infinity'] = _Infinity;
   docs.LN2 = LN2;
   docs.LN10 = LN10;
@@ -33390,16 +35183,16 @@ function factory$61 (construction$$1, config, load, typed) {
   docs.gcd = gcd;
   docs.hypot = hypot;
   docs.lcm = lcm;
-  docs.log = log;
+  docs.log = log$1;
   docs.log10 = log10;
   docs.mod = mod;
   docs.multiply = multiply$2;
   docs.norm = norm$1;
   docs.nthRoot = nthRoot;
-  docs.pow = pow$2;
+  docs.pow = pow$3;
   docs.round = round$2;
   docs.sign = sign;
-  docs.sqrt = sqrt;
+  docs.sqrt = sqrt$1;
   docs.square = square;
   docs.subtract = subtract$2;
   docs.unaryMinus = unaryMinus$2;
@@ -33429,7 +35222,7 @@ function factory$61 (construction$$1, config, load, typed) {
   // functions - complex
   docs.arg = arg;
   docs.conj = conj;
-  docs.re = re;
+  docs.re = re$1;
   docs.im = im;
 
   // functions - expression
@@ -33448,7 +35241,7 @@ function factory$61 (construction$$1, config, load, typed) {
 
   // functions - matrix
   docs['concat'] = concat;
-  docs.cross = cross;
+  docs.cross = cross$1;
   docs.det = det;
   docs.diag = diag;
   docs.dot = dot$1;
@@ -33458,10 +35251,10 @@ function factory$61 (construction$$1, config, load, typed) {
   docs.forEach =  forEach;
   docs.inv = inv;
   docs.kron = kron;
-  docs.map =  map;
+  docs.map =  map$4;
   docs.ones = ones;
   docs.partitionSelect =  partitionSelect;
-  docs.range = range;
+  docs.range = range$1;
   docs.resize = resize$1;
   docs.reshape = reshape;
   docs.size = size$1;
@@ -33469,14 +35262,14 @@ function factory$61 (construction$$1, config, load, typed) {
   docs.squeeze = squeeze;
   docs.subset = subset;
   docs.trace = trace;
-  docs.transpose = transpose$2;
+  docs.transpose = transpose$3;
   docs.zeros = zeros$2;
 
   // functions - probability
   docs.combinations = combinations;
   //docs.distribution = require('./function/probability/distribution');
   docs.factorial = factorial;
-  docs.gamma = gamma;
+  docs.gamma = gamma$1;
   docs.kldivergence = kldivergence;
   docs.multinomial = multinomial;
   docs.permutations = permutations;
@@ -33512,15 +35305,15 @@ function factory$61 (construction$$1, config, load, typed) {
 
   // functions - statistics
   docs.mad = mad;
-  docs.max = max;
+  docs.max = max$1;
   docs.mean = mean$1;
-  docs.median = median;
-  docs.min = min;
+  docs.median = median$1;
+  docs.min = min$1;
   docs.mode = mode;
   docs.prod = prod;
   docs.quantileSeq = quantileSeq;
   docs.std = std;
-  docs.sum = sum$1;
+  docs.sum = sum$2;
   docs['var'] = _var;
 
   // functions - trigonometry
@@ -33538,7 +35331,7 @@ function factory$61 (construction$$1, config, load, typed) {
   docs.atanh = atanh;
   docs.atan2 = atan2;
   docs.cos = cos;
-  docs.cosh = cosh;
+  docs.cosh = cosh$1;
   docs.cot = cot;
   docs.coth = coth;
   docs.csc = csc;
@@ -33546,16 +35339,16 @@ function factory$61 (construction$$1, config, load, typed) {
   docs.sec = sec;
   docs.sech = sech;
   docs.sin = sin;
-  docs.sinh = sinh;
+  docs.sinh = sinh$1;
   docs.tan = tan;
-  docs.tanh = tanh;
+  docs.tanh = tanh$1;
 
   // functions - units
   docs.to = to;
 
   // functions - utils
   docs.clone = clone$3;
-  docs.format = format$4;
+  docs.format = format$5;
   docs.isNaN = _isNaN;
   docs.isInteger = isInteger$7;
   docs.isNegative = isNegative;
@@ -33584,7 +35377,7 @@ var embeddedDocs = {
 // override them or create fake Nodes. Instead, only compile functions of
 // registered nodes can be executed
 
-var hasOwnProperty$1 = object.hasOwnProperty;
+var hasOwnProperty$1 = object$1.hasOwnProperty;
 
 function factory$65 () {
   // map with node type as key and compile functions as value
@@ -33651,8 +35444,8 @@ var keywords = {
   end: true
 };
 
-var deepEqual$2= object.deepEqual;
-var hasOwnProperty$2 = object.hasOwnProperty;
+var deepEqual$2= object$1.deepEqual;
+var hasOwnProperty$2 = object$1.hasOwnProperty;
 
 function factory$66 (type, config, load, typed, math) {
   var compile = load(compile$2).compile;
@@ -34642,9 +36435,9 @@ var RangeNode = {
 	factory: factory_1$68
 };
 
-var stringify$1 = string.stringify;
-var escape$1 = string.escape;
-var hasOwnProperty$3 = object.hasOwnProperty;
+var stringify$1 = string$1.stringify;
+var escape$1 = string$1.escape;
+var hasOwnProperty$3 = object$1.hasOwnProperty;
 var getSafeProperty$3 = customs.getSafeProperty;
 
 function factory$69 (type, config, load, typed, math) {
@@ -34845,9 +36638,9 @@ var SymbolNode = {
 	factory: factory_1$69
 };
 
-var map$2 = array.map;
-var join = array.join;
-var escape = string.escape;
+var map$6 = array$3.map;
+var join = array$3.join;
+var escape = string$1.escape;
 
 function factory$67 (type, config, load, typed) {
   var register = load(compile$2).register;
@@ -34946,7 +36739,7 @@ function factory$67 (type, config, load, typed) {
     //       we can beforehand resolve the zero-based value
 
     // optimization for a simple object property
-    var dimensions = map$2(node.dimensions, function (range, i) {
+    var dimensions = map$6(node.dimensions, function (range, i) {
       if (type.isRangeNode(range)) {
         if (range.needsEnd()) {
           childArgs.end = 'end';
@@ -35130,8 +36923,8 @@ var error_transform = {
 	transform: transform
 };
 
-var clone$5 = object.clone;
-var validateIndex$2 = array.validateIndex;
+var clone$5 = object$1.clone;
+var validateIndex$2 = array$3.validateIndex;
 var getSafeProperty$5 = customs.getSafeProperty;
 var setSafeProperty$2 = customs.setSafeProperty;
 
@@ -35321,7 +37114,7 @@ function factory$71 (type, config, load, typed) {
  * @return {*} Returns the value of the property
  * @private
  */
-function _getObjectProperty (object$$2, index) {
+function _getObjectProperty (object, index) {
   if (index.size().length !== 1) {
     throw new DimensionError_1(index.size(), 1);
   }
@@ -35331,7 +37124,7 @@ function _getObjectProperty (object$$2, index) {
     throw new TypeError('String expected as index to retrieve an object property');
   }
 
-  return getSafeProperty$5(object$$2, key);
+  return getSafeProperty$5(object, key);
 }
 
 /**
@@ -35342,7 +37135,7 @@ function _getObjectProperty (object$$2, index) {
  * @return {*} Returns the updated object
  * @private
  */
-function _setObjectProperty (object$$2, index, replacement) {
+function _setObjectProperty (object, index, replacement) {
   if (index.size().length !== 1) {
     throw new DimensionError_1(index.size(), 1);
   }
@@ -35353,7 +37146,7 @@ function _setObjectProperty (object$$2, index, replacement) {
   }
 
   // clone the object, and apply the property to the clone
-  var updated = clone$5(object$$2);
+  var updated = clone$5(object);
   setSafeProperty$2(updated, key, replacement);
 
   return updated;
@@ -35419,7 +37212,7 @@ var access = {
 	factory: factory_1$70
 };
 
-var stringify = string.stringify;
+var stringify = string$1.stringify;
 var getSafeProperty$2 = customs.getSafeProperty;
 
 function factory$64 (type, config, load, typed) {
@@ -35622,8 +37415,8 @@ var AccessorNode = {
 	factory: factory_1$64
 };
 
-var map$3 = array.map;
-var join$1 = array.join;
+var map$7 = array$3.map;
+var join$1 = array$3.join;
 
 function factory$72 (type, config, load, typed) {
   var register = load(compile$2).register;
@@ -35680,7 +37473,7 @@ function factory$72 (type, config, load, typed) {
 
     var asMatrix = (defs.math.config().matrix !== 'Array');
 
-    var items = map$3(node.items, function (item) {
+    var items = map$7(node.items, function (item) {
       return compile(item, defs, args);
     });
 
@@ -35845,7 +37638,7 @@ var assign = {
 	factory: factory_1$74
 };
 
-var stringify$2 = string.stringify;
+var stringify$2 = string$1.stringify;
 var getSafeProperty$6 = customs.getSafeProperty;
 var setSafeProperty$3 = customs.setSafeProperty;
 
@@ -36143,8 +37936,8 @@ var AssignmentNode = {
 	factory: factory_1$73
 };
 
-var map$4 = array.map;
-var join$2 = array.join;
+var map$8 = array$3.map;
+var join$2 = array$3.join;
 
 function factory$75 (type, config, load, typed) {
   var register = load(compile$2).register;
@@ -36207,7 +38000,7 @@ function factory$75 (type, config, load, typed) {
     }
 
     defs.ResultSet = ResultSet$$2;
-    var blocks = map$4(node.blocks, function (param) {
+    var blocks = map$8(node.blocks, function (param) {
       var js = compile(param.node, defs, args);
       if (param.visible) {
         return 'results.push(' + js + ');';
@@ -36551,8 +38344,8 @@ var ConditionalNode = {
 };
 
 var getType = types.type;
-var stringify$3 = string.stringify;
-var escape$2 = string.escape;
+var stringify$3 = string$1.stringify;
+var escape$2 = string$1.escape;
 
 function factory$77 (type, config, load, typed) {
   var register = load(compile$2).register;
@@ -36816,10 +38609,10 @@ function getUniqueArgumentName (defs) {
 
 var getUniqueArgumentName_1 = getUniqueArgumentName;
 
-var stringify$4 = string.stringify;
-var escape$3 = string.escape;
-var map$5 = array.map;
-var join$3 = array.join;
+var stringify$4 = string$1.stringify;
+var escape$3 = string$1.escape;
+var map$9 = array$3.map;
+var join$3 = array$3.join;
 
 
 var setSafeProperty$5 = customs.setSafeProperty;
@@ -36896,7 +38689,7 @@ function factory$78 (type, config, load, typed) {
     // we extend the original args and add the args to the child object
     // and create a mapping from the unsafe param name to a safe, internal one
     var childArgs = Object.create(args);
-    var jsParams = map$5(node.params, function (param) {
+    var jsParams = map$9(node.params, function (param) {
       childArgs[param] = getUniqueArgumentName_1(childArgs);
       return childArgs[param];
     });
@@ -37022,10 +38815,10 @@ var FunctionAssignmentNode = {
 	factory: factory_1$78
 };
 
-var stringify$5 = string.stringify;
-var escape$4 = string.escape;
+var stringify$5 = string$1.stringify;
+var escape$4 = string$1.escape;
 var isSafeProperty$1 = customs.isSafeProperty;
-var hasOwnProperty$4 = object.hasOwnProperty;
+var hasOwnProperty$4 = object$1.hasOwnProperty;
 
 function factory$79 (type, config, load, typed) {
   var register = load(compile$2).register;
@@ -37203,12 +38996,12 @@ var ObjectNode = {
 };
 
 var latex$2 = latex;
-var stringify$7 = string.stringify;
-var escape$6 = string.escape;
-var extend$2 = object.extend;
-var hasOwnProperty$5 = object.hasOwnProperty;
-var map$7 = array.map;
-var join$5 = array.join;
+var stringify$7 = string$1.stringify;
+var escape$6 = string$1.escape;
+var extend$3 = object$1.extend;
+var hasOwnProperty$5 = object$1.hasOwnProperty;
+var map$11 = array$3.map;
+var join$5 = array$3.join;
 var validateSafeMethod$1 = customs.validateSafeMethod;
 
 
@@ -37287,7 +39080,7 @@ function factory$81 (type, config, load, typed, math) {
 
     // compile fn and arguments
     var jsFn = compile(node.fn, defs, args);
-    var jsArgs = map$7(node.args, function (arg) {
+    var jsArgs = map$11(node.args, function (arg) {
       return compile(arg, defs, args);
     });
     var jsScope = compileScope(defs, args);
@@ -37370,9 +39163,9 @@ function factory$81 (type, config, load, typed, math) {
     }
     else {
       // merge arguments into scope
-      defs.extend = extend$2;
+      defs.extend = extend$3;
 
-      var jsArgs = map$7(names, function (name) {
+      var jsArgs = map$11(names, function (name) {
         return stringify$7(name) + ': ' + args[name];
       });
 
@@ -37646,10 +39439,10 @@ var FunctionNode = {
 	factory: factory_1$81
 };
 
-var map$6 = array.map;
-var join$4 = array.join;
-var stringify$6 = string.stringify;
-var escape$5 = string.escape;
+var map$10 = array$3.map;
+var join$4 = array$3.join;
+var stringify$6 = string$1.stringify;
+var escape$5 = string$1.escape;
 var isSafeMethod$1 = customs.isSafeMethod;
 
 
@@ -37727,7 +39520,7 @@ function factory$80 (type, config, load, typed) {
       }
     }
 
-    var jsArgs = map$6(node.args, function (arg) {
+    var jsArgs = map$10(node.args, function (arg) {
       return compile(arg, defs, args);
     });
 
@@ -38366,7 +40159,7 @@ var name$73 = 'ParenthesisNode';
 var path$30 = 'expression.node';
 var factory_1$82 = factory$82;
 
-var ParenthesisNode$1 = {
+var ParenthesisNode = {
 	name: name$73,
 	path: path$30,
 	factory: factory_1$82
@@ -38383,7 +40176,7 @@ function factory$63 (type, config, load, typed) {
   var IndexNode$$1               = load(IndexNode);
   var ObjectNode$$1              = load(ObjectNode);
   var OperatorNode$$1            = load(OperatorNode);
-  var ParenthesisNode         = load(ParenthesisNode$1);
+  var ParenthesisNode$$1         = load(ParenthesisNode);
   var FunctionNode$$1            = load(FunctionNode);
   var RangeNode$$1               = load(RangeNode);
   var SymbolNode$$1              = load(SymbolNode);
@@ -39842,7 +41635,7 @@ function factory$63 (type, config, load, typed) {
       closeParams();
       getToken();
 
-      node = new ParenthesisNode(node);
+      node = new ParenthesisNode$$1(node);
       node = parseAccessors(node);
       return node;
     }
@@ -40180,7 +41973,7 @@ var parse$2 = {
 	factory: factory_1$85
 };
 
-var extend$3 = object.extend;
+var extend$4 = object$1.extend;
 
 
 function factory$87 (type, config, load, typed, math) {
@@ -40302,7 +42095,7 @@ function factory$87 (type, config, load, typed, math) {
    * @return {Object} values
    */
   Parser.prototype.getAll = function () {
-    return extend$3({}, this.scope);
+    return extend$4({}, this.scope);
   };
 
   /**
@@ -40456,14 +42249,14 @@ var node = [
   Node,
   ObjectNode,
   OperatorNode,
-  ParenthesisNode$1,
+  ParenthesisNode,
   RangeNode,
   SymbolNode,
   UpdateNode
 ];
 
-var clone$6 = object.clone;
-var isInteger$9 = number.isInteger;
+var clone$6 = object$1.clone;
+var isInteger$9 = number$3.isInteger;
 
 
 
@@ -40539,7 +42332,7 @@ function factory$90 (type, config, load, typed) {
         else {
           // this is a matrix or array
           var m = clone$6(arg).valueOf();
-          var size = array.size(m);
+          var size = array$3.size(m);
           matrices[i] = m;
           prevDim = dim;
           dim = size.length - 1;
@@ -40693,8 +42486,8 @@ var compileInlineExpression = {
 	factory: factory_1$92
 };
 
-var filter$2 = array.filter;
-var filterRegExp = array.filterRegExp;
+var filter$2 = array$3.filter;
+var filterRegExp = array$3.filterRegExp;
 var maxArgumentCount$1 = _function.maxArgumentCount;
 
 /**
@@ -40764,7 +42557,7 @@ function _filter (x, callback) {
   // figure out what number of arguments the callback function expects
   var args = maxArgumentCount$1(callback);
 
-  return filter$2(x, function (value, index, array$$2) {
+  return filter$2(x, function (value, index, array) {
     // invoke the callback function with the right number of arguments
     if (args === 1) {
       return callback(value);
@@ -40773,7 +42566,7 @@ function _filter (x, callback) {
       return callback(value, [index + 1]);
     }
     else { // 3 or -1
-      return callback(value, [index + 1], array$$2);
+      return callback(value, [index + 1], array);
     }
   });
 }
@@ -40789,7 +42582,7 @@ var filter_transform = {
 };
 
 var maxArgumentCount$2 = _function.maxArgumentCount;
-var forEach$2 = array.forEach;
+var forEach$2 = array$3.forEach;
 
 /**
  * Attach a transform function to math.forEach
@@ -40824,7 +42617,7 @@ function factory$93 (type, config, load, typed) {
 
   // one-based version of forEach
   var _forEach = typed('forEach', {
-    'Array | Matrix, function': function (array$$2, callback) {
+    'Array | Matrix, function': function (array, callback) {
       // figure out what number of arguments the callback function expects
       var args = maxArgumentCount$2(callback);
 
@@ -40844,11 +42637,11 @@ function factory$93 (type, config, load, typed) {
             callback(value, index);
           }
           else { // 3 or -1
-            callback(value, index, array$$2);
+            callback(value, index, array);
           }
         }
       };
-      recurse(array$$2.valueOf(), []); // pass Array
+      recurse(array.valueOf(), []); // pass Array
     }
   });
 
@@ -40922,7 +42715,7 @@ var index_transform = {
 };
 
 var maxArgumentCount$3 = _function.maxArgumentCount;
-var map$8 = array.map;
+var map$12 = array$3.map;
 
 /**
  * Attach a transform function to math.map
@@ -40978,13 +42771,13 @@ function factory$95 (type, config, load, typed) {
  * @return {Array}
  * @private
  */
-function _map (array$$2, callback, orig) {
+function _map (array, callback, orig) {
   // figure out what number of arguments the callback function expects
   var argsCount = maxArgumentCount$3(callback);
 
   function recurse(value, index) {
     if (Array.isArray(value)) {
-      return map$8(value, function (child, i) {
+      return map$12(value, function (child, i) {
         // we create a copy of the index array and append the new index value
         return recurse(child, index.concat(i + 1)); // one based index, hence i + 1
       });
@@ -41003,7 +42796,7 @@ function _map (array$$2, callback, orig) {
     }
   }
 
-  return recurse(array$$2, []);
+  return recurse(array, []);
 }
 
 var name$85 = 'map';
@@ -41049,7 +42842,7 @@ var deepForEach = function deepForEach (array, callback) {
   }
 };
 
-var arraySize = array.size;
+var arraySize = array$3.size;
 
 
 
@@ -41241,7 +43034,7 @@ function factory$97 (type, config, load, typed) {
 var name$87 = 'max';
 var factory_1$97 = factory$97;
 
-var max$2 = {
+var max$3 = {
 	name: name$87,
 	factory: factory_1$97
 };
@@ -41257,7 +43050,7 @@ var errorTransform$3 = error_transform.transform;
  * from one-based to zero based
  */
 function factory$96 (type, config, load, typed) {
-  var max = load(max$2);
+  var max = load(max$3);
 
   return typed('max', {
     '...any': function (args) {
@@ -41292,8 +43085,8 @@ var max_transform = {
 	factory: factory_1$96
 };
 
-var object$6 = utils.object;
-var string$11 = utils.string;
+var object$7 = utils.object;
+var string$12 = utils.string;
 
 function factory$102 (type, config, load, typed) {
   var matrix = load(matrix$3);
@@ -41329,7 +43122,7 @@ function factory$102 (type, config, load, typed) {
    */
   var det = typed('det', {
     'any': function (x) {
-      return object$6.clone(x);
+      return object$7.clone(x);
     },
 
     'Array | Matrix': function det (x) {
@@ -41349,16 +43142,16 @@ function factory$102 (type, config, load, typed) {
       switch (size.length) {
         case 0:
           // scalar
-          return object$6.clone(x);
+          return object$7.clone(x);
 
         case 1:
           // vector
           if (size[0] == 1) {
-            return object$6.clone(x.valueOf()[0]);
+            return object$7.clone(x.valueOf()[0]);
           }
           else {
             throw new RangeError('Matrix must be square ' +
-            '(size: ' + string$11.format(size) + ')');
+            '(size: ' + string$12.format(size) + ')');
           }
 
         case 2:
@@ -41370,13 +43163,13 @@ function factory$102 (type, config, load, typed) {
           }
           else {
             throw new RangeError('Matrix must be square ' +
-            '(size: ' + string$11.format(size) + ')');
+            '(size: ' + string$12.format(size) + ')');
           }
 
         default:
           // multi dimensional array
           throw new RangeError('Matrix must be two dimensional ' +
-          '(size: ' + string$11.format(size) + ')');
+          '(size: ' + string$12.format(size) + ')');
       }
     }
   });
@@ -41396,7 +43189,7 @@ function factory$102 (type, config, load, typed) {
   function _det (matrix, rows, cols) {
     if (rows == 1) {
       // this is a 1 x 1 matrix
-      return object$6.clone(matrix[0][0]);
+      return object$7.clone(matrix[0][0]);
     }
     else if (rows == 2) {
       // this is a 2 x 2 matrix
@@ -41671,7 +43464,7 @@ var inv$2 = {
 	factory: factory_1$101
 };
 
-var extend$4 = object.extend;
+var extend$5 = object$1.extend;
 
 function factory$100 (type, config, load, typed) {
 
@@ -41714,7 +43507,7 @@ function factory$100 (type, config, load, typed) {
    * @param  {number | BigNumber | Fraction | Complex | Array | Matrix} y          Denominator
    * @return {number | BigNumber | Fraction | Complex | Unit | Array | Matrix}                      Quotient, `x / y`
    */
-  var divide = typed('divide', extend$4({
+  var divide = typed('divide', extend$5({
     // we extend the signatures of divideScalar with signatures dealing with matrices
 
     'Array | Matrix, Array | Matrix': function (x, y) {
@@ -41764,7 +43557,7 @@ var divide$2 = {
 	factory: factory_1$100
 };
 
-var size$3 = array.size;
+var size$3 = array$3.size;
 
 
 
@@ -41800,7 +43593,7 @@ function factory$99 (type, config, load, typed) {
    * @param {... *} args  A single matrix or or multiple scalar values
    * @return {*} The mean of all values
    */
-  var mean$$1 = typed('mean', {
+  var mean = typed('mean', {
       // mean([a, b, c, d, ...])
     'Array | Matrix': _mean,
 
@@ -41817,9 +43610,9 @@ function factory$99 (type, config, load, typed) {
     }
   });
 
-  mean$$1.toTex = undefined; // use default template
+  mean.toTex = undefined; // use default template
 
-  return mean$$1;
+  return mean;
 
   /**
    * Calculate the mean value in an n-dimensional array, returning a
@@ -41829,9 +43622,9 @@ function factory$99 (type, config, load, typed) {
    * @return {number} mean
    * @private
    */
-  function _nmean(array$$2, dim){
-    var sum$$1 = reduce(array$$2, dim, add$$2);
-    var s = Array.isArray(array$$2) ? size$3(array$$2) : array$$2.size();
+  function _nmean(array, dim){
+    var sum$$1 = reduce(array, dim, add$$2);
+    var s = Array.isArray(array) ? size$3(array) : array.size();
     return divide(sum$$1, s[dim]);
   }
 
@@ -41841,11 +43634,11 @@ function factory$99 (type, config, load, typed) {
    * @return {number} mean
    * @private
    */
-  function _mean(array$$2) {
+  function _mean(array) {
     var sum$$1 = 0;
     var num = 0;
 
-    deepForEach(array$$2, function (value) {
+    deepForEach(array, function (value) {
       sum$$1 = add$$2(sum$$1, value);
       num++;
     });
@@ -41877,7 +43670,7 @@ var errorTransform$4 = error_transform.transform;
  * from one-based to zero based
  */
 function factory$98 (type, config, load, typed) {
-  var mean$$1 = load(mean$3);
+  var mean = load(mean$3);
 
   return typed('mean', {
     '...any': function (args) {
@@ -41893,7 +43686,7 @@ function factory$98 (type, config, load, typed) {
       }
 
       try {
-        return mean$$1.apply(null, args);
+        return mean.apply(null, args);
       }
       catch (err) {
         throw errorTransform$4(err);
@@ -42006,7 +43799,7 @@ function factory$104 (type, config, load, typed) {
 var name$94 = 'min';
 var factory_1$104 = factory$104;
 
-var min$2 = {
+var min$3 = {
 	name: name$94,
 	factory: factory_1$104
 };
@@ -42022,7 +43815,7 @@ var errorTransform$5 = error_transform.transform;
  * from one-based to zero based
  */
 function factory$103 (type, config, load, typed) {
-  var min = load(min$2);
+  var min = load(min$3);
 
   return typed('min', {
     '...any': function (args) {
@@ -42335,7 +44128,7 @@ function factory$106 (type, config, load, typed) {
 var name$96 = 'range';
 var factory_1$106 = factory$106;
 
-var range$2 = {
+var range$3 = {
 	name: name$96,
 	factory: factory_1$106
 };
@@ -42347,7 +44140,7 @@ var range$2 = {
  * This transform creates a range which includes the end value
  */
 function factory$105 (type, config, load, typed) {
-  var range = load(range$2);
+  var range = load(range$3);
 
   return typed('range', {
     '...any': function (args) {
@@ -42485,7 +44278,7 @@ function factory$108 (type, config, load, typed) {
           res = e;
         }
         if (res !== undefined && !type.isHelp(res)) {
-          desc += '        ' + string.format(res, {precision: 14}) + '\n';
+          desc += '        ' + string$1.format(res, {precision: 14}) + '\n';
         }
       }
       desc += '\n';
@@ -42501,7 +44294,7 @@ function factory$108 (type, config, load, typed) {
    * Export the help object to JSON
    */
   Help.prototype.toJSON = function () {
-    var obj = object.clone(this.doc);
+    var obj = object$1.clone(this.doc);
     obj.mathjs = 'Help';
     return obj;
   };
@@ -42572,7 +44365,7 @@ function factory$112(type, config, load, typed, math) {
 
 
   function isCommutative(node, context) {
-    if (!node.args || node.args.length <=1) {
+    if (!type.isOperatorNode(node)) {
       return true;
     }
     var name = node.fn.toString();
@@ -42583,8 +44376,8 @@ function factory$112(type, config, load, typed, math) {
   }
 
   function isAssociative(node, context) {
-    if (!node.args || node.args.length <=1) {
-      return true;
+    if (!type.isOperatorNode(node)) {
+      return false;
     }
     var name = node.fn.toString();
     if (context && context.hasOwnProperty(name) && context[name].hasOwnProperty('associative')) {
@@ -42626,7 +44419,7 @@ function factory$112(type, config, load, typed, math) {
       }
     };
 
-    if (type.isOperatorNode(node) && isAssociative(node)) {
+    if (isAssociative(node)) {
       op = node.op;
       findChildren(node);
       return children;
@@ -42714,7 +44507,7 @@ var util$1 = {
 	math: math$17
 };
 
-var digits$1 = number.digits;
+var digits$1 = number$3.digits;
 // TODO this could be improved by simplifying seperated constants under associative and commutative operators
 function factory$111(type, config, load, typed, math) {
   var util = load(util$1);
@@ -42724,6 +44517,7 @@ function factory$111(type, config, load, typed, math) {
   var createMakeNodeFunction = util.createMakeNodeFunction;
   var ConstantNode = math.expression.node.ConstantNode;
   var OperatorNode = math.expression.node.OperatorNode;
+  var FunctionNode = math.expression.node.FunctionNode;
 
   function simplifyConstant(expr) {
     var res = foldFraction(expr);
@@ -42872,6 +44666,29 @@ function factory$111(type, config, load, typed, math) {
         if (math[node.name] && math[node.name].rawArgs) {
           return node;
         }
+
+        // Process operators as OperatorNode
+        var operatorFunctions = [ 'add', 'multiply' ];
+        if (operatorFunctions.indexOf(node.name) === -1) {
+          var args = node.args.map(foldFraction);
+
+          // If all args are numbers
+          if (!args.some(type.isNode)) {
+            try {
+              return _eval(node.name, args);
+            }
+            catch (ignoreandcontine) {}
+          }
+
+          // Convert all args to nodes and construct a symbolic function call
+          args = args.map(function(arg) {
+            return type.isNode(arg) ? arg : _toNode(arg);
+          });
+          return new FunctionNode(node.name, args);
+        }
+        else {
+          // treat as operator
+        }
         /* falls through */
       case 'OperatorNode':
         var fn = node.fn.toString();
@@ -42972,6 +44789,7 @@ function factory$113(type, config, load, typed, math) {
   var ConstantNode = math.expression.node.ConstantNode;
   var OperatorNode = math.expression.node.OperatorNode;
   var FunctionNode = math.expression.node.FunctionNode;
+  var ParenthesisNode = math.expression.node.ParenthesisNode;
 
   var node0 = new ConstantNode(0);
   var node1 = new ConstantNode(1);
@@ -42984,7 +44802,7 @@ function factory$113(type, config, load, typed, math) {
    *
    * Syntax:
    *
-   *     simplify.simpifyCore(expr)
+   *     simplify.simplifyCore(expr)
    *
    * Examples:
    *
@@ -43213,7 +45031,7 @@ function factory$110 (type, config, load, typed, math) {
   var ConstantNode$$2 = load(ConstantNode);
   var FunctionNode$$2 = load(FunctionNode);
   var OperatorNode$$2 = load(OperatorNode);
-  var ParenthesisNode = load(ParenthesisNode$1);
+  var ParenthesisNode$$2 = load(ParenthesisNode);
   var SymbolNode$$2 = load(SymbolNode);
   var Node$$2 = load(Node);
   var simplifyConstant$$1 = load(simplifyConstant);
@@ -43417,6 +45235,9 @@ function factory$110 (type, config, load, typed, math) {
     { l: 'n1*n2 + n2', r: '(n1+1)*n2' },
     { l: 'n1*n3 + n2*n3', r: '(n1+n2)*n3' },
 
+    // remove parenthesis in the case of negating a quantitiy
+    { l: 'n1 + -1 * (n2 + n3)', r:'n1 + -1 * n2 + -1 * n3' },
+
     simplifyConstant$$1,
 
     { l: '(-n)*n1', r: '-(n*n1)' }, // make factors positive (and undo 'make non-constant terms positive')
@@ -43434,8 +45255,8 @@ function factory$110 (type, config, load, typed, math) {
 
     { l: 'n*(n1/n2)', r:'(n*n1)/n2' }, // '*' before '/'
     { l: 'n-(n1+n2)', r:'n-n1-n2' }, // '-' before '+'
-    // { l: '(n1/n2)/n3', r: 'n1/(n2*n3)' }, 
-    // { l: '(n*n1)/(n*n2)', r: 'n1/n2' }, 
+    // { l: '(n1/n2)/n3', r: 'n1/(n2*n3)' },
+    // { l: '(n*n1)/(n*n2)', r: 'n1/n2' },
 
     { l: '1*n', r: 'n' } // this pattern can be produced by simplifyConstant
 
@@ -43484,7 +45305,7 @@ function factory$110 (type, config, load, typed, math) {
             newRule.evaluate = parse$$2(rule.evaluate);
           }
 
-          if (newRule.l.isOperatorNode && isAssociative(newRule.l)) {
+          if (isAssociative(newRule.l)) {
             var makeNode = createMakeNodeFunction(newRule.l);
             var expandsym = _getExpandPlaceholderSymbol();
             newRule.expanded = {};
@@ -43538,7 +45359,7 @@ function factory$110 (type, config, load, typed, math) {
           }
         }
       }
-      else if(res instanceof ParenthesisNode) {
+      else if(res instanceof ParenthesisNode$$2) {
         if(res.content) {
           res.content = applyRule(res.content, rule);
         }
@@ -43560,7 +45381,7 @@ function factory$110 (type, config, load, typed, math) {
 
         // Create a new node by cloning the rhs of the matched rule
         res = repl.clone();
-     
+
         // Replace placeholders with their respective nodes without traversing deeper into the replaced nodes
         var _transform = function(node) {
           if(node.isSymbolNode && matches.placeholders.hasOwnProperty(node.name)) {
@@ -43570,9 +45391,9 @@ function factory$110 (type, config, load, typed, math) {
             return node.map(_transform);
           }
         };
-        
+
         res = _transform(res);
-        
+
         // var after = res.toString({parenthesis: 'all'});
         // console.log('Simplified ' + before + ' to ' + after);
       }
@@ -43886,7 +45707,7 @@ function factory$109 (type, config, load, typed) {
   var ConstantNode$$2 = load(ConstantNode);
   var FunctionNode$$2 = load(FunctionNode);
   var OperatorNode$$2 = load(OperatorNode);
-  var ParenthesisNode = load(ParenthesisNode$1);
+  var ParenthesisNode$$2 = load(ParenthesisNode);
   var SymbolNode$$2 = load(SymbolNode);
 
   /**
@@ -44074,7 +45895,7 @@ function factory$109 (type, config, load, typed) {
     },
 
     'ParenthesisNode, Object': function (node, constNodes) {
-      return new ParenthesisNode(_derivative(node.content, constNodes));
+      return new ParenthesisNode$$2(_derivative(node.content, constNodes));
     },
 
     'FunctionAssignmentNode, Object': function (node, constNodes) {
@@ -44448,6 +46269,10 @@ function factory$109 (type, config, load, typed) {
 
       switch (node.op) {
         case '+':
+          // d/dx(sum(f(x)) = sum(f'(x))
+          return new OperatorNode$$2(node.op, node.fn, node.args.map(function(arg) {
+            return _derivative(arg, constNodes);
+          }));
         case '-':
           // d/dx(+/-f(x)) = +/-f'(x)
           if (node.args.length == 1) {
@@ -44461,19 +46286,32 @@ function factory$109 (type, config, load, typed) {
           ]);
         case '*':
           // d/dx(c*f(x)) = c*f'(x)
-          if (constNodes[arg1] !== undefined || constNodes[arg2] !== undefined) {
-            var newArgs = (constNodes[arg1] !== undefined)
-              ? [arg1.clone(), _derivative(arg2, constNodes)]
-              : [arg2.clone(), _derivative(arg1, constNodes)];
+          var constantTerms = node.args.filter(function(arg) {
+            return constNodes[arg] !== undefined;
+          });
+
+          if (constantTerms.length > 0) {
+            var nonConstantTerms = node.args.filter(function(arg) {
+              return constNodes[arg] === undefined;
+            });
+
+            var nonConstantNode = nonConstantTerms.length === 1
+              ? nonConstantTerms[0]
+              : new OperatorNode$$2('*', 'multiply', nonConstantTerms);
+
+            var newArgs = constantTerms.concat(_derivative(nonConstantNode, constNodes));
 
             return new OperatorNode$$2('*', 'multiply', newArgs);
           }
 
           // Product Rule, d/dx(f(x)*g(x)) = f'(x)*g(x) + f(x)*g'(x)
-          return new OperatorNode$$2('+', 'add', [
-            new OperatorNode$$2('*', 'multiply', [_derivative(arg1, constNodes), arg2.clone()]),
-            new OperatorNode$$2('*', 'multiply', [arg1.clone(), _derivative(arg2, constNodes)])
-          ]);
+          return new OperatorNode$$2('+', 'add', node.args.map(function(argOuter) {
+            return new OperatorNode$$2('*', 'multiply', node.args.map(function(argInner) {
+              return (argInner === argOuter)
+                ? _derivative(argInner, constNodes)
+                : argInner.clone();
+            }));
+          }));
         case '/':
           // d/dx(f(x) / c) = f'(x) / c
           if (constNodes[arg2] !== undefined) {
@@ -44611,7 +46449,7 @@ function factory$115 (type, config, load, typed) {
   var simplifyConstant$$2 = load(simplifyConstant);  
   var ArgumentsError = ArgumentsError_1;
   var parse = load(parse$2);
-  var number$$2 = number;
+  var number = number$3;
   var ConstantNode$$2 = load(ConstantNode);
   var OperatorNode$$2 = load(OperatorNode);
   var SymbolNode$$2 = load(SymbolNode);
@@ -44816,7 +46654,7 @@ function factory$115 (type, config, load, typed) {
         throw new ArgumentsError('There is an unsolved function call')   // No function call in polynomial expression
       else if (tp==='OperatorNode')  {
         if (node.op==='^')  {
-          if (node.args[1].type!=='ConstantNode' ||  ! number$$2.isInteger(parseFloat(node.args[1].value)))
+          if (node.args[1].type!=='ConstantNode' ||  ! number.isInteger(parseFloat(node.args[1].value)))
             throw new ArgumentsError('There is a non-integer exponent');
           else
             recPoly(node.args[0]);      
@@ -44961,7 +46799,7 @@ function factory$115 (type, config, load, typed) {
             node.args[0].type==='OperatorNode' ) 
             && (node.args[1].type==='ConstantNode') )  {   // Second operator: Constant
           var val = parseFloat(node.args[1].value);
-          does = (val>=2 && number$$2.isInteger(val));  
+          does = (val>=2 && number.isInteger(val));  
         }
       } 
 
@@ -45182,7 +47020,7 @@ function factory$115 (type, config, load, typed) {
            // cte: second  child of power
           if (o.noFil!==1) throw new ArgumentsError('Constant cannot be powered')
 
-          if (! number$$2.isInteger(valor) || valor<=0 )
+          if (! number.isInteger(valor) || valor<=0 )
             throw new ArgumentsError('Non-integer exponent is not allowed');
 
           for (var i=maxExpo+1;i<valor;i++) coefficients[i]=0;
@@ -45236,7 +47074,7 @@ function factory$117 (type, config, load, typed) {
    * @return {*} A clone of object x
    */
   var clone = typed('clone', {
-    'any': object.clone
+    'any': object$1.clone
   });
 
   clone.toTex = undefined; // use default template
@@ -45388,7 +47226,7 @@ var isPositive$2 = {
 	factory: factory_1$119
 };
 
-var nearlyEqual$5 = number.nearlyEqual;
+var nearlyEqual$5 = number$3.nearlyEqual;
 
 
 function factory$120 (type, config, load, typed) {
@@ -45628,7 +47466,7 @@ function factory$121 (type, config, load, typed) {
    *            The sign of `x`
    */
   var sign = typed('sign', {
-    'number': number.sign,
+    'number': number$3.sign,
 
     'Complex': function (x) {
       return x.sign();
@@ -45742,7 +47580,7 @@ function factory$122 (type, config, load, typed) {
 var name$111 = 'sqrt';
 var factory_1$122 = factory$122;
 
-var sqrt$2 = {
+var sqrt$3 = {
 	name: name$111,
 	factory: factory_1$122
 };
@@ -45817,7 +47655,7 @@ function factory$116 (type, config, load, typed) {
     
   var abs$$2 = load(abs);
   var sign = load(sign$2);
-  var sqrt = load(sqrt$2);
+  var sqrt = load(sqrt$3);
   var conj = load(conj$2);
   
   var unaryMinus$$2 = load(unaryMinus); 
@@ -46067,7 +47905,7 @@ var qr$2 = {
 	factory: factory_1$116
 };
 
-var object$7 = utils.object;
+var object$8 = utils.object;
 
 function factory$124 (type, config, load, typed) {
 
@@ -46142,7 +47980,7 @@ function factory$124 (type, config, load, typed) {
     // minimum rows and columns
     var n = Math.min(rows, columns);
     // matrix array, clone original data
-    var data = object$7.clone(m._data);
+    var data = object$8.clone(m._data);
     // l matrix arrays
     var ldata = [];
     var lsize = [rows, n];
@@ -46610,8 +48448,8 @@ var cs_tdfs = {
 	factory: factory_1$130
 };
 
-var clone$9 = object.clone;
-var format$6 = string.format;
+var clone$9 = object$1.clone;
+var format$7 = string$1.format;
 
 function factory$131 (type, config, load, typed) {
   var latex$$2 = latex;
@@ -46672,7 +48510,7 @@ function factory$131 (type, config, load, typed) {
           // check columns
           if (columns === 0) {
             // throw exception
-            throw new RangeError('Cannot transpose a 2D matrix with no columns (size: ' + format$6(size) + ')');
+            throw new RangeError('Cannot transpose a 2D matrix with no columns (size: ' + format$7(size) + ')');
           }
 
           // process storage format
@@ -46688,7 +48526,7 @@ function factory$131 (type, config, load, typed) {
           
         default:
           // multi dimensional
-          throw new RangeError('Matrix must be a vector or two dimensional (size: ' + format$6(this._size) + ')');
+          throw new RangeError('Matrix must be a vector or two dimensional (size: ' + format$7(this._size) + ')');
       }
       return c;
     },
@@ -46787,7 +48625,7 @@ function factory$131 (type, config, load, typed) {
 var name$120 = 'transpose';
 var factory_1$131 = factory$131;
 
-var transpose$4 = {
+var transpose$5 = {
 	name: name$120,
 	factory: factory_1$131
 };
@@ -46800,7 +48638,7 @@ function factory$127 (type, config, load) {
   
   var add$$2       = load(add);
   var multiply$$2  = load(multiply);
-  var transpose = load(transpose$4);
+  var transpose = load(transpose$5);
 
   /**
    * Approximate minimum degree ordering. The minimum degree algorithm is a widely used 
@@ -47664,7 +49502,7 @@ var cs_leaf = {
 
 function factory$135 (type, config, load) {
 
-  var transpose = load(transpose$4);
+  var transpose = load(transpose$5);
   
   var cs_leaf$$1 = load(cs_leaf);
 
@@ -47956,7 +49794,7 @@ var cs_sqr = {
 	factory: factory_1$126
 };
 
-var nearlyEqual$6 = number.nearlyEqual;
+var nearlyEqual$6 = number$3.nearlyEqual;
 
 
 function factory$138 (type, config, load, typed) {
@@ -48652,8 +50490,8 @@ var cs_lu = {
 	factory: factory_1$137
 };
 
-var number$8 = utils.number;
-var isInteger$10 = number$8.isInteger;
+var number$11 = utils.number;
+var isInteger$10 = number$11.isInteger;
 
 function factory$125 (type, config, load, typed) {
 
@@ -48725,8 +50563,8 @@ var slu$2 = {
 	factory: factory_1$125
 };
 
-var string$12 = utils.string;
-var array$4 = utils.array;
+var string$13 = utils.string;
+var array$7 = utils.array;
 
 var isArray$3 = Array.isArray;
 
@@ -48748,13 +50586,13 @@ function factory$146 (type) {
     var size = m.size();
     // validate matrix dimensions
     if (size.length !== 2)
-      throw new RangeError('Matrix must be two dimensional (size: ' + string$12.format(size) + ')');
+      throw new RangeError('Matrix must be two dimensional (size: ' + string$13.format(size) + ')');
     // rows & columns
     var rows = size[0];
     var columns = size[1];    
     // validate rows & columns
     if (rows !== columns) 
-      throw new RangeError('Matrix must be square (size: ' + string$12.format(size) + ')');
+      throw new RangeError('Matrix must be square (size: ' + string$13.format(size) + ')');
     // vars
     var data, i, bdata;
     // check b is matrix
@@ -48838,7 +50676,7 @@ function factory$146 (type) {
     // check b is array
     if (isArray$3(b)) {
       // size
-      var asize = array$4.size(b);
+      var asize = array$7.size(b);
       // check matrix dimensions, vector
       if (asize.length === 1) {
         // check vector length
@@ -50417,7 +52255,7 @@ var dotMultiply$2 = {
 function factory$158 (type, config, load, typed) {
 
   var matrix = load(matrix$3);
-  var pow$$2 = load(pow);
+  var pow = load(pow$1);
   var latex$$2 = latex;
 
   var algorithm03$$2 = load(algorithm03);
@@ -50452,7 +52290,7 @@ function factory$158 (type, config, load, typed) {
    */
   var dotPow = typed('dotPow', {
     
-    'any, any': pow$$2,
+    'any, any': pow,
     
     'Matrix, Matrix': function (x, y) {
       // result
@@ -50464,11 +52302,11 @@ function factory$158 (type, config, load, typed) {
           switch (y.storage()) {
             case 'sparse':
               // sparse .^ sparse
-              c = algorithm07$$2(x, y, pow$$2, false);
+              c = algorithm07$$2(x, y, pow, false);
               break;
             default:
               // sparse .^ dense
-              c = algorithm03$$2(y, x, pow$$2, true);
+              c = algorithm03$$2(y, x, pow, true);
               break;
           }
           break;
@@ -50476,11 +52314,11 @@ function factory$158 (type, config, load, typed) {
           switch (y.storage()) {
             case 'sparse':
               // dense .^ sparse
-              c = algorithm03$$2(x, y, pow$$2, false);
+              c = algorithm03$$2(x, y, pow, false);
               break;
             default:
               // dense .^ dense
-              c = algorithm13$$2(x, y, pow$$2);
+              c = algorithm13$$2(x, y, pow);
               break;
           }
           break;
@@ -50680,7 +52518,7 @@ var floor$2 = {
 	factory: factory_1$160
 };
 
-var isInteger$11 = number.isInteger;
+var isInteger$11 = number$3.isInteger;
 
 function factory$161 (type, config, load, typed) {
 
@@ -50883,14 +52721,14 @@ var gcd$2 = {
 	factory: factory_1$161
 };
 
-var flatten$2 = array.flatten;
+var flatten$2 = array$3.flatten;
 
 function factory$162 (type, config, load, typed) {
   var abs$$2 = load(abs);
   var add = load(addScalar);
   var divide = load(divideScalar);
   var multiply = load(multiplyScalar);
-  var sqrt = load(sqrt$2);
+  var sqrt = load(sqrt$3);
   var smaller$$2 = load(smaller);
   var isPositive = load(isPositive$2);
 
@@ -51198,7 +53036,7 @@ var algorithm06 = {
 	factory: factory_1$164
 };
 
-var isInteger$12 = number.isInteger;
+var isInteger$12 = number$3.isInteger;
 
 function factory$163 (type, config, load, typed) {
   
@@ -51499,7 +53337,7 @@ function factory$165 (type, config, load, typed) {
 var name$153 = 'log';
 var factory_1$165 = factory$165;
 
-var log$2 = {
+var log$3 = {
 	name: name$153,
 	factory: factory_1$165
 };
@@ -51771,8 +53609,8 @@ var mod$2 = {
 	factory: factory_1$167
 };
 
-var clone$10 = object.clone;
-var format$7 = string.format;
+var clone$10 = object$1.clone;
+var format$8 = string$1.format;
 
 function factory$169 (type, config, load, typed) {
   
@@ -51844,7 +53682,7 @@ function factory$169 (type, config, load, typed) {
           // return data[0]
           return clone$10(data[0]);
         }
-        throw new RangeError('Matrix must be square (size: ' + format$7(size) + ')');
+        throw new RangeError('Matrix must be square (size: ' + format$8(size) + ')');
       case 2:
         // two dimensional
         var rows = size[0];
@@ -51858,10 +53696,10 @@ function factory$169 (type, config, load, typed) {
           // return trace
           return sum$$1;
         }
-        throw new RangeError('Matrix must be square (size: ' + format$7(size) + ')');        
+        throw new RangeError('Matrix must be square (size: ' + format$8(size) + ')');        
       default:
         // multi dimensional
-        throw new RangeError('Matrix must be two dimensional (size: ' + format$7(size) + ')');
+        throw new RangeError('Matrix must be two dimensional (size: ' + format$8(size) + ')');
     }
   };
   
@@ -51906,7 +53744,7 @@ function factory$169 (type, config, load, typed) {
       // return trace
       return sum$$1;
     }
-    throw new RangeError('Matrix must be square (size: ' + format$7(size) + ')');   
+    throw new RangeError('Matrix must be square (size: ' + format$8(size) + ')');   
   };
 
   trace.toTex = {1: '\\mathrm{tr}\\left(${args[0]}\\right)'};
@@ -51926,15 +53764,15 @@ function factory$168 (type, config, load, typed) {
   
   var abs$$2         = load(abs);
   var add$$2         = load(add);
-  var pow$$2         = load(pow);
-  var sqrt        = load(sqrt$2);
+  var pow         = load(pow$1);
+  var sqrt        = load(sqrt$3);
   var multiply$$2    = load(multiply);
   var equalScalar$$2 = load(equalScalar);
   var larger$$2      = load(larger);
   var smaller$$2     = load(smaller);
   var matrix      = load(matrix$3);
   var trace       = load(trace$2);
-  var transpose   = load(transpose$4);
+  var transpose   = load(transpose$5);
 
 
   /**
@@ -52065,10 +53903,10 @@ function factory$168 (type, config, load, typed) {
           // skip zeros since abs(0) == 0
           x.forEach(
             function (value) {
-              n = add$$2(pow$$2(abs$$2(value), p), n);
+              n = add$$2(pow(abs$$2(value), p), n);
             },
             true);
-          return pow$$2(n, 1 / p);
+          return pow(n, 1 / p);
         }
         return Number.POSITIVE_INFINITY;
       }
@@ -52585,7 +54423,7 @@ var unaryPlus$2 = {
 	factory: factory_1$172
 };
 
-var isInteger$13 = number.isInteger;
+var isInteger$13 = number$3.isInteger;
 
 function factory$173 (type, config, load, typed) {
   var matrix = load(matrix$3);
@@ -52743,16 +54581,16 @@ var arithmetic = [
   gcd$2,
   hypot$2,
   lcm$2,
-  log$2,
+  log$3,
   log10$2,
   mod$2,
   multiply,
   norm$3,
   nthRoot$2,
-  pow,
+  pow$1,
   round,
   sign$2,
-  sqrt$2,
+  sqrt$3,
   square$2,
   subtract,
   unaryMinus,
@@ -52972,7 +54810,7 @@ var bitAnd$4 = function bitAnd(x, y) {
   return bitwise$2(x, y, function (a, b) { return a & b });
 };
 
-var isInteger$14 = number.isInteger;
+var isInteger$14 = number$3.isInteger;
 
 
 function factory$174 (type, config, load, typed) {
@@ -53125,7 +54963,7 @@ var bitAnd$2 = {
 	factory: factory_1$174
 };
 
-var isInteger$15 = number.isInteger;
+var isInteger$15 = number$3.isInteger;
 
 function factory$175 (type, config, load, typed) {
   var latex$$2 = latex;
@@ -53235,7 +55073,7 @@ var bitOr$4 = function bitOr (x, y) {
   return bitwise$2(x, y, function (a, b) { return a | b });
 };
 
-var isInteger$16 = number.isInteger;
+var isInteger$16 = number$3.isInteger;
 
 
 function factory$176 (type, config, load, typed) {
@@ -53446,7 +55284,7 @@ var bitXor$4 = function bitXor(x, y) {
   return bitwise$2(x, y, function (a, b) { return a ^ b });
 };
 
-var isInteger$17 = number.isInteger;
+var isInteger$17 = number$3.isInteger;
 
 
 function factory$177 (type, config, load, typed) {
@@ -53802,7 +55640,7 @@ var algorithm08 = {
 	factory: factory_1$179
 };
 
-var isInteger$18 = number.isInteger;
+var isInteger$18 = number$3.isInteger;
 
 
 function factory$178 (type, config, load, typed) {
@@ -54016,7 +55854,7 @@ var rightArithShift$4 = function rightArithShift (x, y) {
   return x.div(new BigNumber(2).pow(y)).floor();
 };
 
-var isInteger$19 = number.isInteger;
+var isInteger$19 = number$3.isInteger;
 
 
 function factory$180 (type, config, load, typed) {
@@ -54182,7 +56020,7 @@ var rightArithShift$2 = {
 	factory: factory_1$180
 };
 
-var isInteger$20 = number.isInteger;
+var isInteger$20 = number$3.isInteger;
 
 function factory$181 (type, config, load, typed) {
   var latex$$2 = latex;
@@ -54358,11 +56196,11 @@ var bitwise = [
   rightLogShift$2
 ];
 
-var isInteger$21 = number.isInteger;
+var isInteger$21 = number$3.isInteger;
 
 function factory$185 (type, config, load, typed) {
   var multiply$$2 = load(multiply);
-  var pow$$2 = load(pow);
+  var pow = load(pow$1);
 
   /**
    * Compute the gamma function of a value using Lanczos approximation for
@@ -54469,7 +56307,7 @@ function factory$185 (type, config, load, typed) {
       var twoPiSqrt = Math.sqrt(2*Math.PI);
 
       n.re += 0.5;
-      var result = pow$$2(t, n);
+      var result = pow(t, n);
       if (result.im == 0) {                 // sqrt(2*PI)*result
         result.re *= twoPiSqrt;
       } else if (result.re == 0) {
@@ -54558,13 +56396,13 @@ var p = [
 var name$173 = 'gamma';
 var factory_1$185 = factory$185;
 
-var gamma$2 = {
+var gamma$3 = {
 	name: name$173,
 	factory: factory_1$185
 };
 
 function factory$184 (type, config, load, typed) {
-  var gamma = load(gamma$2);
+  var gamma = load(gamma$3);
   var latex$$2 = latex;
 
   /**
@@ -54626,7 +56464,7 @@ var factorial$2 = {
 	factory: factory_1$184
 };
 
-var isInteger$22 = number.isInteger;
+var isInteger$22 = number$3.isInteger;
 
 function factory$186 (type, config, load, typed) {
   /**
@@ -54752,7 +56590,7 @@ function factory$187 (type, config, load, typed) {
    *                    Throws an error in case of an unknown data type.
    */
   var isInteger = typed('isInteger', {
-    'number': number.isInteger, // TODO: what to do with isInteger(add(0.1, 0.2))  ?
+    'number': number$3.isInteger, // TODO: what to do with isInteger(add(0.1, 0.2))  ?
 
     'BigNumber': function (x) {
       return x.isInt();
@@ -54783,7 +56621,7 @@ function factory$183 (type, config, load, typed) {
   var subtract$$2 = load(subtract);
   var multiply$$2 = load(multiply);
   var divide = load(divide$2);
-  var pow$$2 = load(pow);
+  var pow = load(pow$1);
   var factorial = load(factorial$2);
   var combinations = load(combinations$2);
   var isNegative = load(isNegative$2);
@@ -54827,9 +56665,9 @@ function factory$183 (type, config, load, typed) {
       var kFactorial = factorial(k);
       var result = 0;
       for(var i = 0; i <= k; i++) {
-        var negativeOne = pow$$2(-1, subtract$$2(k,i));
+        var negativeOne = pow(-1, subtract$$2(k,i));
         var kChooseI = combinations(k,i);
-        var iPower = pow$$2(i,n);
+        var iPower = pow(i,n);
 
         result = add$$2(result, multiply$$2(multiply$$2(kChooseI, iPower), negativeOne));
       }
@@ -55199,7 +57037,7 @@ function factory$192 (type, config, load, typed) {
 var name$180 = 're';
 var factory_1$192 = factory$192;
 
-var re$2 = {
+var re$3 = {
 	name: name$180,
 	factory: factory_1$192
 };
@@ -55208,16 +57046,21 @@ var complex$8 = [
   arg$2,
   conj$2,
   im$2,
-  re$2
+  re$3
 ];
 
 function factory$193 (type, config, load, typed) {
 
   var abs$$2 = load(abs);
   var add$$2 = load(add);
+  var addScalar$$2 = load(addScalar);
   var matrix = load(matrix$3);
   var multiply$$2 = load(multiply);
+  var multiplyScalar$$2 = load(multiplyScalar);
+  var divideScalar$$2 = load(divideScalar);
   var subtract$$2 = load(subtract);
+  var smaller$$2 = load(smaller);
+  var equalScalar$$2 = load(equalScalar);
 
   /**
    * Calculates the point of intersection of two lines in two or three dimensions
@@ -55248,8 +57091,8 @@ function factory$193 (type, config, load, typed) {
    */
   var intersect = typed('intersect', {
     'Array, Array, Array': function (x, y, plane) {
-      if (!_3d(x)) { throw new TypeError('Array with 3 numbers expected for first argument'); }
-      if (!_3d(y)) { throw new TypeError('Array with 3 numbers expected for second argument'); }
+      if (!_3d(x)) { throw new TypeError('Array with 3 numbers or BigNumbers expected for first argument'); }
+      if (!_3d(y)) { throw new TypeError('Array with 3 numbers or BigNumbers expected for second argument'); }
       if (!_4d(plane)) { throw new TypeError('Array with 4 numbers expected as third argument'); }
 
       return _intersectLinePlane(x[0], x[1], x[2], y[0], y[1], y[2], plane[0], plane[1], plane[2], plane[3]);
@@ -55257,18 +57100,18 @@ function factory$193 (type, config, load, typed) {
 
     'Array, Array, Array, Array': function (w, x, y, z) {
       if (w.length === 2) {
-        if (!_2d(w)) { throw new TypeError('Array with 2 numbers expected for first argument'); }
-        if (!_2d(x)) { throw new TypeError('Array with 2 numbers expected for second argument'); }
-        if (!_2d(y)) { throw new TypeError('Array with 2 numbers expected for third argument'); }
-        if (!_2d(z)) { throw new TypeError('Array with 2 numbers expected for fourth argument'); }
+        if (!_2d(w)) { throw new TypeError('Array with 2 numbers or BigNumbers expected for first argument'); }
+        if (!_2d(x)) { throw new TypeError('Array with 2 numbers or BigNumbers expected for second argument'); }
+        if (!_2d(y)) { throw new TypeError('Array with 2 numbers or BigNumbers expected for third argument'); }
+        if (!_2d(z)) { throw new TypeError('Array with 2 numbers or BigNumbers expected for fourth argument'); }
 
         return _intersect2d(w, x, y, z);
       }
       else if (w.length === 3) {
-        if (!_3d(w)) { throw new TypeError('Array with 3 numbers expected for first argument'); }
-        if (!_3d(x)) { throw new TypeError('Array with 3 numbers expected for second argument'); }
-        if (!_3d(y)) { throw new TypeError('Array with 3 numbers expected for third argument'); }
-        if (!_3d(z)) { throw new TypeError('Array with 3 numbers expected for fourth argument'); }
+        if (!_3d(w)) { throw new TypeError('Array with 3 numbers or BigNumbers expected for first argument'); }
+        if (!_3d(x)) { throw new TypeError('Array with 3 numbers or BigNumbers expected for second argument'); }
+        if (!_3d(y)) { throw new TypeError('Array with 3 numbers or BigNumbers expected for third argument'); }
+        if (!_3d(z)) { throw new TypeError('Array with 3 numbers or BigNumbers expected for fourth argument'); }
 
         return _intersect3d(w[0], w[1], w[2], x[0], x[1], x[2], y[0], y[1], y[2], z[0], z[1], z[2]);
       }
@@ -55287,16 +57130,21 @@ function factory$193 (type, config, load, typed) {
     }
   });
 
+  function _isNumber(a) {
+    // intersect supports numbers and bignumbers
+    return (typeof a === 'number' || type.isBigNumber(a));
+  }
+
   function _2d(x) {
-    return x.length === 2 && typeof x[0] === 'number' && typeof x[1] === 'number';
+    return x.length === 2 && _isNumber(x[0]) && _isNumber(x[1]);
   }
 
   function _3d(x) {
-    return x.length === 3 && typeof x[0] === 'number' && typeof x[1] === 'number' && typeof x[2] === 'number';
+    return x.length === 3 && _isNumber(x[0]) && _isNumber(x[1]) && _isNumber(x[2]);
   }
 
   function _4d(x) {
-    return x.length === 4 && typeof x[0] === 'number' && typeof x[1] === 'number' && typeof x[2] === 'number' && typeof x[3] === 'number';
+    return x.length === 4 && _isNumber(x[0]) && _isNumber(x[1]) && _isNumber(x[2]) && _isNumber(x[3]);
   }
 
   function _intersect2d(p1a, p1b, p2a, p2b){
@@ -55304,30 +57152,44 @@ function factory$193 (type, config, load, typed) {
     var o2 = p2a;
     var d1 = subtract$$2(o1, p1b);
     var d2 = subtract$$2(o2, p2b);
-    var det = d1[0]*d2[1] - d2[0]*d1[1];
-    if (abs$$2(det) < config.epsilon) {
+    var det = subtract$$2(multiplyScalar$$2(d1[0], d2[1]), multiplyScalar$$2(d2[0], d1[1]));
+    if (smaller$$2(abs$$2(det), config.epsilon)) {
       return null;
     }
-    var t = (d2[0]*o1[1] - d2[1]*o1[0] - d2[0]*o2[1] + d2[1]*o2[0]) / det;
-    return add$$2(multiply$$2(d1, t), o1); 
+    var d20o11 = multiplyScalar$$2(d2[0], o1[1]);
+    var d21o10 = multiplyScalar$$2(d2[1], o1[0]);
+    var d20o21 = multiplyScalar$$2(d2[0], o2[1]);
+    var d21o20 = multiplyScalar$$2(d2[1], o2[0]);
+    var t = divideScalar$$2(addScalar$$2(subtract$$2(subtract$$2(d20o11, d21o10), d20o21), d21o20), det);
+    return add$$2(multiply$$2(d1, t), o1);
+  }
+
+  function _intersect3dHelper(a, b, c, d, e, f, g, h, i, j, k, l){
+      // (a - b)*(c - d) + (e - f)*(g - h) + (i - j)*(k - l)
+      var add1 = multiplyScalar$$2(subtract$$2(a, b), subtract$$2(c, d));
+      var add2 = multiplyScalar$$2(subtract$$2(e, f), subtract$$2(g, h));
+      var add3 = multiplyScalar$$2(subtract$$2(i, j), subtract$$2(k, l));
+      return addScalar$$2(addScalar$$2(add1, add2), add3);
   }
 
   function _intersect3d(x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4){
-    var d1343 = (x1 - x3)*(x4 - x3) + (y1 - y3)*(y4 - y3) + (z1 - z3)*(z4 - z3);
-    var d4321 = (x4 - x3)*(x2 - x1) + (y4 - y3)*(y2 - y1) + (z4 - z3)*(z2 - z1);
-    var d1321 = (x1 - x3)*(x2 - x1) + (y1 - y3)*(y2 - y1) + (z1 - z3)*(z2 - z1);
-    var d4343 = (x4 - x3)*(x4 - x3) + (y4 - y3)*(y4 - y3) + (z4 - z3)*(z4 - z3);
-    var d2121 = (x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1) + (z2 - z1)*(z2 - z1);
-    var ta = ( d1343*d4321 - d1321*d4343 ) / ( d2121*d4343 - d4321*d4321 );
-    var tb = ( d1343 + ta * d4321 ) / (d4343);
+    var d1343 = _intersect3dHelper(x1, x3, x4, x3, y1, y3, y4, y3, z1, z3, z4, z3);
+    var d4321 = _intersect3dHelper(x4, x3, x2, x1, y4, y3, y2, y1, z4, z3, z2, z1);
+    var d1321 = _intersect3dHelper(x1, x3, x2, x1, y1, y3, y2, y1, z1, z3, z2, z1);
+    var d4343 = _intersect3dHelper(x4, x3, x4, x3, y4, y3, y4, y3, z4, z3, z4, z3);
+    var d2121 = _intersect3dHelper(x2, x1, x2, x1, y2, y1, y2, y1, z2, z1, z2, z1);
+    var ta = divideScalar$$2(
+      subtract$$2(multiplyScalar$$2(d1343, d4321), multiplyScalar$$2(d1321, d4343)),
+      subtract$$2(multiplyScalar$$2(d2121, d4343), multiplyScalar$$2(d4321, d4321)));
+    var tb = divideScalar$$2(addScalar$$2(d1343, multiplyScalar$$2(ta, d4321)), d4343);
 
-    var pax = x1 + ta * (x2 - x1);
-    var pay = y1 + ta * (y2 - y1);
-    var paz = z1 + ta * (z2 - z1);
-    var pbx = x3 + tb * (x4 - x3);
-    var pby = y3 + tb * (y4 - y3);
-    var pbz = z3 + tb * (z4 - z3);
-    if (pax === pbx && pay === pby && paz === pbz){
+    var pax = addScalar$$2(x1, multiplyScalar$$2(ta, subtract$$2(x2, x1)));
+    var pay = addScalar$$2(y1, multiplyScalar$$2(ta, subtract$$2(y2, y1)));
+    var paz = addScalar$$2(z1, multiplyScalar$$2(ta, subtract$$2(z2, z1)));
+    var pbx = addScalar$$2(x3, multiplyScalar$$2(tb, subtract$$2(x4, x3)));
+    var pby = addScalar$$2(y3, multiplyScalar$$2(tb, subtract$$2(y4, y3)));
+    var pbz = addScalar$$2(z3, multiplyScalar$$2(tb, subtract$$2(z4, z3)));
+    if (equalScalar$$2(pax, pbx) && equalScalar$$2(pay, pby) && equalScalar$$2(paz, pbz)){
       return [pax, pay, paz];
     }
     else{
@@ -55336,10 +57198,18 @@ function factory$193 (type, config, load, typed) {
   }
 
   function _intersectLinePlane(x1, y1, z1, x2, y2, z2, x, y, z, c){
-    var t = (c - x1*x - y1*y - z1*z)/(x2*x + y2*y + z2*z - x1*x - y1*y - z1*z);
-    var px = x1 + t * (x2 - x1);
-    var py = y1 + t * (y2 - y1);
-    var pz = z1 + t * (z2 - z1);
+    var x1x = multiplyScalar$$2(x1, x);
+    var x2x = multiplyScalar$$2(x2, x);
+    var y1y = multiplyScalar$$2(y1, y);
+    var y2y = multiplyScalar$$2(y2, y);
+    var z1z = multiplyScalar$$2(z1, z);
+    var z2z = multiplyScalar$$2(z2, z);
+    var t = divideScalar$$2(
+      subtract$$2(subtract$$2(subtract$$2(c, x1x), y1y), z1z),
+      subtract$$2(subtract$$2(subtract$$2(addScalar$$2(addScalar$$2(x2x, y2y), z2z), x1x), y1y), z1z));
+    var px = addScalar$$2(x1, multiplyScalar$$2(t, subtract$$2(x2, x1)));
+    var py = addScalar$$2(y1, multiplyScalar$$2(t, subtract$$2(y2, y1)));
+    var pz = addScalar$$2(z1, multiplyScalar$$2(t, subtract$$2(z2, z1)));
     return [px, py, pz];
     // TODO: Add cases when line is parallel to the plane:
     //       (a) no intersection,
@@ -55359,6 +57229,13 @@ var intersect$2 = {
 
 function factory$194 (type, config, load, typed) {
   var matrix = load(matrix$3);
+  var add = load(addScalar);
+  var subtract$$2 = load(subtract);
+  var multiply = load(multiplyScalar);
+  var divide = load(divideScalar);
+  var negate = load(unaryMinus);
+  var sqrt = load(sqrt$3);
+  var abs$$2 = load(abs);
 
   /**
     * Calculates:
@@ -55416,12 +57293,12 @@ function factory$194 (type, config, load, typed) {
     'Array, Array, Array': function(x, y, z){
       // Point to Line 2D; (x=Point, y=LinePoint1, z=LinePoint2)
       if (x.length == 2 && y.length == 2 && z.length == 2){
-        if (!_2d(x)) { throw new TypeError('Array with 2 numbers expected for first argument'); }
-        if (!_2d(y)) { throw new TypeError('Array with 2 numbers expected for second argument'); }
-        if (!_2d(z)) { throw new TypeError('Array with 2 numbers expected for third argument'); }
-        var m = (z[1]-z[0])/(y[1]-y[0]);
-        var xCoeff = m*m*y[0];
-        var yCoeff = -1*(m*y[0]);
+        if (!_2d(x)) { throw new TypeError('Array with 2 numbers or BigNumbers expected for first argument'); }
+        if (!_2d(y)) { throw new TypeError('Array with 2 numbers or BigNumbers expected for second argument'); }
+        if (!_2d(z)) { throw new TypeError('Array with 2 numbers or BigNumbers expected for third argument'); }
+        var m = divide(subtract$$2(z[1], z[0]), subtract$$2(y[1], y[0]));
+        var xCoeff = multiply(multiply(m, m), y[0]);
+        var yCoeff = negate(multiply(m, y[0]));
         var constant = x[1];
 
         return _distancePointLine2D(x[0], x[1], xCoeff, yCoeff, constant);
@@ -55432,14 +57309,14 @@ function factory$194 (type, config, load, typed) {
     },
     'Object, Object, Object': function(x, y, z){
       if (Object.keys(x).length == 2 && Object.keys(y).length == 2 && Object.keys(z).length == 2){
-        if (!_2d(x)) { throw new TypeError('Values of pointX and pointY should be numbers'); }
-        if (!_2d(y)) { throw new TypeError('Values of lineOnePtX and lineOnePtY should be numbers'); }
-        if (!_2d(z)) { throw new TypeError('Values of lineTwoPtX and lineTwoPtY should be numbers'); }
+        if (!_2d(x)) { throw new TypeError('Values of pointX and pointY should be numbers or BigNumbers'); }
+        if (!_2d(y)) { throw new TypeError('Values of lineOnePtX and lineOnePtY should be numbers or BigNumbers'); }
+        if (!_2d(z)) { throw new TypeError('Values of lineTwoPtX and lineTwoPtY should be numbers or BigNumbers'); }
         if (x.hasOwnProperty('pointX') && x.hasOwnProperty('pointY') && y.hasOwnProperty('lineOnePtX') &&
           y.hasOwnProperty('lineOnePtY') && z.hasOwnProperty('lineTwoPtX') && z.hasOwnProperty('lineTwoPtY')){
-          var m = (z.lineTwoPtY-z.lineTwoPtX)/(y.lineOnePtY-y.lineOnePtX);
-          var xCoeff = m*m*y.lineOnePtX;
-          var yCoeff = -1*(m*y.lineOnePtX);
+          var m = divide(subtract$$2(z.lineTwoPtY, z.lineTwoPtX), subtract$$2(y.lineOnePtY, y.lineOnePtX));
+          var xCoeff = multiply(multiply(m, m), y.lineOnePtX);
+          var yCoeff = negate(multiply(m, y.lineOnePtX));
           var constant = x.pointX;
 
           return _distancePointLine2D(x.pointX, x.pointY, xCoeff, yCoeff, constant);
@@ -55455,29 +57332,29 @@ function factory$194 (type, config, load, typed) {
     'Array, Array': function(x, y){
       // Point to Line 2D; (x=[pointX, pointY], y=[x-coeff, y-coeff, const])
       if (x.length == 2 && y.length == 3){
-        if (!_2d(x)) { throw new TypeError('Array with 2 numbers expected for first argument'); }
-        if (!_3d(y)) { throw new TypeError('Array with 3 numbers expected for second argument'); }
+        if (!_2d(x)) { throw new TypeError('Array with 2 numbers or BigNumbers expected for first argument'); }
+        if (!_3d(y)) { throw new TypeError('Array with 3 numbers or BigNumbers expected for second argument'); }
 
         return _distancePointLine2D(x[0], x[1], y[0], y[1], y[2]);
       }
       // Point to Line 3D
       else if (x.length == 3 && y.length == 6){
-        if (!_3d(x)) { throw new TypeError('Array with 3 numbers expected for first argument'); }
-        if (!_parametricLine(y)) { throw new TypeError('Array with 6 numbers expected for second argument'); }
+        if (!_3d(x)) { throw new TypeError('Array with 3 numbers or BigNumbers expected for first argument'); }
+        if (!_parametricLine(y)) { throw new TypeError('Array with 6 numbers or BigNumbers expected for second argument'); }
 
         return _distancePointLine3D(x[0], x[1], x[2], y[0], y[1], y[2], y[3], y[4], y[5]);
       }
       // Point to Point 2D
       else if (x.length == 2 && y.length == 2){
-        if (!_2d(x)) { throw new TypeError('Array with 2 numbers expected for first argument'); }
-        if (!_2d(y)) { throw new TypeError('Array with 2 numbers expected for second argument'); }
+        if (!_2d(x)) { throw new TypeError('Array with 2 numbers or BigNumbers expected for first argument'); }
+        if (!_2d(y)) { throw new TypeError('Array with 2 numbers or BigNumbers expected for second argument'); }
 
         return _distance2d(x[0], x[1], y[0], y[1]);
       }
       // Point to Point 3D
       else if(x.length == 3 && y.length == 3){
-        if (!_3d(x)) { throw new TypeError('Array with 3 numbers expected for first argument'); }
-        if (!_3d(y)) { throw new TypeError('Array with 3 numbers expected for second argument'); }
+        if (!_3d(x)) { throw new TypeError('Array with 3 numbers or BigNumbers expected for first argument'); }
+        if (!_3d(y)) { throw new TypeError('Array with 3 numbers or BigNumbers expected for second argument'); }
 
         return _distance3d(x[0], x[1], x[2], y[0], y[1], y[2]);
       }
@@ -55487,10 +57364,10 @@ function factory$194 (type, config, load, typed) {
     },
     'Object, Object': function(x, y){
       if (Object.keys(x).length == 2 && Object.keys(y).length == 3){
-        if (!_2d(x)) { throw new TypeError('Values of pointX and pointY should be numbers'); }
-        if (!_3d(y)) { throw new TypeError('Values of xCoeffLine, yCoeffLine and constant should be numbers'); }
+        if (!_2d(x)) { throw new TypeError('Values of pointX and pointY should be numbers or BigNumbers'); }
+        if (!_3d(y)) { throw new TypeError('Values of xCoeffLine, yCoeffLine and constant should be numbers or BigNumbers'); }
         if (x.hasOwnProperty('pointX') && x.hasOwnProperty('pointY') && y.hasOwnProperty('xCoeffLine') &&
-          y.hasOwnProperty('yCoeffLine') && y.hasOwnProperty('yCoeffLine')){
+          y.hasOwnProperty('yCoeffLine') && y.hasOwnProperty('constant')){
 
           return _distancePointLine2D(x.pointX, x.pointY, y.xCoeffLine, y.yCoeffLine, y.constant);
         }
@@ -55500,8 +57377,8 @@ function factory$194 (type, config, load, typed) {
       }
       // Point to Line 3D
       else if (Object.keys(x).length == 3 && Object.keys(y).length == 6){
-        if (!_3d(x)) { throw new TypeError('Values of pointX, pointY and pointZ should be numbers'); }
-        if (!_parametricLine(y)) { throw new TypeError('Values of x0, y0, z0, a, b and c should be numbers'); }
+        if (!_3d(x)) { throw new TypeError('Values of pointX, pointY and pointZ should be numbers or BigNumbers'); }
+        if (!_parametricLine(y)) { throw new TypeError('Values of x0, y0, z0, a, b and c should be numbers or BigNumbers'); }
         if (x.hasOwnProperty('pointX') && x.hasOwnProperty('pointY') && y.hasOwnProperty('x0') &&
           y.hasOwnProperty('y0') && y.hasOwnProperty('z0') && y.hasOwnProperty('a') &&
           y.hasOwnProperty('b') && y.hasOwnProperty('c')){
@@ -55514,8 +57391,8 @@ function factory$194 (type, config, load, typed) {
       }
       // Point to Point 2D
       else if (Object.keys(x).length == 2 && Object.keys(y).length == 2){
-        if (!_2d(x)) { throw new TypeError('Values of pointOneX and pointOneY should be numbers'); }
-        if (!_2d(y)) { throw new TypeError('Values of pointTwoX and pointTwoY should be numbers'); }
+        if (!_2d(x)) { throw new TypeError('Values of pointOneX and pointOneY should be numbers or BigNumbers'); }
+        if (!_2d(y)) { throw new TypeError('Values of pointTwoX and pointTwoY should be numbers or BigNumbers'); }
         if (x.hasOwnProperty('pointOneX') && x.hasOwnProperty('pointOneY') &&
           y.hasOwnProperty('pointTwoX') && y.hasOwnProperty('pointTwoY')){
 
@@ -55527,8 +57404,8 @@ function factory$194 (type, config, load, typed) {
       }
       // Point to Point 3D
       else if(Object.keys(x).length == 3 && Object.keys(y).length == 3){
-        if (!_3d(x)) { throw new TypeError('Values of pointOneX, pointOneY and pointOneZ should be numbers'); }
-        if (!_3d(y)) { throw new TypeError('Values of pointTwoX, pointTwoY and pointTwoZ should be numbers'); }
+        if (!_3d(x)) { throw new TypeError('Values of pointOneX, pointOneY and pointOneZ should be numbers or BigNumbers'); }
+        if (!_3d(y)) { throw new TypeError('Values of pointTwoX, pointTwoY and pointTwoZ should be numbers or BigNumbers'); }
         if (x.hasOwnProperty('pointOneX') && x.hasOwnProperty('pointOneY') && x.hasOwnProperty('pointOneZ') &&
           y.hasOwnProperty('pointTwoX') && y.hasOwnProperty('pointTwoY') && y.hasOwnProperty('pointTwoZ')){
 
@@ -55548,110 +57425,117 @@ function factory$194 (type, config, load, typed) {
       return _distancePairwise(arr);
     }
   });
+
+  function _isNumber(a) {
+    // distance supports numbers and bignumbers
+    return (typeof a === 'number' || type.isBigNumber(a));
+  }
+
+  function _2d(a){
+    // checks if the number of arguments are correct in count and are valid (should be numbers)
+    if (a.constructor !== Array){
+      a = _objectToArray(a);
+    }
+    return _isNumber(a[0]) && _isNumber(a[1]);
+  }
+
+  function _3d(a){
+    // checks if the number of arguments are correct in count and are valid (should be numbers)
+    if (a.constructor !== Array){
+      a = _objectToArray(a);
+    }
+    return _isNumber(a[0]) && _isNumber(a[1]) &&  _isNumber(a[2]);
+  }
+
+  function _parametricLine(a){
+    if (a.constructor !== Array){
+      a = _objectToArray(a);
+    }
+    return _isNumber(a[0]) && _isNumber(a[1]) && _isNumber(a[2]) &&
+      _isNumber(a[3]) && _isNumber(a[4]) && _isNumber(a[5]);
+  }
+
+  function _objectToArray(o){
+    var keys = Object.keys(o);
+    var a = [];
+    for (var i = 0; i < keys.length; i++) {
+      a.push(o[keys[i]]);
+    }
+    return a;
+  }
+
+  function _pairwise(a){
+    //checks for valid arguments passed to _distancePairwise(Array)
+    if (a[0].length == 2 && _isNumber(a[0][0]) && _isNumber(a[0][1])){
+      for(var i in a){
+        if (a[i].length != 2 || !_isNumber(a[i][0]) || !_isNumber(a[i][1])){
+          return false;
+        }
+      }
+    }
+    else if (a[0].length == 3 && _isNumber(a[0][0]) && _isNumber(a[0][1]) && _isNumber(a[0][2])){
+      for(var i in a){
+        if (a[i].length != 3 || !_isNumber(a[i][0]) || !_isNumber(a[i][1]) || !_isNumber(a[i][2])){
+          return false;
+        }
+      }
+    }
+    else{
+      return false;
+    }
+    return true;
+  }
+
+  function _distancePointLine2D(x, y, a, b, c){
+    var num =  abs$$2(add(add(multiply(a, x), multiply(b, y)), c));
+    var den = sqrt(add(multiply(a, a), multiply(b, b)));
+    var result = divide(num, den);
+    return result;
+  }
+
+  function _distancePointLine3D(x, y, z, x0, y0, z0, a, b, c){
+    var num = [ subtract$$2(multiply(subtract$$2(y0, y), c), multiply(subtract$$2(z0, z), b)),
+                subtract$$2(multiply(subtract$$2(z0, z), a), multiply(subtract$$2(x0, x), c)),
+                subtract$$2(multiply(subtract$$2(x0, x), b), multiply(subtract$$2(y0, y), a)) ];
+    num = sqrt(add(add(multiply(num[0], num[0]), multiply(num[1], num[1])), multiply(num[2], num[2])));
+    var den = sqrt(add(add(multiply(a, a), multiply(b, b)), multiply(c, c)));
+    var result = divide(num, den);
+    return result;
+  }
+
+  function _distance2d(x1, y1, x2, y2){
+    var yDiff = subtract$$2(y2, y1);
+    var xDiff = subtract$$2(x2, x1);
+    var radicant = add(multiply(yDiff, yDiff), multiply(xDiff, xDiff));
+    var result = sqrt(radicant);
+    return result;
+  }
+
+  function _distance3d(x1, y1, z1, x2, y2, z2){
+    var zDiff = subtract$$2(z2, z1);
+    var yDiff = subtract$$2(y2, y1);
+    var xDiff = subtract$$2(x2, x1);
+    var radicant = add(add(multiply(zDiff, zDiff), multiply(yDiff, yDiff)), multiply(xDiff, xDiff));
+    var result = sqrt(radicant);
+    return result;
+  }
+
+  function _distancePairwise(a){
+    var result = [];
+    for(var i = 0; i < a.length-1; i++){
+      for(var j = i+1; j < a.length; j++){
+        if (a[0].length == 2){
+          result.push(_distance2d(a[i][0], a[i][1], a[j][0], a[j][1]));
+        }
+        else if (a[0].length == 3){
+          result.push(_distance3d(a[i][0], a[i][1], a[i][2], a[j][0], a[j][1], a[j][2]));
+        }
+      }
+    }
+    return result;
+  }
+
   return distance;
-}
-
-function _2d(a){
-  // checks if the number of arguments are correct in count and are valid (should be numbers)
-  if (a.constructor !== Array){
-    a = _objectToArray(a);
-  }
-  return typeof a[0] === 'number' && typeof a[1] === 'number';
-}
-
-function _3d(a){
-  // checks if the number of arguments are correct in count and are valid (should be numbers)
-  if (a.constructor !== Array){
-    a = _objectToArray(a);
-  }
-  return typeof a[0] === 'number' && typeof a[1] === 'number' && typeof a[2] === 'number';
-}
-
-function _parametricLine(a){
-  if (a.constructor !== Array){
-    a = _objectToArray(a);
-  }
-  return typeof a[0] === 'number' && typeof a[1] === 'number' && typeof a[2] === 'number' &&
-    typeof a[3] === 'number' && typeof a[4] === 'number' && typeof a[5] === 'number';
-
-}
-
-function _objectToArray(o){
-  var keys = Object.keys(o);
-  var a = [];
-  for (var i = 0; i < keys.length; i++) {
-    a.push(o[keys[i]]);
-  }
-  return a;
-}
-
-function _pairwise(a){
-  //checks for valid arguments passed to _distancePairwise(Array)
-  if (a[0].length == 2 && typeof a[0][0] === 'number' && typeof a[0][1] === 'number'){
-    for(var i in a){
-      if (a[i].length != 2 || typeof a[i][0] !== 'number' || typeof a[i][1] !== 'number'){
-        return false;
-      }
-    }
-  }
-  else if (a[0].length == 3 && typeof a[0][0] === 'number' && typeof a[0][1] === 'number' && typeof a[0][2] === 'number'){
-    for(var i in a){
-      if (a[i].length != 3 || typeof a[i][0] !== 'number' || typeof a[i][1] !== 'number' || typeof a[i][2] !== 'number'){
-        return false;
-      }
-    }
-  }
-  else{
-    return false;
-  }
-  return true;
-}
-
-function _distancePointLine2D(x, y, a, b, c){
-  var num =  Math.abs(a*x + b*y + c);
-  var den = Math.pow((a*a + b*b), 0.5);
-  var result = (num/den);
-  return result;
-}
-
-function _distancePointLine3D(x, y, z, x0, y0, z0, a, b, c){
-  var num = [((y0-y)*(c))-((z0-z)*(b)), ((z0-z)*(a))-((x0-x)*(c)), ((x0-x)*(b))-((y0-y)*(a))];
-  num = Math.pow(num[0]*num[0] + num[1]*num[1] + num[2]*num[2], 0.5);
-  var den = Math.pow(a*a + b*b + c*c, 0.5);
-  var result = num/den;
-  return result;
-}
-
-function _distance2d(x1, y1, x2, y2){
-  var yDiff = y2 - y1;
-  var xDiff = x2 - x1;
-  var radicant = yDiff * yDiff + xDiff * xDiff;
-  var result = Math.pow(radicant, 0.5);
-  return result;
-}
-
-function _distance3d(x1, y1, z1, x2, y2, z2){
-  var zDiff = z2 - z1;
-  var yDiff = y2 - y1;
-  var xDiff = x2 - x1;
-  var radicant = zDiff * zDiff + yDiff * yDiff + xDiff * xDiff;
-  var result = Math.pow(radicant, 0.5);
-  return result;
-}
-
-function _distancePairwise(a){
-  var result = [];
-  for(var i = 0; i < a.length-1; i++){
-    for(var j = i+1; j < a.length; j++){
-      if (a[0].length == 2){
-        result.push(_distance2d(a[i][0], a[i][1], a[j][0], a[j][1]));
-      }
-      else if (a[0].length == 3){
-        result.push(_distance3d(a[i][0], a[i][1], a[i][2], a[j][0], a[j][1], a[j][2]));
-      }
-    }
-  }
-  return result;
 }
 
 var name$182 = 'distance';
@@ -56306,13 +58190,13 @@ function factory$199 (type, config, load, typed) {
    * @private
    */
   function _cross(x, y) {
-    var highestDimension = Math.max(array.size(x).length, array.size(y).length);
+    var highestDimension = Math.max(array$3.size(x).length, array$3.size(y).length);
 
-    x = array.squeeze(x);
-    y = array.squeeze(y);
+    x = array$3.squeeze(x);
+    y = array$3.squeeze(y);
 
-    var xSize = array.size(x);
-    var ySize = array.size(y);
+    var xSize = array$3.size(x);
+    var ySize = array$3.size(y);
 
     if (xSize.length != 1 || ySize.length != 1 || xSize[0] != 3 || ySize[0] != 3) {
       throw new RangeError('Vectors with length 3 expected ' +
@@ -56336,13 +58220,13 @@ function factory$199 (type, config, load, typed) {
 var name$187 = 'cross';
 var factory_1$199 = factory$199;
 
-var cross$2 = {
+var cross$3 = {
 	name: name$187,
 	factory: factory_1$199
 };
 
-var clone$11     = object.clone;
-var isInteger$25 = number.isInteger;
+var clone$11     = object$1.clone;
+var isInteger$25 = number$3.isInteger;
 
 function factory$200 (type, config, load, typed) {
 
@@ -56389,27 +58273,27 @@ function factory$200 (type, config, load, typed) {
     // FIXME: simplify this huge amount of signatures as soon as typed-function supports optional arguments
 
     'Array': function (x) {
-      return _diag(x, 0, array.size(x), null);
+      return _diag(x, 0, array$3.size(x), null);
     },
 
     'Array, number': function (x, k) {
-      return _diag(x, k, array.size(x), null);
+      return _diag(x, k, array$3.size(x), null);
     },
     
     'Array, BigNumber': function (x, k) {
-      return _diag(x, k.toNumber(), array.size(x), null);
+      return _diag(x, k.toNumber(), array$3.size(x), null);
     },
 
     'Array, string': function (x, format) {
-      return _diag(x, 0, array.size(x), format);
+      return _diag(x, 0, array$3.size(x), format);
     },
 
     'Array, number, string': function (x, k, format) {
-      return _diag(x, k, array.size(x), format);
+      return _diag(x, k, array$3.size(x), format);
     },
 
     'Array, BigNumber, string': function (x, k, format) {
-      return _diag(x, k.toNumber(), array.size(x), format);
+      return _diag(x, k.toNumber(), array$3.size(x), format);
     },
 
     'Matrix': function (x) {
@@ -56514,7 +58398,7 @@ var diag$2 = {
 	factory: factory_1$200
 };
 
-var size$4 = array.size;
+var size$4 = array$3.size;
 
 function factory$201 (type, config, load, typed) {
   var add$$2      = load(add);
@@ -56597,8 +58481,8 @@ var dot$3 = {
 	factory: factory_1$201
 };
 
-var filter$3 = array.filter;
-var filterRegExp$1 = array.filterRegExp;
+var filter$3 = array$3.filter;
+var filterRegExp$1 = array$3.filterRegExp;
 var maxArgumentCount$4 = _function.maxArgumentCount;
 
 function factory$202 (type, config, load, typed) {
@@ -56663,7 +58547,7 @@ function _filterCallback (x, callback) {
   // figure out what number of arguments the callback function expects
   var args = maxArgumentCount$4(callback);
 
-  return filter$3(x, function (value, index, array$$2) {
+  return filter$3(x, function (value, index, array) {
     // invoke the callback function with the right number of arguments
     if (args === 1) {
       return callback(value);
@@ -56672,7 +58556,7 @@ function _filterCallback (x, callback) {
       return callback(value, [index]);
     }
     else { // 3 or -1
-      return callback(value, [index], array$$2);
+      return callback(value, [index], array);
     }
   });
 }
@@ -56685,8 +58569,8 @@ var filter_1 = {
 	factory: factory_1$202
 };
 
-var clone$12 = object.clone;
-var _flatten = array.flatten;
+var clone$12 = object$1.clone;
+var _flatten = array$3.flatten;
 
 function factory$203 (type, config, load, typed) {
   var matrix = load(matrix$3);
@@ -56735,7 +58619,7 @@ var flatten$3 = {
 };
 
 var maxArgumentCount$5 = _function.maxArgumentCount;
-var forEach$3 = array.forEach;
+var forEach$3 = array$3.forEach;
 
 function factory$204 (type, config, load, typed) {
   /**
@@ -56780,7 +58664,7 @@ function factory$204 (type, config, load, typed) {
  * @param {Function} callback
  * @private
  */
-function _forEach (array$$2, callback) {
+function _forEach (array, callback) {
   // figure out what number of arguments the callback function expects
   var args = maxArgumentCount$5(callback);
 
@@ -56800,11 +58684,11 @@ function _forEach (array$$2, callback) {
         callback(value, index);
       }
       else { // 3 or -1
-        callback(value, index, array$$2);
+        callback(value, index, array);
       }
     }
   };
-  recurse(array$$2, []);
+  recurse(array, []);
 }
 
 var name$192 = 'forEach';
@@ -56815,7 +58699,7 @@ var forEach_1 = {
 	factory: factory_1$204
 };
 
-var size$5 = array.size;
+var size$5 = array$3.size;
 
 function factory$205(type, config, load, typed) {
   var matrix = load(matrix$3);
@@ -56987,13 +58871,13 @@ function _map$1 (array, callback) {
 var name$194 = 'map';
 var factory_1$206 = factory$206;
 
-var map$9 = {
+var map$13 = {
 	name: name$194,
 	factory: factory_1$206
 };
 
-var isInteger$26 = number.isInteger;
-var resize$3 = array.resize;
+var isInteger$26 = number$3.isInteger;
+var resize$3 = array$3.resize;
 
 function factory$207 (type, config, load, typed) {
   var matrix = load(matrix$3);
@@ -57130,7 +59014,7 @@ var ones$2 = {
 	factory: factory_1$207
 };
 
-var nearlyEqual$7 = number.nearlyEqual;
+var nearlyEqual$7 = number$3.nearlyEqual;
 
 
 function factory$209 (type, config, load, typed) {
@@ -57316,7 +59200,7 @@ var compare$2 = {
 	factory: factory_1$209
 };
 
-var isInteger$27 = number.isInteger;
+var isInteger$27 = number$3.isInteger;
 
 function factory$208 (type, config, load, typed) {
   var asc = load(compare$2);
@@ -57456,7 +59340,7 @@ var partitionSelect$2 = {
 	factory: factory_1$208
 };
 
-var isInteger$28 = number.isInteger;
+var isInteger$28 = number$3.isInteger;
 
 
 function factory$210 (type, config, load, typed) {
@@ -57504,7 +59388,7 @@ function factory$210 (type, config, load, typed) {
       if(x.reshape) {
         return x.reshape(sizes);
       } else {
-        return matrix(array.reshape(x.valueOf(), sizes));
+        return matrix(array$3.reshape(x.valueOf(), sizes));
       }
     },
 
@@ -57514,7 +59398,7 @@ function factory$210 (type, config, load, typed) {
           throw new TypeError('Invalid size for dimension: ' + size);
         }
       });
-      return array.reshape(x, sizes);
+      return array$3.reshape(x, sizes);
     }
 
   });
@@ -57532,9 +59416,9 @@ var reshape$2 = {
 	factory: factory_1$210
 };
 
-var isInteger$29 = number.isInteger;
-var format$8 = string.format;
-var clone$13 = object.clone;
+var isInteger$29 = number$3.isInteger;
+var format$9 = string$1.format;
+var clone$13 = object$1.clone;
 
 
 function factory$211 (type, config, load, typed) {
@@ -57612,7 +59496,7 @@ function factory$211 (type, config, load, typed) {
       }
       x = clone$13(x);
 
-      var res = array.resize(x, size, defaultValue);
+      var res = array$3.resize(x, size, defaultValue);
       return asMatrix ? matrix(res) : res;
     }
   };
@@ -57644,7 +59528,7 @@ function factory$211 (type, config, load, typed) {
     var len = size[0];
     if (typeof len !== 'number' || !isInteger$29(len)) {
       throw new TypeError('Invalid size, must contain positive integers ' +
-          '(size: ' + format$8(size) + ')');
+          '(size: ' + format$9(size) + ')');
     }
 
     if (str.length > len) {
@@ -57703,7 +59587,7 @@ function factory$212 (type, config, load, typed) {
       return matrix(x.size());
     },
 
-    'Array': array.size,
+    'Array': array$3.size,
 
     'string': function (x) {
       return (config.matrix === 'Array') ? [x.length] : matrix([x.length]);
@@ -58041,7 +59925,7 @@ var compareNatural$2 = {
 	factory: factory_1$214
 };
 
-var size$8 = array.size;
+var size$8 = array$3.size;
 
 function factory$213 (type, config, load, typed) {
   var matrix = load(matrix$3);
@@ -58140,8 +60024,8 @@ function factory$213 (type, config, load, typed) {
    * @param {Array} array
    * @private
    */
-  function _arrayIsVector (array$$2) {
-    if (size$8(array$$2).length !== 1) {
+  function _arrayIsVector (array) {
+    if (size$8(array).length !== 1) {
       throw new Error('One dimensional array expected');
     }
   }
@@ -58203,18 +60087,18 @@ function factory$215 (type, config, load, typed) {
    */
   var squeeze = typed('squeeze', {
     'Array': function (x) {
-      return array.squeeze(object.clone(x));
+      return array$3.squeeze(object$1.clone(x));
     },
 
     'Matrix': function (x) {
-      var res = array.squeeze(x.toArray());
+      var res = array$3.squeeze(x.toArray());
       // FIXME: return the same type of matrix as the input
       return Array.isArray(res) ? matrix(res) : res;
     },
 
     'any': function (x) {
       // scalar
-      return object.clone(x);
+      return object$1.clone(x);
     }
   });
 
@@ -58233,7 +60117,7 @@ var squeeze$2 = {
 
 var matrix$7 = [
   concat$2,
-  cross$2,
+  cross$3,
   det$2,
   diag$2,
   dot$3,
@@ -58243,10 +60127,10 @@ var matrix$7 = [
   forEach_1,
   inv$2,
   kron$2,
-  map$9,
+  map$13,
   ones$2,
   partitionSelect$2,
-  range$2,
+  range$3,
   reshape$2,
   resize$4,
   size$6,
@@ -58254,7 +60138,7 @@ var matrix$7 = [
   squeeze$2,
   subset$2,
   trace$2,
-  transpose$4,
+  transpose$5,
   zeros
 ];
 
@@ -58339,7 +60223,7 @@ function factory$217 (type, config, load, typed) {
 var name$205 = 'sum';
 var factory_1$217 = factory$217;
 
-var sum$3 = {
+var sum$4 = {
 	name: name$205,
 	factory: factory_1$217
 };
@@ -58347,10 +60231,10 @@ var sum$3 = {
 function factory$216(type, config, load, typed) {
     var matrix = load(matrix$3);
     var divide = load(divide$2);
-    var sum$$1 = load(sum$3);
+    var sum$$1 = load(sum$4);
     var multiply$$2 = load(multiply);
     var dotDivide = load(dotDivide$2);
-    var log = load(log$2);
+    var log = load(log$3);
     var isNumeric$$2 = load(isNumeric);
 
     /**
@@ -58492,7 +60376,7 @@ var multinomial$2 = {
 	factory: factory_1$218
 };
 
-var isInteger$30 = number.isInteger;
+var isInteger$30 = number$3.isInteger;
 
 function factory$219 (type, config, load, typed) {
   var factorial = load(factorial$2);
@@ -58810,13 +60694,13 @@ var seededRNG = {
 	math: math$20
 };
 
-var isNumber$3 = number.isNumber;
+var isNumber$3 = number$3.isNumber;
 
 // TODO: rethink math.distribution
 // TODO: rework to a typed function
 function factory$221 (type, config, load, typed, math) {
   var matrix = load(matrix$3);
-  var array$$2 = array;
+  var array = array$3;
 
   // seeded pseudo random number generator
   var rng = load(seededRNG);
@@ -58937,43 +60821,43 @@ function factory$221 (type, config, load, typed, math) {
             return _pickRandom(possibles);
           },
           'Array, number | Array': function(possibles, arg2) {
-            var number$$2, weights;
+            var number, weights;
 
             if (Array.isArray(arg2)) {
               weights = arg2;
             } else if (isNumber$3(arg2)) {
-              number$$2 = arg2;
+              number = arg2;
             } else {
               throw new TypeError('Invalid argument in function pickRandom')
             }
 
-            return _pickRandom(possibles, number$$2, weights);
+            return _pickRandom(possibles, number, weights);
           },
           'Array, number | Array, Array | number': function(possibles, arg2, arg3) {
-            var number$$2, weights;
+            var number, weights;
 
             if (Array.isArray(arg2)) {
               weights = arg2;
-              number$$2 = arg3;
+              number = arg3;
             } else {
               weights = arg3;
-              number$$2 = arg2;
+              number = arg2;
             }
 
-            if (!Array.isArray(weights) || !isNumber$3(number$$2)) {
+            if (!Array.isArray(weights) || !isNumber$3(number)) {
               throw new TypeError('Invalid argument in function pickRandom');
             }
 
-            return _pickRandom(possibles, number$$2, weights);
+            return _pickRandom(possibles, number, weights);
           }
         })
       };
 
-      var _pickRandom = function(possibles, number$$2, weights) {
-        var single = (typeof number$$2 === 'undefined');
+      var _pickRandom = function(possibles, number, weights) {
+        var single = (typeof number === 'undefined');
 
         if (single) {
-          number$$2 = 1;
+          number = 1;
         }
 
         if (type.isMatrix(possibles)) {
@@ -58982,7 +60866,7 @@ function factory$221 (type, config, load, typed, math) {
           throw new TypeError('Unsupported type of value in function pickRandom');
         }
 
-        if (array$$2.size(possibles).length > 1) {
+        if (array.size(possibles).length > 1) {
           throw new Error('Only one dimensional vectors supported');
         }
 
@@ -59006,14 +60890,14 @@ function factory$221 (type, config, load, typed, math) {
 
         if (length == 0) {
           return [];
-        } else if (number$$2 >= length) {
-          return number$$2 > 1 ? possibles : possibles[0];
+        } else if (number >= length) {
+          return number > 1 ? possibles : possibles[0];
         }
 
         var result = [];
         var pick;
 
-        while (result.length < number$$2) {
+        while (result.length < number) {
           if (typeof weights === 'undefined') {
             pick = possibles[Math.floor(rng() * length)];
           } else {
@@ -59260,7 +61144,7 @@ var probability = [
   //require('./distribution'), // TODO: rethink math.distribution
   combinations$2,
   factorial$2,
-  gamma$2,
+  gamma$3,
   kldivergence$2,
   multinomial$2,
   permutations$2,
@@ -59354,7 +61238,7 @@ var deepEqual$3 = {
 	factory: factory_1$225
 };
 
-var nearlyEqual$8 = number.nearlyEqual;
+var nearlyEqual$8 = number$3.nearlyEqual;
 
 
 function factory$226 (type, config, load, typed) {
@@ -59544,7 +61428,7 @@ var relational = [
   unequal$2
 ];
 
-var flatten$5 = array.flatten;
+var flatten$5 = array$3.flatten;
 
 function factory$227 (type, config, load, typed) {
   var index = load(MatrixIndex);
@@ -59608,9 +61492,9 @@ var setCartesian$2 = {
 	factory: factory_1$227
 };
 
-var flatten$6 = array.flatten;
-var identify = array.identify;
-var generalize = array.generalize;
+var flatten$6 = array$3.flatten;
+var identify = array$3.identify;
+var generalize = array$3.generalize;
 
 function factory$228 (type, config, load, typed) {
   var equal$$2 = load(equal);
@@ -59687,7 +61571,7 @@ var setDifference$2 = {
 	factory: factory_1$228
 };
 
-var flatten$7 = array.flatten;
+var flatten$7 = array$3.flatten;
 
 function factory$229 (type, config, load, typed) {
   var equal$$2 = load(equal);
@@ -59751,9 +61635,9 @@ var setDistinct$2 = {
 	factory: factory_1$229
 };
 
-var flatten$8 = array.flatten;
-var identify$1 = array.identify;
-var generalize$1 = array.generalize;
+var flatten$8 = array$3.flatten;
+var identify$1 = array$3.identify;
+var generalize$1 = array$3.generalize;
 
 function factory$230 (type, config, load, typed) {
   var equal$$2 = load(equal);
@@ -59822,8 +61706,8 @@ var setIntersect$2 = {
 	factory: factory_1$230
 };
 
-var flatten$9 = array.flatten;
-var identify$2 = array.identify;
+var flatten$9 = array$3.flatten;
+var identify$2 = array$3.identify;
 
 function factory$231 (type, config, load, typed) {
   var equal$$2 = load(equal);
@@ -59891,7 +61775,7 @@ var setIsSubset$2 = {
 	factory: factory_1$231
 };
 
-var flatten$10 = array.flatten;
+var flatten$10 = array$3.flatten;
 
 function factory$232 (type, config, load, typed) {
   var equal$$2 = load(equal);
@@ -59947,7 +61831,7 @@ var setMultiplicity$2 = {
 	factory: factory_1$232
 };
 
-var flatten$11 = array.flatten;
+var flatten$11 = array$3.flatten;
 
 function factory$233 (type, config, load, typed) {
   var index = load(MatrixIndex);
@@ -59994,29 +61878,29 @@ function factory$233 (type, config, load, typed) {
   return setPowerset;
   
   // create subset
-  function _subset(array$$2, bitarray) {
+  function _subset(array, bitarray) {
     var result = [];
     for (var i=0; i<bitarray.length; i++) {
       if (bitarray[i] === "1") {
-        result.push(array$$2[i]);
+        result.push(array[i]);
       }
     }
     return result;
   }
   
   // sort subsests by length
-  function _sort(array$$2) {
+  function _sort(array) {
     var temp = [];
-    for (var i=array$$2.length-1; i>0; i--) {
+    for (var i=array.length-1; i>0; i--) {
       for (var j=0; j<i; j++) {
-        if (array$$2[j].length > array$$2[j+1].length) {
-          temp = array$$2[j];
-          array$$2[j] = array$$2[j+1];
-          array$$2[j+1] = temp;
+        if (array[j].length > array[j+1].length) {
+          temp = array[j];
+          array[j] = array[j+1];
+          array[j+1] = temp;
         }
       }
     }
-    return array$$2;
+    return array;
   }
 }
 
@@ -60028,7 +61912,7 @@ var setPowerset$2 = {
 	factory: factory_1$233
 };
 
-var flatten$12 = array.flatten;
+var flatten$12 = array$3.flatten;
 
 function factory$234 (type, config, load, typed) {
   var equal$$2 = load(equal);
@@ -60087,7 +61971,7 @@ var setSize$2 = {
 	factory: factory_1$234
 };
 
-var flatten$13 = array.flatten;
+var flatten$13 = array$3.flatten;
 
 function factory$235 (type, config, load, typed) {
   var index = load(MatrixIndex);
@@ -60143,7 +62027,7 @@ var setSymDifference$2 = {
 	factory: factory_1$235
 };
 
-var flatten$14 = array.flatten;
+var flatten$14 = array$3.flatten;
 
 function factory$236 (type, config, load, typed) {
   var index = load(MatrixIndex);
@@ -60199,7 +62083,7 @@ var setUnion$2 = {
 	factory: factory_1$236
 };
 
-var set = [
+var set$2 = [
   setCartesian$2,
   setDifference$2,
   setDistinct$2,
@@ -60212,7 +62096,7 @@ var set = [
   setUnion$2
 ];
 
-var sign$4 = number.sign;
+var sign$4 = number$3.sign;
 
 
 function factory$237 (type, config, load, typed) {
@@ -60416,7 +62300,7 @@ var special = [
   erf$2
 ];
 
-var flatten$16 = array.flatten;
+var flatten$16 = array$3.flatten;
 
 
 
@@ -60457,7 +62341,7 @@ function factory$239 (type, config, load, typed) {
     'Array | Matrix': _median,
 
     // median([a, b, c, d, ...], dim)
-    'Array | Matrix, number | BigNumber': function (array$$2, dim) {
+    'Array | Matrix, number | BigNumber': function (array, dim) {
       // TODO: implement median(A, dim)
       throw new Error('median(A, dim) is not yet supported');
       //return reduce(arguments[0], arguments[1], ...);
@@ -60480,10 +62364,10 @@ function factory$239 (type, config, load, typed) {
    * @return {Number} median
    * @private
    */
-  function _median(array$$2) {
-    array$$2 = flatten$16(array$$2.valueOf());
+  function _median(array) {
+    array = flatten$16(array.valueOf());
 
-    var num = array$$2.length;
+    var num = array.length;
     if (num == 0) {
       throw new Error('Cannot calculate median of an empty array');
     }
@@ -60491,13 +62375,13 @@ function factory$239 (type, config, load, typed) {
     if (num % 2 == 0) {
       // even: return the average of the two middle values
       var mid = num / 2 - 1;
-      var right = partitionSelect(array$$2, mid + 1);
+      var right = partitionSelect(array, mid + 1);
 
       // array now partitioned at mid + 1, take max of left part
-      var left = array$$2[mid];
+      var left = array[mid];
       for (var i = 0; i < mid; ++i) {
-        if (compare(array$$2[i], left) > 0) {
-          left = array$$2[i];
+        if (compare(array[i], left) > 0) {
+          left = array[i];
         }
       }
 
@@ -60505,7 +62389,7 @@ function factory$239 (type, config, load, typed) {
     }
     else {
       // odd: return the middle value
-      var m = partitionSelect(array$$2, (num - 1) / 2);
+      var m = partitionSelect(array, (num - 1) / 2);
 
       return middle(m);
     }
@@ -60533,17 +62417,17 @@ function factory$239 (type, config, load, typed) {
 var name$226 = 'median';
 var factory_1$239 = factory$239;
 
-var median$2 = {
+var median$3 = {
 	name: name$226,
 	factory: factory_1$239
 };
 
-var flatten$15 = array.flatten;
+var flatten$15 = array$3.flatten;
 
 function factory$238 (type, config, load, typed) {
   var abs$$2      = load(abs);
-  var map      = load(map$9);
-  var median   = load(median$2);
+  var map      = load(map$13);
+  var median   = load(median$3);
   var subtract$$2 = load(subtract);
 
   /**
@@ -60584,15 +62468,15 @@ function factory$238 (type, config, load, typed) {
 
   return mad;
 
-  function _mad(array$$2) {
-    array$$2 = flatten$15(array$$2.valueOf());
+  function _mad(array) {
+    array = flatten$15(array.valueOf());
 
-    if (array$$2.length === 0) {
+    if (array.length === 0) {
       throw new Error('Cannot calculate median absolute deviation of an empty array');
     }
 
-    var med = median(array$$2);
-    return median(map(array$$2, function (value) {
+    var med = median(array);
+    return median(map(array, function (value) {
       return abs$$2(subtract$$2(value, med));
     }));
   }
@@ -60606,7 +62490,7 @@ var mad$2 = {
 	factory: factory_1$238
 };
 
-var flatten$17 = array.flatten;
+var flatten$17 = array$3.flatten;
 
 function factory$240 (type, config, load, typed) {
 
@@ -60765,9 +62649,9 @@ var prod$2 = {
 	factory: factory_1$241
 };
 
-var isInteger$31 = number.isInteger;
-var isNumber$4 = number.isNumber;
-var flatten$18 = array.flatten;
+var isInteger$31 = number$3.isInteger;
+var isNumber$4 = number$3.isNumber;
+var flatten$18 = array$3.flatten;
 
 
 function factory$242 (type, config, load, typed) {
@@ -60921,8 +62805,8 @@ function factory$242 (type, config, load, typed) {
    * @return {Number, BigNumber, Unit} prob order quantile
    * @private
    */
-  function _quantileSeq(array$$2, prob, sorted) {
-    var flat = flatten$18(array$$2);
+  function _quantileSeq(array, prob, sorted) {
+    var flat = flatten$18(array);
     var len = flat.length;
     if (len === 0) {
       throw new Error('Cannot calculate quantile of an empty sequence');
@@ -61123,12 +63007,12 @@ function factory$244 (type, config, load, typed) {
     });
     if (num === 0) throw new Error('Cannot calculate var of an empty array');
 
-    var mean$$1 = divide(sum$$1, num);
+    var mean = divide(sum$$1, num);
 
     // calculate the variance
     sum$$1 = 0;
     deepForEach(array, function (value) {
-      var diff = subtract$$2(value, mean$$1);
+      var diff = subtract$$2(value, mean);
       sum$$1 = add(sum$$1, multiply(diff, diff));
     });
 
@@ -61159,7 +63043,7 @@ var _var$2 = {
 };
 
 function factory$243 (type, config, load, typed) {
-  var sqrt       = load(sqrt$2);
+  var sqrt       = load(sqrt$3);
   var variance   = load(_var$2);
 
   /**
@@ -61238,20 +63122,20 @@ var std$2 = {
 
 var statistics = [
   mad$2,
-  max$2,
+  max$3,
   mean$3,
-  median$2,
-  min$2,
+  median$3,
+  min$3,
   mode$2,
   prod$2,
   quantileSeq$2,
   std$2,
-  sum$3,
+  sum$4,
   _var$2
 ];
 
-var isString$5 = string.isString;
-var format$9 = string.format;
+var isString$5 = string$1.isString;
+var format$10 = string$1.format;
 
 function factory$245 (type, config, load, typed) {
   /**
@@ -61321,7 +63205,7 @@ function _print(template, values, options) {
 
         if (value !== undefined) {
           if (!isString$5(value)) {
-            return format$9(value, options);
+            return format$10(value, options);
           }
           else {
             return value;
@@ -61341,8 +63225,8 @@ var print = {
 	factory: factory_1$245
 };
 
-var string$13 = [
-  format$2,
+var string$14 = [
+  format$3,
   print
 ];
 
@@ -62353,7 +64237,7 @@ var _cosh = Math.cosh || function (x) {
 var name$247 = 'cosh';
 var factory_1$260 = factory$260;
 
-var cosh$2 = {
+var cosh$3 = {
 	name: name$247,
 	factory: factory_1$260
 };
@@ -62549,7 +64433,7 @@ var csc$2 = {
 	factory: factory_1$263
 };
 
-var sign$5 = number.sign;
+var sign$5 = number$3.sign;
 
 function factory$264 (type, config, load, typed) {
   /**
@@ -62886,7 +64770,7 @@ var _sinh = Math.sinh || function (x) {
 var name$255 = 'sinh';
 var factory_1$268 = factory$268;
 
-var sinh$2 = {
+var sinh$3 = {
 	name: name$255,
 	factory: factory_1$268
 };
@@ -63020,7 +64904,7 @@ var _tanh = Math.tanh || function (x) {
 var name$257 = 'tanh';
 var factory_1$270 = factory$270;
 
-var tanh$2 = {
+var tanh$3 = {
 	name: name$257,
 	factory: factory_1$270
 };
@@ -63040,7 +64924,7 @@ var trigonometry = [
   atan2$2,
   atanh$2,
   cos$2,
-  cosh$2,
+  cosh$3,
   cot$2,
   coth$2,
   csc$2,
@@ -63048,9 +64932,9 @@ var trigonometry = [
   sec$2,
   sech$2,
   sin$2,
-  sinh$2,
+  sinh$3,
   tan$2,
-  tanh$2
+  tanh$3
 ];
 
 function factory$271 (type, config, load, typed) {
@@ -63147,7 +65031,7 @@ var to$2 = {
 	factory: factory_1$271
 };
 
-var unit$6 = [
+var unit$7 = [
   to$2
 ];
 
@@ -63323,12 +65207,12 @@ var _function$6 = [
   matrix$7,
   probability,
   relational,
-  set,
+  set$2,
   special,
   statistics,
-  string$13,
+  string$14,
   trigonometry,
-  unit$6,
+  unit$7,
   utils$2
 ];
 
@@ -64419,195 +66303,330 @@ var quaternion = createCommonjsModule(function (module, exports) {
 })(commonjsGlobal);
 });
 
-// Unique ID creation requires a high quality random # generator.  In the
-// browser this is a little complicated due to unknown quality of Math.random()
-// and inconsistent support for the `crypto` API.  We do the best we can via
-// feature-detection
-var rng;
+var pi$2 = Math.PI;
+var tau$2 = 2 * pi$2;
+var epsilon = 1e-6;
+var tauEpsilon = tau$2 - epsilon;
 
-var crypto$1 = commonjsGlobal.crypto || commonjsGlobal.msCrypto; // for IE 11
-if (crypto$1 && crypto$1.getRandomValues) {
-  // WHATWG crypto RNG - http://wiki.whatwg.org/wiki/Crypto
-  var rnds8 = new Uint8Array(16); // eslint-disable-line no-undef
-  rng = function whatwgRNG() {
-    crypto$1.getRandomValues(rnds8);
-    return rnds8;
+function Path() {
+  this._x0 = this._y0 = // start of current subpath
+  this._x1 = this._y1 = null; // end of current subpath
+  this._ = "";
+}
+
+function path$66() {
+  return new Path;
+}
+
+Path.prototype = path$66.prototype = {
+  constructor: Path,
+  moveTo: function(x, y) {
+    this._ += "M" + (this._x0 = this._x1 = +x) + "," + (this._y0 = this._y1 = +y);
+  },
+  closePath: function() {
+    if (this._x1 !== null) {
+      this._x1 = this._x0, this._y1 = this._y0;
+      this._ += "Z";
+    }
+  },
+  lineTo: function(x, y) {
+    this._ += "L" + (this._x1 = +x) + "," + (this._y1 = +y);
+  },
+  quadraticCurveTo: function(x1, y1, x, y) {
+    this._ += "Q" + (+x1) + "," + (+y1) + "," + (this._x1 = +x) + "," + (this._y1 = +y);
+  },
+  bezierCurveTo: function(x1, y1, x2, y2, x, y) {
+    this._ += "C" + (+x1) + "," + (+y1) + "," + (+x2) + "," + (+y2) + "," + (this._x1 = +x) + "," + (this._y1 = +y);
+  },
+  arcTo: function(x1, y1, x2, y2, r) {
+    x1 = +x1, y1 = +y1, x2 = +x2, y2 = +y2, r = +r;
+    var x0 = this._x1,
+        y0 = this._y1,
+        x21 = x2 - x1,
+        y21 = y2 - y1,
+        x01 = x0 - x1,
+        y01 = y0 - y1,
+        l01_2 = x01 * x01 + y01 * y01;
+
+    // Is the radius negative? Error.
+    if (r < 0) throw new Error("negative radius: " + r);
+
+    // Is this path empty? Move to (x1,y1).
+    if (this._x1 === null) {
+      this._ += "M" + (this._x1 = x1) + "," + (this._y1 = y1);
+    }
+
+    // Or, is (x1,y1) coincident with (x0,y0)? Do nothing.
+    else if (!(l01_2 > epsilon)) {}
+
+    // Or, are (x0,y0), (x1,y1) and (x2,y2) collinear?
+    // Equivalently, is (x1,y1) coincident with (x2,y2)?
+    // Or, is the radius zero? Line to (x1,y1).
+    else if (!(Math.abs(y01 * x21 - y21 * x01) > epsilon) || !r) {
+      this._ += "L" + (this._x1 = x1) + "," + (this._y1 = y1);
+    }
+
+    // Otherwise, draw an arc!
+    else {
+      var x20 = x2 - x0,
+          y20 = y2 - y0,
+          l21_2 = x21 * x21 + y21 * y21,
+          l20_2 = x20 * x20 + y20 * y20,
+          l21 = Math.sqrt(l21_2),
+          l01 = Math.sqrt(l01_2),
+          l = r * Math.tan((pi$2 - Math.acos((l21_2 + l01_2 - l20_2) / (2 * l21 * l01))) / 2),
+          t01 = l / l01,
+          t21 = l / l21;
+
+      // If the start tangent is not coincident with (x0,y0), line to.
+      if (Math.abs(t01 - 1) > epsilon) {
+        this._ += "L" + (x1 + t01 * x01) + "," + (y1 + t01 * y01);
+      }
+
+      this._ += "A" + r + "," + r + ",0,0," + (+(y01 * x20 > x01 * y20)) + "," + (this._x1 = x1 + t21 * x21) + "," + (this._y1 = y1 + t21 * y21);
+    }
+  },
+  arc: function(x, y, r, a0, a1, ccw) {
+    x = +x, y = +y, r = +r;
+    var dx = r * Math.cos(a0),
+        dy = r * Math.sin(a0),
+        x0 = x + dx,
+        y0 = y + dy,
+        cw = 1 ^ ccw,
+        da = ccw ? a0 - a1 : a1 - a0;
+
+    // Is the radius negative? Error.
+    if (r < 0) throw new Error("negative radius: " + r);
+
+    // Is this path empty? Move to (x0,y0).
+    if (this._x1 === null) {
+      this._ += "M" + x0 + "," + y0;
+    }
+
+    // Or, is (x0,y0) not coincident with the previous point? Line to (x0,y0).
+    else if (Math.abs(this._x1 - x0) > epsilon || Math.abs(this._y1 - y0) > epsilon) {
+      this._ += "L" + x0 + "," + y0;
+    }
+
+    // Is this arc empty? We’re done.
+    if (!r) return;
+
+    // Does the angle go the wrong way? Flip the direction.
+    if (da < 0) da = da % tau$2 + tau$2;
+
+    // Is this a complete circle? Draw two arcs to complete the circle.
+    if (da > tauEpsilon) {
+      this._ += "A" + r + "," + r + ",0,1," + cw + "," + (x - dx) + "," + (y - dy) + "A" + r + "," + r + ",0,1," + cw + "," + (this._x1 = x0) + "," + (this._y1 = y0);
+    }
+
+    // Is this arc non-empty? Draw an arc!
+    else if (da > epsilon) {
+      this._ += "A" + r + "," + r + ",0," + (+(da >= pi$2)) + "," + cw + "," + (this._x1 = x + r * Math.cos(a1)) + "," + (this._y1 = y + r * Math.sin(a1));
+    }
+  },
+  rect: function(x, y, w, h) {
+    this._ += "M" + (this._x0 = this._x1 = +x) + "," + (this._y0 = this._y1 = +y) + "h" + (+w) + "v" + (+h) + "h" + (-w) + "Z";
+  },
+  toString: function() {
+    return this._;
+  }
+};
+
+function constant$4(x) {
+  return function constant() {
+    return x;
   };
 }
 
-if (!rng) {
-  // Math.random()-based (RNG)
-  //
-  // If all else fails, use Math.random().  It's fast, but is of unspecified
-  // quality.
-  var rnds = new Array(16);
-  rng = function() {
-    for (var i = 0, r; i < 16; i++) {
-      if ((i & 0x03) === 0) r = Math.random() * 0x100000000;
-      rnds[i] = r >>> ((i & 0x03) << 3) & 0xff;
+var pi$3 = Math.PI;
+
+function Linear(context) {
+  this._context = context;
+}
+
+Linear.prototype = {
+  areaStart: function() {
+    this._line = 0;
+  },
+  areaEnd: function() {
+    this._line = NaN;
+  },
+  lineStart: function() {
+    this._point = 0;
+  },
+  lineEnd: function() {
+    if (this._line || (this._line !== 0 && this._point === 1)) this._context.closePath();
+    this._line = 1 - this._line;
+  },
+  point: function(x, y) {
+    x = +x, y = +y;
+    switch (this._point) {
+      case 0: this._point = 1; this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y); break;
+      case 1: this._point = 2; // proceed
+      default: this._context.lineTo(x, y); break;
+    }
+  }
+};
+
+function curveLinear(context) {
+  return new Linear(context);
+}
+
+function x(p) {
+  return p[0];
+}
+
+function y(p) {
+  return p[1];
+}
+
+function line() {
+  var x$$1 = x,
+      y$$1 = y,
+      defined = constant$4(true),
+      context = null,
+      curve = curveLinear,
+      output = null;
+
+  function line(data) {
+    var i,
+        n = data.length,
+        d,
+        defined0 = false,
+        buffer;
+
+    if (context == null) output = curve(buffer = path$66());
+
+    for (i = 0; i <= n; ++i) {
+      if (!(i < n && defined(d = data[i], i, data)) === defined0) {
+        if (defined0 = !defined0) output.lineStart();
+        else output.lineEnd();
+      }
+      if (defined0) output.point(+x$$1(d, i, data), +y$$1(d, i, data));
     }
 
-    return rnds;
+    if (buffer) return output = null, buffer + "" || null;
+  }
+
+  line.x = function(_) {
+    return arguments.length ? (x$$1 = typeof _ === "function" ? _ : constant$4(+_), line) : x$$1;
   };
+
+  line.y = function(_) {
+    return arguments.length ? (y$$1 = typeof _ === "function" ? _ : constant$4(+_), line) : y$$1;
+  };
+
+  line.defined = function(_) {
+    return arguments.length ? (defined = typeof _ === "function" ? _ : constant$4(!!_), line) : defined;
+  };
+
+  line.curve = function(_) {
+    return arguments.length ? (curve = _, context != null && (output = curve(context)), line) : curve;
+  };
+
+  line.context = function(_) {
+    return arguments.length ? (_ == null ? context = output = null : output = curve(context = _), line) : context;
+  };
+
+  return line;
 }
 
-var rngBrowser = rng;
-
-/**
- * Convert array of 16 byte values to UUID string format of the form:
- * XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
- */
-var byteToHex = [];
-for (var i$2 = 0; i$2 < 256; ++i$2) {
-  byteToHex[i$2] = (i$2 + 0x100).toString(16).substr(1);
+function sign$6(x) {
+  return x < 0 ? -1 : 1;
 }
 
-function bytesToUuid(buf, offset) {
-  var i = offset || 0;
-  var bth = byteToHex;
-  return bth[buf[i++]] + bth[buf[i++]] +
-          bth[buf[i++]] + bth[buf[i++]] + '-' +
-          bth[buf[i++]] + bth[buf[i++]] + '-' +
-          bth[buf[i++]] + bth[buf[i++]] + '-' +
-          bth[buf[i++]] + bth[buf[i++]] + '-' +
-          bth[buf[i++]] + bth[buf[i++]] +
-          bth[buf[i++]] + bth[buf[i++]] +
-          bth[buf[i++]] + bth[buf[i++]];
+// Calculate the slopes of the tangents (Hermite-type interpolation) based on
+// the following paper: Steffen, M. 1990. A Simple Method for Monotonic
+// Interpolation in One Dimension. Astronomy and Astrophysics, Vol. 239, NO.
+// NOV(II), P. 443, 1990.
+function slope3(that, x2, y2) {
+  var h0 = that._x1 - that._x0,
+      h1 = x2 - that._x1,
+      s0 = (that._y1 - that._y0) / (h0 || h1 < 0 && -0),
+      s1 = (y2 - that._y1) / (h1 || h0 < 0 && -0),
+      p = (s0 * h1 + s1 * h0) / (h0 + h1);
+  return (sign$6(s0) + sign$6(s1)) * Math.min(Math.abs(s0), Math.abs(s1), 0.5 * Math.abs(p)) || 0;
 }
 
-var bytesToUuid_1 = bytesToUuid;
-
-// **`v1()` - Generate time-based UUID**
-//
-// Inspired by https://github.com/LiosK/UUID.js
-// and http://docs.python.org/library/uuid.html
-
-// random #'s we need to init node and clockseq
-var _seedBytes = rngBrowser();
-
-// Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
-var _nodeId = [
-  _seedBytes[0] | 0x01,
-  _seedBytes[1], _seedBytes[2], _seedBytes[3], _seedBytes[4], _seedBytes[5]
-];
-
-// Per 4.2.2, randomize (14 bit) clockseq
-var _clockseq = (_seedBytes[6] << 8 | _seedBytes[7]) & 0x3fff;
-
-// Previous uuid creation time
-var _lastMSecs = 0;
-var _lastNSecs = 0;
-
-// See https://github.com/broofa/node-uuid for API details
-function v1(options, buf, offset) {
-  var i = buf && offset || 0;
-  var b = buf || [];
-
-  options = options || {};
-
-  var clockseq = options.clockseq !== undefined ? options.clockseq : _clockseq;
-
-  // UUID timestamps are 100 nano-second units since the Gregorian epoch,
-  // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
-  // time is handled internally as 'msecs' (integer milliseconds) and 'nsecs'
-  // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
-  var msecs = options.msecs !== undefined ? options.msecs : new Date().getTime();
-
-  // Per 4.2.1.2, use count of uuid's generated during the current clock
-  // cycle to simulate higher resolution clock
-  var nsecs = options.nsecs !== undefined ? options.nsecs : _lastNSecs + 1;
-
-  // Time since last uuid creation (in msecs)
-  var dt = (msecs - _lastMSecs) + (nsecs - _lastNSecs)/10000;
-
-  // Per 4.2.1.2, Bump clockseq on clock regression
-  if (dt < 0 && options.clockseq === undefined) {
-    clockseq = clockseq + 1 & 0x3fff;
-  }
-
-  // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
-  // time interval
-  if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === undefined) {
-    nsecs = 0;
-  }
-
-  // Per 4.2.1.2 Throw error if too many uuids are requested
-  if (nsecs >= 10000) {
-    throw new Error('uuid.v1(): Can\'t create more than 10M uuids/sec');
-  }
-
-  _lastMSecs = msecs;
-  _lastNSecs = nsecs;
-  _clockseq = clockseq;
-
-  // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
-  msecs += 12219292800000;
-
-  // `time_low`
-  var tl = ((msecs & 0xfffffff) * 10000 + nsecs) % 0x100000000;
-  b[i++] = tl >>> 24 & 0xff;
-  b[i++] = tl >>> 16 & 0xff;
-  b[i++] = tl >>> 8 & 0xff;
-  b[i++] = tl & 0xff;
-
-  // `time_mid`
-  var tmh = (msecs / 0x100000000 * 10000) & 0xfffffff;
-  b[i++] = tmh >>> 8 & 0xff;
-  b[i++] = tmh & 0xff;
-
-  // `time_high_and_version`
-  b[i++] = tmh >>> 24 & 0xf | 0x10; // include version
-  b[i++] = tmh >>> 16 & 0xff;
-
-  // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
-  b[i++] = clockseq >>> 8 | 0x80;
-
-  // `clock_seq_low`
-  b[i++] = clockseq & 0xff;
-
-  // `node`
-  var node = options.node || _nodeId;
-  for (var n = 0; n < 6; ++n) {
-    b[i + n] = node[n];
-  }
-
-  return buf ? buf : bytesToUuid_1(b);
+// Calculate a one-sided slope.
+function slope2(that, t) {
+  var h = that._x1 - that._x0;
+  return h ? (3 * (that._y1 - that._y0) / h - t) / 2 : t;
 }
 
-var v1_1 = v1;
+// According to https://en.wikipedia.org/wiki/Cubic_Hermite_spline#Representations
+// "you can express cubic Hermite interpolation in terms of cubic Bézier curves
+// with respect to the four values p0, p0 + m0 / 3, p1 - m1 / 3, p1".
+function point$5(that, t0, t1) {
+  var x0 = that._x0,
+      y0 = that._y0,
+      x1 = that._x1,
+      y1 = that._y1,
+      dx = (x1 - x0) / 3;
+  that._context.bezierCurveTo(x0 + dx, y0 + dx * t0, x1 - dx, y1 - dx * t1, x1, y1);
+}
 
-function v4(options, buf, offset) {
-  var i = buf && offset || 0;
+function MonotoneX(context) {
+  this._context = context;
+}
 
-  if (typeof(options) == 'string') {
-    buf = options == 'binary' ? new Array(16) : null;
-    options = null;
-  }
-  options = options || {};
-
-  var rnds = options.random || (options.rng || rngBrowser)();
-
-  // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
-  rnds[6] = (rnds[6] & 0x0f) | 0x40;
-  rnds[8] = (rnds[8] & 0x3f) | 0x80;
-
-  // Copy bytes to buffer, if provided
-  if (buf) {
-    for (var ii = 0; ii < 16; ++ii) {
-      buf[i + ii] = rnds[ii];
+MonotoneX.prototype = {
+  areaStart: function() {
+    this._line = 0;
+  },
+  areaEnd: function() {
+    this._line = NaN;
+  },
+  lineStart: function() {
+    this._x0 = this._x1 =
+    this._y0 = this._y1 =
+    this._t0 = NaN;
+    this._point = 0;
+  },
+  lineEnd: function() {
+    switch (this._point) {
+      case 2: this._context.lineTo(this._x1, this._y1); break;
+      case 3: point$5(this, this._t0, slope2(this, this._t0)); break;
     }
-  }
+    if (this._line || (this._line !== 0 && this._point === 1)) this._context.closePath();
+    this._line = 1 - this._line;
+  },
+  point: function(x, y) {
+    var t1 = NaN;
 
-  return buf || bytesToUuid_1(rnds);
+    x = +x, y = +y;
+    if (x === this._x1 && y === this._y1) return; // Ignore coincident points.
+    switch (this._point) {
+      case 0: this._point = 1; this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y); break;
+      case 1: this._point = 2; break;
+      case 2: this._point = 3; point$5(this, slope2(this, t1 = slope3(this, x, y)), t1); break;
+      default: point$5(this, this._t0, t1 = slope3(this, x, y)); break;
+    }
+
+    this._x0 = this._x1, this._x1 = x;
+    this._y0 = this._y1, this._y1 = y;
+    this._t0 = t1;
+  }
+};
+
+function MonotoneY(context) {
+  this._context = new ReflectContext(context);
 }
 
-var v4_1 = v4;
+(MonotoneY.prototype = Object.create(MonotoneX.prototype)).point = function(x, y) {
+  MonotoneX.prototype.point.call(this, y, x);
+};
 
-var uuid = v4_1;
-uuid.v1 = v1_1;
-uuid.v4 = v4_1;
+function ReflectContext(context) {
+  this._context = context;
+}
 
-var uuid_1 = uuid;
+ReflectContext.prototype = {
+  moveTo: function(x, y) { this._context.moveTo(y, x); },
+  closePath: function() { this._context.closePath(); },
+  lineTo: function(x, y) { this._context.lineTo(y, x); },
+  bezierCurveTo: function(x1, y1, x2, y2, x, y) { this._context.bezierCurveTo(y1, x1, y2, x2, y, x); }
+};
 
 var PlaneData;
 var T;
@@ -64619,9 +66638,12 @@ var getRatios;
 var hyperbolicErrors;
 var matrix;
 var scaleRatio;
-var transpose$1;
+var select$2;
+var transpose$2;
 var vecAngle;
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+select$2 = d3$1.select;
 
 fixAngle = function(a) {
   // Put an angle on the interval [-Pi,Pi]
@@ -64651,7 +66673,7 @@ dot = function(...args) {
   return mathjs.multiply(...args.map(matrix));
 };
 
-transpose$1 = function(m) {
+transpose$2 = function(m) {
   return mathjs.transpose(matrix(m));
 };
 
@@ -64683,7 +66705,7 @@ getRatios = function(x, y) {
   ratioX = scaleRatio(x);
   ratioY = scaleRatio(y);
   screenRatio = ratioX / ratioY;
-  lineGenerator = d3$1.line().x(function(d) {
+  lineGenerator = line().x(function(d) {
     return d[0] * ratioX;
   }).y(function(d) {
     return d[1] * ratioY;
@@ -64746,7 +66768,7 @@ hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     angularError = cutAngle * 2 * 180 / Math.PI;
     if (angularError > 90) {
       //# This plane has undefined errors
-      hyp = d3$1.select(this).attr('visibility', 'hidden');
+      hyp = select$2(this).attr('visibility', 'hidden');
       return;
     }
     //console.log "Error: ", angularError
@@ -64766,7 +66788,7 @@ hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
       }).apply(this).map(function(d) {
         return cutAngle + (d / n * (Math.PI - cutAngle)) + Math.PI / 2;
       });
-      arr = transpose$1([
+      arr = transpose$2([
         mathjs.multiply(mathjs.tan(angles),
         a),
         mathjs.cos(angles).map(function(v) {
@@ -64819,7 +66841,7 @@ hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     //console.log 'Angle', __angle
     //__angle = 0
     //# Start DOM manipulation ###
-    hyp = d3$1.select(this).attr('visibility', 'visible').attr('transform', `translate(${translate[0]},${translate[1]}) rotate(${v})`);
+    hyp = select$2(this).attr('visibility', 'visible').attr('transform', `translate(${translate[0]},${translate[1]}) rotate(${v})`);
     hyp.classed('in_group', d.in_group);
     lim = width / 2;
     lim = Math.abs(inPlaneLength);
@@ -64833,7 +66855,7 @@ hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     mid = null;
     if (!mask.node()) {
       mid = uuid_1.v4();
-      mask = hyp.append('mask').attr('id', mid).at(masksz).append('rect').at(_extends({}, masksz, {
+      mask = hyp.append('mask').attr('id', mid).attrs(masksz).append('rect').attrs(_extends({}, masksz, {
         fill: "url(#gradient)"
       }));
     }
@@ -64841,7 +66863,7 @@ hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
       mid = mask.attr('id');
     }
     if (centerPoint) {
-      hyp.selectAppend('circle').at({
+      hyp.selectAppend('circle').attrs({
         r: 2,
         fill: 'black'
       });
@@ -64852,7 +66874,7 @@ hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
   };
   //if nominal
   //hyp.selectAppend 'line.nominal'
-  //.at x1: -largeNumber, x2: largeNumber
+  //.attrs x1: -largeNumber, x2: largeNumber
   //.attr 'stroke', '#000000'
   dfunc.setupGradient = function(el) {
     var defs, g, stop;
@@ -64861,7 +66883,7 @@ hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     stop = function(ofs, op) {
       var a;
       a = Math.round(op * 255);
-      return g.append('stop').at({
+      return g.append('stop').attrs({
         offset: ofs,
         'stop-color': `rgb(${a},${a},${a})`,
         'stop-opacity': op
@@ -64908,7 +66930,7 @@ digitizedLine = function(viewpoint, lineGenerator) {
     });
     a = dot(v, q);
     data = dot(a, T).toArray();
-    return d3$1.select(this).attr('d', lineGenerator(data));
+    return select$2(this).attr('d', lineGenerator(data));
   };
   f.axes = function(o) {
     if (o == null) {
@@ -64921,12 +66943,12 @@ digitizedLine = function(viewpoint, lineGenerator) {
 };
 
 PlaneData = class PlaneData {
-  constructor(data, mean$$1 = null) {
+  constructor(data, mean = null) {
     var axes, color, extracted, hyperbolic_axes;
     this.dip = this.dip.bind(this);
     this.apparentDip = this.apparentDip.bind(this);
     ({axes, hyperbolic_axes, extracted, color} = data);
-    this.mean = mean$$1 || data.mean || data.center;
+    this.mean = mean || data.mean || data.center;
     this.axes = data.axes;
     this.color = color;
     this.lengths = hyperbolic_axes;
@@ -64941,7 +66963,7 @@ PlaneData = class PlaneData {
     //# Extract mean of data on each axis ##
     if (this.mean == null) {
       this.mean = [0, 1, 2].map((i) => {
-        return d3$1.mean(this.array, function(d) {
+        return mean(this.array, function(d) {
           return d[i];
         });
       });
@@ -65220,4 +67242,4 @@ exports.createUI = function(__base) {
   };
 };
 
-}((this.attitudeUI = this.attitudeUI || {}),d3));
+}((this.attitudeUI = this.attitudeUI || {}),d3,null,crypto$1));
