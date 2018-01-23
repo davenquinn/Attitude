@@ -84,12 +84,15 @@ __planeAngle = (axes, angle)->
   angle - M.acos(vecAngle([a0[0],a0[1],0],[1,0,0]))
 
 hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
+  # Viewpoint should be an angle from north in radians
   n = 10
   angle = viewpoint
   gradient = null
   width = 400
   nominal = false
   centerPoint = false
+  # Whether to exaggerate error angles along with scale
+  scaleErrorAngles = true
 
   # For 3 coordinates on each half of the hyperbola, we collapse down to
   # a special case where no trigonometry outside of tangents have to be calculated
@@ -101,6 +104,7 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
   dfunc = (d)->
     # Get a single level of planar errors (or the
     # plane's nominal value) as a girdle
+
     rax = d.axes
     if rax[2][2] < 0
       rax = rax.map (row)->row.map (i)->-i
@@ -140,7 +144,10 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
     # find length at which tangent is x long
     lengthShown = width/2
 
-    cutAngle2 = Math.atan2(b,a*screenRatio)
+    if scaleErrorAngles
+      cutAngle2 = Math.atan2(b,a*screenRatio)
+    else
+      cutAngle2 = cutAngle
     inPlaneLength = lengthShown * Math.cos cutAngle2
 
     ## We will transform with svg functions
@@ -203,6 +210,12 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
       #__angle *= -1
     #console.log 'Angle', __angle
     #__angle = 0
+
+    if not scaleErrorAngles
+      lineGenerator = line()
+        .x (d)->d[0]*ratioX
+        .y (d)->d[1]*ratioX
+
     ## Start DOM manipulation ###
     hyp = select(@)
       .attr 'visibility','visible'
@@ -263,6 +276,11 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
     stop(0.55,1)
     stop(0.8,0.1)
     stop(1,0)
+
+  dfunc.scaleErrorAngles = (o)->
+    return scaleErrorAngles unless o?
+    scaleErrorAngles = o
+    return dfunc
 
   dfunc.width = (o)->
     return width unless o?

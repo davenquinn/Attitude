@@ -10171,12 +10171,15 @@ __planeAngle = function(axes, angle) {
 };
 
 exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
-  var angle, centerPoint, dfunc, gradient, lineGenerator, n, nCoords, nominal, ratioX, ratioY, screenRatio, width;
+  var angle, centerPoint, dfunc, gradient, lineGenerator, n, nCoords, nominal, ratioX, ratioY, scaleErrorAngles, screenRatio, width;
+  // Viewpoint should be an angle from north in radians
   n = 10;
   angle = viewpoint;
   width = 400;
   nominal = false;
   centerPoint = false;
+  // Whether to exaggerate error angles along with scale
+  scaleErrorAngles = true;
   // For 3 coordinates on each half of the hyperbola, we collapse down to
   // a special case where no trigonometry outside of tangents have to be calculated
   // at each step. This is much more efficient, at the cost of the fine structure
@@ -10224,7 +10227,11 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     //console.log "Error: ", angularError
     // find length at which tangent is x long
     lengthShown = width / 2;
-    cutAngle2 = Math.atan2(b, a * screenRatio);
+    if (scaleErrorAngles) {
+      cutAngle2 = Math.atan2(b, a * screenRatio);
+    } else {
+      cutAngle2 = cutAngle;
+    }
     inPlaneLength = lengthShown * Math.cos(cutAngle2);
     //# We will transform with svg functions
     //# so we can neglect some of the math
@@ -10290,6 +10297,13 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     //__angle *= -1
     //console.log 'Angle', __angle
     //__angle = 0
+    if (!scaleErrorAngles) {
+      lineGenerator = line().x(function(d) {
+        return d[0] * ratioX;
+      }).y(function(d) {
+        return d[1] * ratioX;
+      });
+    }
     //# Start DOM manipulation ###
     hyp = select$2(this).attr('visibility', 'visible').attr('transform', `translate(${translate[0]},${translate[1]}) rotate(${v})`);
     hyp.classed('in_group', d.in_group);
@@ -10345,6 +10359,13 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     stop(0.55, 1);
     stop(0.8, 0.1);
     return stop(1, 0);
+  };
+  dfunc.scaleErrorAngles = function(o) {
+    if (o == null) {
+      return scaleErrorAngles;
+    }
+    scaleErrorAngles = o;
+    return dfunc;
   };
   dfunc.width = function(o) {
     if (o == null) {
