@@ -36,7 +36,7 @@ class DataPanelComponent extends React.Component
       "Type ", h("code","s"), " to "+__
     ]
     if selection.length > 0
-      selectionInfo += h 'p.info', [
+      selectionInfoA = h 'p.info', [
         "Type ", h("code","backspace"), " to clear selection"
       ]
 
@@ -52,7 +52,8 @@ class DataPanelComponent extends React.Component
       ]
       h 'h4', 'Angular errors'
       @angularErrors()
-      selectionInfo...
+      selectionInfo
+      selectionInfoA or null
     ]
 
   angularErrors: ->

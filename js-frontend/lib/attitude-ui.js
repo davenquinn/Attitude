@@ -67362,7 +67362,7 @@ AngularMeasurement = class AngularMeasurement extends React.Component {
 
 DataPanelComponent = class DataPanelComponent extends React.Component {
   render() {
-    var __, attitude, dip, isSelected, selection, selectionInfo, strike, uid;
+    var __, attitude, dip, isSelected, selection, selectionInfo, selectionInfoA, strike, uid;
     ({attitude, selection} = this.props);
     if (attitude == null) {
       return reactHyperscript('div.plane-desc', [reactHyperscript('p', {}, "Roll over a measurement to see details")]);
@@ -67378,7 +67378,7 @@ DataPanelComponent = class DataPanelComponent extends React.Component {
     }
     selectionInfo = reactHyperscript('p.info', ["Type ", reactHyperscript("code", "s"), " to " + __]);
     if (selection.length > 0) {
-      selectionInfo += reactHyperscript('p.info', ["Type ", reactHyperscript("code", "backspace"), " to clear selection"]);
+      selectionInfoA = reactHyperscript('p.info', ["Type ", reactHyperscript("code", "backspace"), " to clear selection"]);
     }
     return reactHyperscript('div.plane-desc', [
       reactHyperscript('h3.data-id',
@@ -67403,7 +67403,8 @@ DataPanelComponent = class DataPanelComponent extends React.Component {
       reactHyperscript('h4',
       'Angular errors'),
       this.angularErrors(),
-      ...selectionInfo
+      selectionInfo,
+      selectionInfoA || null
     ]);
   }
 
