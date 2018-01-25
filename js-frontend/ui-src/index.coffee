@@ -125,14 +125,28 @@ createUI = (__base) ->
   overallCenter = [0..2].map (i)->
     d3.sum weights, (d)->d[i]/totalLength
 
+  xsize = 0
+  ysize = 0
+
   for p in singlePlanes
     p.offset = M.subtract(p.mean, overallCenter)
+    [x,y,z] = M.abs(p.offset)
+    if z > ysize
+      ysize = z
+    h = Math.hypot(x,y)
+    if h > xsize
+      xsize = h
+
     p.in_group = false
     if p.data.member_of?
       group = dataA.find (d)->d.uid == p.data.member_of
       p.group = new PlaneData group, p.mean
       p.group.offset = p.offset
       p.in_group = true
+
+  xsize *= 1.1
+  ysize *= 1.1
+  console.log xsize,ysize
 
   margin = 30
   marginLeft = 50
@@ -149,11 +163,11 @@ createUI = (__base) ->
 
   x = d3.scaleLinear()
     .range [0,innerSize.width]
-    .domain [-1000,1000]
+    .domain [-xsize, xsize]
 
   y = d3.scaleLinear()
     .range [innerSize.height,0]
-    .domain [-600,600]
+    .domain [-ysize, ysize]
 
   dataArea = svg.append 'g.data'
 
@@ -169,8 +183,14 @@ createUI = (__base) ->
     mWidth = Math.abs(w*mPerPx)
     scale.domain [-mWidth/2,mWidth/2]
 
-  setScale(x, 0.8)
-  setScale(y, 0.8)
+  # For 1:1
+  yRatio = Math.abs(1/(y(1)-y(0)))
+  xRatio = Math.abs(1/(x(1)-x(0)))
+
+  if xRatio > yRatio
+    setScale(y, xRatio)
+  else
+    setScale(x, yRatio)
 
   lineGenerator = d3.line()
     .x (d)->x(d[0])

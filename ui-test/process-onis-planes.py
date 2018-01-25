@@ -23,7 +23,8 @@ groups = (
     ["493a240a","04987fe8"],
     ["8565a276","939d9b9a"],
     ["c2122b2a","de785eb5"],
-    ["730a6124","eb31c4b0"]
+    ["730a6124","eb31c4b0"],
+    ["15026bc4","04987fe8"]
 )
 
 groupedOrientations = create_groups(orientations, *groups,
@@ -34,12 +35,6 @@ groupedOrientations = [o for o in groupedOrientations if o.hash not in disabled]
 
 collection = [a.to_mapping(color='#ff0000', type='remote')
               for a in groupedOrientations]
-
-orientations = create_groups(orientations, *groups,
-                             same_plane=False)
-
-collection = [a.to_mapping(color='#ff0000', type='remote')
-              for a in orientations]
 
 fn = path.join(DATA,'field-orientations.geojson')
 

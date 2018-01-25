@@ -66941,7 +66941,7 @@ exports.createUI = function(__base) {
   /*
   Stereonet
   */
-  var M, __domain, __dw, _x, accum, axes, azLabel, c, collectID, collectedIDs, darkenColor, data, dataA, dataArea, errorContainer, errorContainerGrouped, f, fmt, group, innerSize, j, k, len1, len2, lineGenerator, margin, marginLeft, marginRight, overallCenter, p, planeContainer, setScale, singlePlanes, stereonet, svg, sz, totalLength, updatePlanes, updateSelected, weights, x, xA, xAx, y, yA, yAx;
+  var M, __domain, __dw, _x, accum, axes, azLabel, c, collectID, collectedIDs, darkenColor, data, dataA, dataArea, errorContainer, errorContainerGrouped, f, fmt, group, h, innerSize, j, k, len1, len2, lineGenerator, margin, marginLeft, marginRight, overallCenter, p, planeContainer, setScale, singlePlanes, stereonet, svg, sz, totalLength, updatePlanes, updateSelected, weights, x, xA, xAx, xRatio, xsize, y, yA, yAx, yRatio, ysize, z;
   data = __base.datum();
   stereonet = Stereonet().size(400).margin(25);
   svg = __base.select('.stereonet').attr('class', 'stereonet').call(stereonet);
@@ -67042,9 +67042,19 @@ exports.createUI = function(__base) {
       return d[i] / totalLength;
     });
   });
+  xsize = 0;
+  ysize = 0;
   for (k = 0, len2 = singlePlanes.length; k < len2; k++) {
     p = singlePlanes[k];
     p.offset = M.subtract(p.mean, overallCenter);
+    [x, y, z] = M.abs(p.offset);
+    if (z > ysize) {
+      ysize = z;
+    }
+    h = Math.hypot(x, y);
+    if (h > xsize) {
+      xsize = h;
+    }
     p.in_group = false;
     if (p.data.member_of != null) {
       group = dataA.find(function(d) {
@@ -67055,6 +67065,9 @@ exports.createUI = function(__base) {
       p.in_group = true;
     }
   }
+  xsize *= 1.1;
+  ysize *= 1.1;
+  console.log(xsize, ysize);
   margin = 30;
   marginLeft = 50;
   marginRight = 100;
@@ -67069,8 +67082,8 @@ exports.createUI = function(__base) {
   svg = __base.select('svg.horizontal-area').at(sz).append('g').at({
     transform: `translate(${marginLeft},${margin})`
   });
-  x = d3.scaleLinear().range([0, innerSize.width]).domain([-1000, 1000]);
-  y = d3.scaleLinear().range([innerSize.height, 0]).domain([-600, 600]);
+  x = d3.scaleLinear().range([0, innerSize.width]).domain([-xsize, xsize]);
+  y = d3.scaleLinear().range([innerSize.height, 0]).domain([-ysize, ysize]);
   dataArea = svg.append('g.data');
   errorContainer = dataArea.append('g.errors');
   errorContainerGrouped = dataArea.append('g.errors-grouped');
@@ -67082,8 +67095,16 @@ exports.createUI = function(__base) {
     mWidth = Math.abs(w * mPerPx);
     return scale.domain([-mWidth / 2, mWidth / 2]);
   };
-  setScale(x, 0.8);
-  setScale(y, 0.8);
+  // For 1:1
+  yRatio = Math.abs(1 / (y(1) - y(0)));
+  xRatio = Math.abs(1 / (x(1) - x(0)));
+  console.log(xRatio, yRatio);
+  if (xRatio > yRatio) {
+    setScale(y, xRatio);
+  } else {
+    setScale(x, yRatio);
+  }
+  //setScale(y, 0.8)
   lineGenerator = d3.line().x(function(d) {
     return x(d[0]);
   }).y(function(d) {
