@@ -68,6 +68,10 @@ class AttitudeUI extends React.Component
     if not d?
       @setState {hovered: null}
       return
+    # Transfer selection to group
+    if d.member_of?
+      newSel = @findAttitudes([d.member_of])[0]
+      d = newSel if newSel?
     if d.members?
       hovered = [d, @findAttitudes(d.members)...]
     else

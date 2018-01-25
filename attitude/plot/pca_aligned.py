@@ -115,12 +115,12 @@ def plot_aligned(pca, sparse=True, **kwargs):
         else:
             ax.scatter(x,y,c=A[:,-1], cmap=colormap, **kw)
 
-        ax.set_aspect("equal")
+        #ax.set_aspect("equal")
 
         ax.text(0.01,.99,title,
             verticalalignment='top',
             transform=ax.transAxes)
-        ax.autoscale(tight=True)
+        #ax.autoscale(tight=True)
         ax.yaxis.set_ticks([])
         ax.xaxis.set_ticks_position('bottom')
         if a != 1:

@@ -63,8 +63,8 @@ class DataPanelComponent extends React.Component
     ]
 
   angularErrors: ->
-    {min_angular_error, max_angular_error} = @props.attitude
-    if (min_angular_error == 0 and max_angular_error == 0)
+    {min_angular_error, max_angular_error} = @props.attitude[0]
+    if (min_angular_error < 0.01 and max_angular_error < 0.01)
       return h 'p', 'No errors recorded'
     return h 'ul', [
       h AngularMeasurement, {label: 'Min: ', datum: min_angular_error}

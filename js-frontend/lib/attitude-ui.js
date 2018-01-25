@@ -67523,8 +67523,8 @@ DataPanelComponent = class DataPanelComponent extends React.Component {
 
   angularErrors() {
     var max_angular_error, min_angular_error;
-    ({min_angular_error, max_angular_error} = this.props.attitude);
-    if (min_angular_error === 0 && max_angular_error === 0) {
+    ({min_angular_error, max_angular_error} = this.props.attitude[0]);
+    if (min_angular_error < 0.01 && max_angular_error < 0.01) {
       return reactHyperscript('p', 'No errors recorded');
     }
     return reactHyperscript('ul', [
@@ -67634,13 +67634,20 @@ AttitudeUI = (function() {
     }
 
     onHover(d) {
-      var hovered;
+      var hovered, newSel;
       boundMethodCheck(this, AttitudeUI);
       if (d == null) {
         this.setState({
           hovered: null
         });
         return;
+      }
+      // Transfer selection to group
+      if (d.member_of != null) {
+        newSel = this.findAttitudes([d.member_of])[0];
+        if (newSel != null) {
+          d = newSel;
+        }
       }
       if (d.members != null) {
         hovered = [d, ...this.findAttitudes(d.members)];
