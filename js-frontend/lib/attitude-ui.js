@@ -1,7 +1,5 @@
-(function (exports,d3$1,d3SelectionMulti,crypto$1) {
+(function (exports,d3$1) {
 'use strict';
-
-crypto$1 = crypto$1 && crypto$1.hasOwnProperty('default') ? crypto$1['default'] : crypto$1;
 
 var cart2sph;
 var combinedErrors$1;
@@ -5934,14 +5932,39 @@ globalLabels = function() {
   };
 };
 
-// Unique ID creation requires a high quality random # generator.  In node.js
-// this is pretty straight-forward - we use the crypto API.
+// Unique ID creation requires a high quality random # generator.  In the
+// browser this is a little complicated due to unknown quality of Math.random()
+// and inconsistent support for the `crypto` API.  We do the best we can via
+// feature-detection
+var rng;
 
+var crypto$1 = commonjsGlobal.crypto || commonjsGlobal.msCrypto; // for IE 11
+if (crypto$1 && crypto$1.getRandomValues) {
+  // WHATWG crypto RNG - http://wiki.whatwg.org/wiki/Crypto
+  var rnds8 = new Uint8Array(16); // eslint-disable-line no-undef
+  rng = function whatwgRNG() {
+    crypto$1.getRandomValues(rnds8);
+    return rnds8;
+  };
+}
 
+if (!rng) {
+  // Math.random()-based (RNG)
+  //
+  // If all else fails, use Math.random().  It's fast, but is of unspecified
+  // quality.
+  var rnds = new Array(16);
+  rng = function() {
+    for (var i = 0, r; i < 16; i++) {
+      if ((i & 0x03) === 0) r = Math.random() * 0x100000000;
+      rnds[i] = r >>> ((i & 0x03) << 3) & 0xff;
+    }
 
-var rng = function nodeRNG() {
-  return crypto$1.randomBytes(16);
-};
+    return rnds;
+  };
+}
+
+var rngBrowser = rng;
 
 /**
  * Convert array of 16 byte values to UUID string format of the form:
@@ -5972,8 +5995,17 @@ var bytesToUuid_1 = bytesToUuid;
 // Inspired by https://github.com/LiosK/UUID.js
 // and http://docs.python.org/library/uuid.html
 
-var _nodeId;
-var _clockseq;
+// random #'s we need to init node and clockseq
+var _seedBytes = rngBrowser();
+
+// Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
+var _nodeId = [
+  _seedBytes[0] | 0x01,
+  _seedBytes[1], _seedBytes[2], _seedBytes[3], _seedBytes[4], _seedBytes[5]
+];
+
+// Per 4.2.2, randomize (14 bit) clockseq
+var _clockseq = (_seedBytes[6] << 8 | _seedBytes[7]) & 0x3fff;
 
 // Previous uuid creation time
 var _lastMSecs = 0;
@@ -5985,26 +6017,8 @@ function v1(options, buf, offset) {
   var b = buf || [];
 
   options = options || {};
-  var node = options.node || _nodeId;
-  var clockseq = options.clockseq !== undefined ? options.clockseq : _clockseq;
 
-  // node and clockseq need to be initialized to random values if they're not
-  // specified.  We do this lazily to minimize issues related to insufficient
-  // system entropy.  See #189
-  if (node == null || clockseq == null) {
-    var seedBytes = rng();
-    if (node == null) {
-      // Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
-      node = _nodeId = [
-        seedBytes[0] | 0x01,
-        seedBytes[1], seedBytes[2], seedBytes[3], seedBytes[4], seedBytes[5]
-      ];
-    }
-    if (clockseq == null) {
-      // Per 4.2.2, randomize (14 bit) clockseq
-      clockseq = _clockseq = (seedBytes[6] << 8 | seedBytes[7]) & 0x3fff;
-    }
-  }
+  var clockseq = options.clockseq !== undefined ? options.clockseq : _clockseq;
 
   // UUID timestamps are 100 nano-second units since the Gregorian epoch,
   // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
@@ -6065,6 +6079,7 @@ function v1(options, buf, offset) {
   b[i++] = clockseq & 0xff;
 
   // `node`
+  var node = options.node || _nodeId;
   for (var n = 0; n < 6; ++n) {
     b[i + n] = node[n];
   }
@@ -6078,12 +6093,12 @@ function v4(options, buf, offset) {
   var i = buf && offset || 0;
 
   if (typeof(options) == 'string') {
-    buf = options === 'binary' ? new Array(16) : null;
+    buf = options == 'binary' ? new Array(16) : null;
     options = null;
   }
   options = options || {};
 
-  var rnds = options.random || (options.rng || rng)();
+  var rnds = options.random || (options.rng || rngBrowser)();
 
   // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
   rnds[6] = (rnds[6] & 0x0f) | 0x40;
@@ -31420,7 +31435,7 @@ var type = [
   unit$1
 ];
 
-var version = '3.20.1';
+var version = '3.18.0';
 
 function factory$60 (type, config, load, typed, math) {
   // listen for changed in the configuration, automatically reload
@@ -40159,7 +40174,7 @@ var name$73 = 'ParenthesisNode';
 var path$30 = 'expression.node';
 var factory_1$82 = factory$82;
 
-var ParenthesisNode = {
+var ParenthesisNode$1 = {
 	name: name$73,
 	path: path$30,
 	factory: factory_1$82
@@ -40176,7 +40191,7 @@ function factory$63 (type, config, load, typed) {
   var IndexNode$$1               = load(IndexNode);
   var ObjectNode$$1              = load(ObjectNode);
   var OperatorNode$$1            = load(OperatorNode);
-  var ParenthesisNode$$1         = load(ParenthesisNode);
+  var ParenthesisNode         = load(ParenthesisNode$1);
   var FunctionNode$$1            = load(FunctionNode);
   var RangeNode$$1               = load(RangeNode);
   var SymbolNode$$1              = load(SymbolNode);
@@ -41635,7 +41650,7 @@ function factory$63 (type, config, load, typed) {
       closeParams();
       getToken();
 
-      node = new ParenthesisNode$$1(node);
+      node = new ParenthesisNode(node);
       node = parseAccessors(node);
       return node;
     }
@@ -42249,7 +42264,7 @@ var node = [
   Node,
   ObjectNode,
   OperatorNode,
-  ParenthesisNode,
+  ParenthesisNode$1,
   RangeNode,
   SymbolNode,
   UpdateNode
@@ -44365,7 +44380,7 @@ function factory$112(type, config, load, typed, math) {
 
 
   function isCommutative(node, context) {
-    if (!type.isOperatorNode(node)) {
+    if (!node.args || node.args.length <=1) {
       return true;
     }
     var name = node.fn.toString();
@@ -44376,8 +44391,8 @@ function factory$112(type, config, load, typed, math) {
   }
 
   function isAssociative(node, context) {
-    if (!type.isOperatorNode(node)) {
-      return false;
+    if (!node.args || node.args.length <=1) {
+      return true;
     }
     var name = node.fn.toString();
     if (context && context.hasOwnProperty(name) && context[name].hasOwnProperty('associative')) {
@@ -44419,7 +44434,7 @@ function factory$112(type, config, load, typed, math) {
       }
     };
 
-    if (isAssociative(node)) {
+    if (type.isOperatorNode(node) && isAssociative(node)) {
       op = node.op;
       findChildren(node);
       return children;
@@ -44517,7 +44532,6 @@ function factory$111(type, config, load, typed, math) {
   var createMakeNodeFunction = util.createMakeNodeFunction;
   var ConstantNode = math.expression.node.ConstantNode;
   var OperatorNode = math.expression.node.OperatorNode;
-  var FunctionNode = math.expression.node.FunctionNode;
 
   function simplifyConstant(expr) {
     var res = foldFraction(expr);
@@ -44666,29 +44680,6 @@ function factory$111(type, config, load, typed, math) {
         if (math[node.name] && math[node.name].rawArgs) {
           return node;
         }
-
-        // Process operators as OperatorNode
-        var operatorFunctions = [ 'add', 'multiply' ];
-        if (operatorFunctions.indexOf(node.name) === -1) {
-          var args = node.args.map(foldFraction);
-
-          // If all args are numbers
-          if (!args.some(type.isNode)) {
-            try {
-              return _eval(node.name, args);
-            }
-            catch (ignoreandcontine) {}
-          }
-
-          // Convert all args to nodes and construct a symbolic function call
-          args = args.map(function(arg) {
-            return type.isNode(arg) ? arg : _toNode(arg);
-          });
-          return new FunctionNode(node.name, args);
-        }
-        else {
-          // treat as operator
-        }
         /* falls through */
       case 'OperatorNode':
         var fn = node.fn.toString();
@@ -44789,7 +44780,6 @@ function factory$113(type, config, load, typed, math) {
   var ConstantNode = math.expression.node.ConstantNode;
   var OperatorNode = math.expression.node.OperatorNode;
   var FunctionNode = math.expression.node.FunctionNode;
-  var ParenthesisNode = math.expression.node.ParenthesisNode;
 
   var node0 = new ConstantNode(0);
   var node1 = new ConstantNode(1);
@@ -44802,7 +44792,7 @@ function factory$113(type, config, load, typed, math) {
    *
    * Syntax:
    *
-   *     simplify.simplifyCore(expr)
+   *     simplify.simpifyCore(expr)
    *
    * Examples:
    *
@@ -44859,8 +44849,6 @@ function factory$113(type, config, load, typed, math) {
               if (type.isOperatorNode(a0)) {
                   if (a0.fn === 'unaryMinus') {
                       return a0.args[0];
-                  } else if (a0.fn === 'subtract') {
-                      return new OperatorNode('-', 'subtract', [a0.args[1], a0.args[0]]);
                   }
               }
               return new OperatorNode(node.op, node.fn, [a0]);
@@ -44906,22 +44894,9 @@ function factory$113(type, config, load, typed, math) {
                   return node1;
               } else if (a1.value === "1") {
                   return a0;
-              } else {
-                  if (type.isConstantNode(a0) && 
-                      a0.value && a0.value.length < 5 && 
-                      a1.value && a1.value.length < 2) { 
-                      // fold constant
-                      return new ConstantNode(
-                          math.pow(Number(a0.value), Number(a1.value)));
-                  } else if (type.isOperatorNode(a0) && a0.op === "^") {
-                      var a01 = a0.args[1];
-                      if (type.isConstantNode(a01)) {
-                          return new OperatorNode(node.op, node.fn, [
-                              a0.args[0], 
-                              new ConstantNode(a01.value * a1.value)
-                          ]);
-                      }
-                  }
+              } else if (type.isConstantNode(a1) && a0.value && a0.value.length < 5 && a1.value && a1.value.length < 2) { // fold constant
+                  return new ConstantNode(
+                      math.pow(Number(a0.value), Number(a1.value)));
               }
           }
           return new OperatorNode(node.op, node.fn, [a0, a1]);
@@ -45031,7 +45006,7 @@ function factory$110 (type, config, load, typed, math) {
   var ConstantNode$$2 = load(ConstantNode);
   var FunctionNode$$2 = load(FunctionNode);
   var OperatorNode$$2 = load(OperatorNode);
-  var ParenthesisNode$$2 = load(ParenthesisNode);
+  var ParenthesisNode = load(ParenthesisNode$1);
   var SymbolNode$$2 = load(SymbolNode);
   var Node$$2 = load(Node);
   var simplifyConstant$$1 = load(simplifyConstant);
@@ -45235,9 +45210,6 @@ function factory$110 (type, config, load, typed, math) {
     { l: 'n1*n2 + n2', r: '(n1+1)*n2' },
     { l: 'n1*n3 + n2*n3', r: '(n1+n2)*n3' },
 
-    // remove parenthesis in the case of negating a quantitiy
-    { l: 'n1 + -1 * (n2 + n3)', r:'n1 + -1 * n2 + -1 * n3' },
-
     simplifyConstant$$1,
 
     { l: '(-n)*n1', r: '-(n*n1)' }, // make factors positive (and undo 'make non-constant terms positive')
@@ -45255,8 +45227,8 @@ function factory$110 (type, config, load, typed, math) {
 
     { l: 'n*(n1/n2)', r:'(n*n1)/n2' }, // '*' before '/'
     { l: 'n-(n1+n2)', r:'n-n1-n2' }, // '-' before '+'
-    // { l: '(n1/n2)/n3', r: 'n1/(n2*n3)' },
-    // { l: '(n*n1)/(n*n2)', r: 'n1/n2' },
+    // { l: '(n1/n2)/n3', r: 'n1/(n2*n3)' }, 
+    // { l: '(n*n1)/(n*n2)', r: 'n1/n2' }, 
 
     { l: '1*n', r: 'n' } // this pattern can be produced by simplifyConstant
 
@@ -45305,7 +45277,7 @@ function factory$110 (type, config, load, typed, math) {
             newRule.evaluate = parse$$2(rule.evaluate);
           }
 
-          if (isAssociative(newRule.l)) {
+          if (newRule.l.isOperatorNode && isAssociative(newRule.l)) {
             var makeNode = createMakeNodeFunction(newRule.l);
             var expandsym = _getExpandPlaceholderSymbol();
             newRule.expanded = {};
@@ -45359,7 +45331,7 @@ function factory$110 (type, config, load, typed, math) {
           }
         }
       }
-      else if(res instanceof ParenthesisNode$$2) {
+      else if(res instanceof ParenthesisNode) {
         if(res.content) {
           res.content = applyRule(res.content, rule);
         }
@@ -45381,7 +45353,7 @@ function factory$110 (type, config, load, typed, math) {
 
         // Create a new node by cloning the rhs of the matched rule
         res = repl.clone();
-
+     
         // Replace placeholders with their respective nodes without traversing deeper into the replaced nodes
         var _transform = function(node) {
           if(node.isSymbolNode && matches.placeholders.hasOwnProperty(node.name)) {
@@ -45391,9 +45363,9 @@ function factory$110 (type, config, load, typed, math) {
             return node.map(_transform);
           }
         };
-
+        
         res = _transform(res);
-
+        
         // var after = res.toString({parenthesis: 'all'});
         // console.log('Simplified ' + before + ' to ' + after);
       }
@@ -45707,7 +45679,7 @@ function factory$109 (type, config, load, typed) {
   var ConstantNode$$2 = load(ConstantNode);
   var FunctionNode$$2 = load(FunctionNode);
   var OperatorNode$$2 = load(OperatorNode);
-  var ParenthesisNode$$2 = load(ParenthesisNode);
+  var ParenthesisNode = load(ParenthesisNode$1);
   var SymbolNode$$2 = load(SymbolNode);
 
   /**
@@ -45895,7 +45867,7 @@ function factory$109 (type, config, load, typed) {
     },
 
     'ParenthesisNode, Object': function (node, constNodes) {
-      return new ParenthesisNode$$2(_derivative(node.content, constNodes));
+      return new ParenthesisNode(_derivative(node.content, constNodes));
     },
 
     'FunctionAssignmentNode, Object': function (node, constNodes) {
@@ -46269,10 +46241,6 @@ function factory$109 (type, config, load, typed) {
 
       switch (node.op) {
         case '+':
-          // d/dx(sum(f(x)) = sum(f'(x))
-          return new OperatorNode$$2(node.op, node.fn, node.args.map(function(arg) {
-            return _derivative(arg, constNodes);
-          }));
         case '-':
           // d/dx(+/-f(x)) = +/-f'(x)
           if (node.args.length == 1) {
@@ -46286,32 +46254,19 @@ function factory$109 (type, config, load, typed) {
           ]);
         case '*':
           // d/dx(c*f(x)) = c*f'(x)
-          var constantTerms = node.args.filter(function(arg) {
-            return constNodes[arg] !== undefined;
-          });
-
-          if (constantTerms.length > 0) {
-            var nonConstantTerms = node.args.filter(function(arg) {
-              return constNodes[arg] === undefined;
-            });
-
-            var nonConstantNode = nonConstantTerms.length === 1
-              ? nonConstantTerms[0]
-              : new OperatorNode$$2('*', 'multiply', nonConstantTerms);
-
-            var newArgs = constantTerms.concat(_derivative(nonConstantNode, constNodes));
+          if (constNodes[arg1] !== undefined || constNodes[arg2] !== undefined) {
+            var newArgs = (constNodes[arg1] !== undefined)
+              ? [arg1.clone(), _derivative(arg2, constNodes)]
+              : [arg2.clone(), _derivative(arg1, constNodes)];
 
             return new OperatorNode$$2('*', 'multiply', newArgs);
           }
 
           // Product Rule, d/dx(f(x)*g(x)) = f'(x)*g(x) + f(x)*g'(x)
-          return new OperatorNode$$2('+', 'add', node.args.map(function(argOuter) {
-            return new OperatorNode$$2('*', 'multiply', node.args.map(function(argInner) {
-              return (argInner === argOuter)
-                ? _derivative(argInner, constNodes)
-                : argInner.clone();
-            }));
-          }));
+          return new OperatorNode$$2('+', 'add', [
+            new OperatorNode$$2('*', 'multiply', [_derivative(arg1, constNodes), arg2.clone()]),
+            new OperatorNode$$2('*', 'multiply', [arg1.clone(), _derivative(arg2, constNodes)])
+          ]);
         case '/':
           // d/dx(f(x) / c) = f'(x) / c
           if (constNodes[arg2] !== undefined) {
@@ -57053,14 +57008,9 @@ function factory$193 (type, config, load, typed) {
 
   var abs$$2 = load(abs);
   var add$$2 = load(add);
-  var addScalar$$2 = load(addScalar);
   var matrix = load(matrix$3);
   var multiply$$2 = load(multiply);
-  var multiplyScalar$$2 = load(multiplyScalar);
-  var divideScalar$$2 = load(divideScalar);
   var subtract$$2 = load(subtract);
-  var smaller$$2 = load(smaller);
-  var equalScalar$$2 = load(equalScalar);
 
   /**
    * Calculates the point of intersection of two lines in two or three dimensions
@@ -57091,8 +57041,8 @@ function factory$193 (type, config, load, typed) {
    */
   var intersect = typed('intersect', {
     'Array, Array, Array': function (x, y, plane) {
-      if (!_3d(x)) { throw new TypeError('Array with 3 numbers or BigNumbers expected for first argument'); }
-      if (!_3d(y)) { throw new TypeError('Array with 3 numbers or BigNumbers expected for second argument'); }
+      if (!_3d(x)) { throw new TypeError('Array with 3 numbers expected for first argument'); }
+      if (!_3d(y)) { throw new TypeError('Array with 3 numbers expected for second argument'); }
       if (!_4d(plane)) { throw new TypeError('Array with 4 numbers expected as third argument'); }
 
       return _intersectLinePlane(x[0], x[1], x[2], y[0], y[1], y[2], plane[0], plane[1], plane[2], plane[3]);
@@ -57100,18 +57050,18 @@ function factory$193 (type, config, load, typed) {
 
     'Array, Array, Array, Array': function (w, x, y, z) {
       if (w.length === 2) {
-        if (!_2d(w)) { throw new TypeError('Array with 2 numbers or BigNumbers expected for first argument'); }
-        if (!_2d(x)) { throw new TypeError('Array with 2 numbers or BigNumbers expected for second argument'); }
-        if (!_2d(y)) { throw new TypeError('Array with 2 numbers or BigNumbers expected for third argument'); }
-        if (!_2d(z)) { throw new TypeError('Array with 2 numbers or BigNumbers expected for fourth argument'); }
+        if (!_2d(w)) { throw new TypeError('Array with 2 numbers expected for first argument'); }
+        if (!_2d(x)) { throw new TypeError('Array with 2 numbers expected for second argument'); }
+        if (!_2d(y)) { throw new TypeError('Array with 2 numbers expected for third argument'); }
+        if (!_2d(z)) { throw new TypeError('Array with 2 numbers expected for fourth argument'); }
 
         return _intersect2d(w, x, y, z);
       }
       else if (w.length === 3) {
-        if (!_3d(w)) { throw new TypeError('Array with 3 numbers or BigNumbers expected for first argument'); }
-        if (!_3d(x)) { throw new TypeError('Array with 3 numbers or BigNumbers expected for second argument'); }
-        if (!_3d(y)) { throw new TypeError('Array with 3 numbers or BigNumbers expected for third argument'); }
-        if (!_3d(z)) { throw new TypeError('Array with 3 numbers or BigNumbers expected for fourth argument'); }
+        if (!_3d(w)) { throw new TypeError('Array with 3 numbers expected for first argument'); }
+        if (!_3d(x)) { throw new TypeError('Array with 3 numbers expected for second argument'); }
+        if (!_3d(y)) { throw new TypeError('Array with 3 numbers expected for third argument'); }
+        if (!_3d(z)) { throw new TypeError('Array with 3 numbers expected for fourth argument'); }
 
         return _intersect3d(w[0], w[1], w[2], x[0], x[1], x[2], y[0], y[1], y[2], z[0], z[1], z[2]);
       }
@@ -57130,21 +57080,16 @@ function factory$193 (type, config, load, typed) {
     }
   });
 
-  function _isNumber(a) {
-    // intersect supports numbers and bignumbers
-    return (typeof a === 'number' || type.isBigNumber(a));
-  }
-
   function _2d(x) {
-    return x.length === 2 && _isNumber(x[0]) && _isNumber(x[1]);
+    return x.length === 2 && typeof x[0] === 'number' && typeof x[1] === 'number';
   }
 
   function _3d(x) {
-    return x.length === 3 && _isNumber(x[0]) && _isNumber(x[1]) && _isNumber(x[2]);
+    return x.length === 3 && typeof x[0] === 'number' && typeof x[1] === 'number' && typeof x[2] === 'number';
   }
 
   function _4d(x) {
-    return x.length === 4 && _isNumber(x[0]) && _isNumber(x[1]) && _isNumber(x[2]) && _isNumber(x[3]);
+    return x.length === 4 && typeof x[0] === 'number' && typeof x[1] === 'number' && typeof x[2] === 'number' && typeof x[3] === 'number';
   }
 
   function _intersect2d(p1a, p1b, p2a, p2b){
@@ -57152,44 +57097,30 @@ function factory$193 (type, config, load, typed) {
     var o2 = p2a;
     var d1 = subtract$$2(o1, p1b);
     var d2 = subtract$$2(o2, p2b);
-    var det = subtract$$2(multiplyScalar$$2(d1[0], d2[1]), multiplyScalar$$2(d2[0], d1[1]));
-    if (smaller$$2(abs$$2(det), config.epsilon)) {
+    var det = d1[0]*d2[1] - d2[0]*d1[1];
+    if (abs$$2(det) < config.epsilon) {
       return null;
     }
-    var d20o11 = multiplyScalar$$2(d2[0], o1[1]);
-    var d21o10 = multiplyScalar$$2(d2[1], o1[0]);
-    var d20o21 = multiplyScalar$$2(d2[0], o2[1]);
-    var d21o20 = multiplyScalar$$2(d2[1], o2[0]);
-    var t = divideScalar$$2(addScalar$$2(subtract$$2(subtract$$2(d20o11, d21o10), d20o21), d21o20), det);
-    return add$$2(multiply$$2(d1, t), o1);
-  }
-
-  function _intersect3dHelper(a, b, c, d, e, f, g, h, i, j, k, l){
-      // (a - b)*(c - d) + (e - f)*(g - h) + (i - j)*(k - l)
-      var add1 = multiplyScalar$$2(subtract$$2(a, b), subtract$$2(c, d));
-      var add2 = multiplyScalar$$2(subtract$$2(e, f), subtract$$2(g, h));
-      var add3 = multiplyScalar$$2(subtract$$2(i, j), subtract$$2(k, l));
-      return addScalar$$2(addScalar$$2(add1, add2), add3);
+    var t = (d2[0]*o1[1] - d2[1]*o1[0] - d2[0]*o2[1] + d2[1]*o2[0]) / det;
+    return add$$2(multiply$$2(d1, t), o1); 
   }
 
   function _intersect3d(x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4){
-    var d1343 = _intersect3dHelper(x1, x3, x4, x3, y1, y3, y4, y3, z1, z3, z4, z3);
-    var d4321 = _intersect3dHelper(x4, x3, x2, x1, y4, y3, y2, y1, z4, z3, z2, z1);
-    var d1321 = _intersect3dHelper(x1, x3, x2, x1, y1, y3, y2, y1, z1, z3, z2, z1);
-    var d4343 = _intersect3dHelper(x4, x3, x4, x3, y4, y3, y4, y3, z4, z3, z4, z3);
-    var d2121 = _intersect3dHelper(x2, x1, x2, x1, y2, y1, y2, y1, z2, z1, z2, z1);
-    var ta = divideScalar$$2(
-      subtract$$2(multiplyScalar$$2(d1343, d4321), multiplyScalar$$2(d1321, d4343)),
-      subtract$$2(multiplyScalar$$2(d2121, d4343), multiplyScalar$$2(d4321, d4321)));
-    var tb = divideScalar$$2(addScalar$$2(d1343, multiplyScalar$$2(ta, d4321)), d4343);
+    var d1343 = (x1 - x3)*(x4 - x3) + (y1 - y3)*(y4 - y3) + (z1 - z3)*(z4 - z3);
+    var d4321 = (x4 - x3)*(x2 - x1) + (y4 - y3)*(y2 - y1) + (z4 - z3)*(z2 - z1);
+    var d1321 = (x1 - x3)*(x2 - x1) + (y1 - y3)*(y2 - y1) + (z1 - z3)*(z2 - z1);
+    var d4343 = (x4 - x3)*(x4 - x3) + (y4 - y3)*(y4 - y3) + (z4 - z3)*(z4 - z3);
+    var d2121 = (x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1) + (z2 - z1)*(z2 - z1);
+    var ta = ( d1343*d4321 - d1321*d4343 ) / ( d2121*d4343 - d4321*d4321 );
+    var tb = ( d1343 + ta * d4321 ) / (d4343);
 
-    var pax = addScalar$$2(x1, multiplyScalar$$2(ta, subtract$$2(x2, x1)));
-    var pay = addScalar$$2(y1, multiplyScalar$$2(ta, subtract$$2(y2, y1)));
-    var paz = addScalar$$2(z1, multiplyScalar$$2(ta, subtract$$2(z2, z1)));
-    var pbx = addScalar$$2(x3, multiplyScalar$$2(tb, subtract$$2(x4, x3)));
-    var pby = addScalar$$2(y3, multiplyScalar$$2(tb, subtract$$2(y4, y3)));
-    var pbz = addScalar$$2(z3, multiplyScalar$$2(tb, subtract$$2(z4, z3)));
-    if (equalScalar$$2(pax, pbx) && equalScalar$$2(pay, pby) && equalScalar$$2(paz, pbz)){
+    var pax = x1 + ta * (x2 - x1);
+    var pay = y1 + ta * (y2 - y1);
+    var paz = z1 + ta * (z2 - z1);
+    var pbx = x3 + tb * (x4 - x3);
+    var pby = y3 + tb * (y4 - y3);
+    var pbz = z3 + tb * (z4 - z3);
+    if (pax === pbx && pay === pby && paz === pbz){
       return [pax, pay, paz];
     }
     else{
@@ -57198,18 +57129,10 @@ function factory$193 (type, config, load, typed) {
   }
 
   function _intersectLinePlane(x1, y1, z1, x2, y2, z2, x, y, z, c){
-    var x1x = multiplyScalar$$2(x1, x);
-    var x2x = multiplyScalar$$2(x2, x);
-    var y1y = multiplyScalar$$2(y1, y);
-    var y2y = multiplyScalar$$2(y2, y);
-    var z1z = multiplyScalar$$2(z1, z);
-    var z2z = multiplyScalar$$2(z2, z);
-    var t = divideScalar$$2(
-      subtract$$2(subtract$$2(subtract$$2(c, x1x), y1y), z1z),
-      subtract$$2(subtract$$2(subtract$$2(addScalar$$2(addScalar$$2(x2x, y2y), z2z), x1x), y1y), z1z));
-    var px = addScalar$$2(x1, multiplyScalar$$2(t, subtract$$2(x2, x1)));
-    var py = addScalar$$2(y1, multiplyScalar$$2(t, subtract$$2(y2, y1)));
-    var pz = addScalar$$2(z1, multiplyScalar$$2(t, subtract$$2(z2, z1)));
+    var t = (c - x1*x - y1*y - z1*z)/(x2*x + y2*y + z2*z - x1*x - y1*y - z1*z);
+    var px = x1 + t * (x2 - x1);
+    var py = y1 + t * (y2 - y1);
+    var pz = z1 + t * (z2 - z1);
     return [px, py, pz];
     // TODO: Add cases when line is parallel to the plane:
     //       (a) no intersection,
@@ -57229,13 +57152,6 @@ var intersect$2 = {
 
 function factory$194 (type, config, load, typed) {
   var matrix = load(matrix$3);
-  var add = load(addScalar);
-  var subtract$$2 = load(subtract);
-  var multiply = load(multiplyScalar);
-  var divide = load(divideScalar);
-  var negate = load(unaryMinus);
-  var sqrt = load(sqrt$3);
-  var abs$$2 = load(abs);
 
   /**
     * Calculates:
@@ -57293,12 +57209,12 @@ function factory$194 (type, config, load, typed) {
     'Array, Array, Array': function(x, y, z){
       // Point to Line 2D; (x=Point, y=LinePoint1, z=LinePoint2)
       if (x.length == 2 && y.length == 2 && z.length == 2){
-        if (!_2d(x)) { throw new TypeError('Array with 2 numbers or BigNumbers expected for first argument'); }
-        if (!_2d(y)) { throw new TypeError('Array with 2 numbers or BigNumbers expected for second argument'); }
-        if (!_2d(z)) { throw new TypeError('Array with 2 numbers or BigNumbers expected for third argument'); }
-        var m = divide(subtract$$2(z[1], z[0]), subtract$$2(y[1], y[0]));
-        var xCoeff = multiply(multiply(m, m), y[0]);
-        var yCoeff = negate(multiply(m, y[0]));
+        if (!_2d(x)) { throw new TypeError('Array with 2 numbers expected for first argument'); }
+        if (!_2d(y)) { throw new TypeError('Array with 2 numbers expected for second argument'); }
+        if (!_2d(z)) { throw new TypeError('Array with 2 numbers expected for third argument'); }
+        var m = (z[1]-z[0])/(y[1]-y[0]);
+        var xCoeff = m*m*y[0];
+        var yCoeff = -1*(m*y[0]);
         var constant = x[1];
 
         return _distancePointLine2D(x[0], x[1], xCoeff, yCoeff, constant);
@@ -57309,14 +57225,14 @@ function factory$194 (type, config, load, typed) {
     },
     'Object, Object, Object': function(x, y, z){
       if (Object.keys(x).length == 2 && Object.keys(y).length == 2 && Object.keys(z).length == 2){
-        if (!_2d(x)) { throw new TypeError('Values of pointX and pointY should be numbers or BigNumbers'); }
-        if (!_2d(y)) { throw new TypeError('Values of lineOnePtX and lineOnePtY should be numbers or BigNumbers'); }
-        if (!_2d(z)) { throw new TypeError('Values of lineTwoPtX and lineTwoPtY should be numbers or BigNumbers'); }
+        if (!_2d(x)) { throw new TypeError('Values of pointX and pointY should be numbers'); }
+        if (!_2d(y)) { throw new TypeError('Values of lineOnePtX and lineOnePtY should be numbers'); }
+        if (!_2d(z)) { throw new TypeError('Values of lineTwoPtX and lineTwoPtY should be numbers'); }
         if (x.hasOwnProperty('pointX') && x.hasOwnProperty('pointY') && y.hasOwnProperty('lineOnePtX') &&
           y.hasOwnProperty('lineOnePtY') && z.hasOwnProperty('lineTwoPtX') && z.hasOwnProperty('lineTwoPtY')){
-          var m = divide(subtract$$2(z.lineTwoPtY, z.lineTwoPtX), subtract$$2(y.lineOnePtY, y.lineOnePtX));
-          var xCoeff = multiply(multiply(m, m), y.lineOnePtX);
-          var yCoeff = negate(multiply(m, y.lineOnePtX));
+          var m = (z.lineTwoPtY-z.lineTwoPtX)/(y.lineOnePtY-y.lineOnePtX);
+          var xCoeff = m*m*y.lineOnePtX;
+          var yCoeff = -1*(m*y.lineOnePtX);
           var constant = x.pointX;
 
           return _distancePointLine2D(x.pointX, x.pointY, xCoeff, yCoeff, constant);
@@ -57332,29 +57248,29 @@ function factory$194 (type, config, load, typed) {
     'Array, Array': function(x, y){
       // Point to Line 2D; (x=[pointX, pointY], y=[x-coeff, y-coeff, const])
       if (x.length == 2 && y.length == 3){
-        if (!_2d(x)) { throw new TypeError('Array with 2 numbers or BigNumbers expected for first argument'); }
-        if (!_3d(y)) { throw new TypeError('Array with 3 numbers or BigNumbers expected for second argument'); }
+        if (!_2d(x)) { throw new TypeError('Array with 2 numbers expected for first argument'); }
+        if (!_3d(y)) { throw new TypeError('Array with 3 numbers expected for second argument'); }
 
         return _distancePointLine2D(x[0], x[1], y[0], y[1], y[2]);
       }
       // Point to Line 3D
       else if (x.length == 3 && y.length == 6){
-        if (!_3d(x)) { throw new TypeError('Array with 3 numbers or BigNumbers expected for first argument'); }
-        if (!_parametricLine(y)) { throw new TypeError('Array with 6 numbers or BigNumbers expected for second argument'); }
+        if (!_3d(x)) { throw new TypeError('Array with 3 numbers expected for first argument'); }
+        if (!_parametricLine(y)) { throw new TypeError('Array with 6 numbers expected for second argument'); }
 
         return _distancePointLine3D(x[0], x[1], x[2], y[0], y[1], y[2], y[3], y[4], y[5]);
       }
       // Point to Point 2D
       else if (x.length == 2 && y.length == 2){
-        if (!_2d(x)) { throw new TypeError('Array with 2 numbers or BigNumbers expected for first argument'); }
-        if (!_2d(y)) { throw new TypeError('Array with 2 numbers or BigNumbers expected for second argument'); }
+        if (!_2d(x)) { throw new TypeError('Array with 2 numbers expected for first argument'); }
+        if (!_2d(y)) { throw new TypeError('Array with 2 numbers expected for second argument'); }
 
         return _distance2d(x[0], x[1], y[0], y[1]);
       }
       // Point to Point 3D
       else if(x.length == 3 && y.length == 3){
-        if (!_3d(x)) { throw new TypeError('Array with 3 numbers or BigNumbers expected for first argument'); }
-        if (!_3d(y)) { throw new TypeError('Array with 3 numbers or BigNumbers expected for second argument'); }
+        if (!_3d(x)) { throw new TypeError('Array with 3 numbers expected for first argument'); }
+        if (!_3d(y)) { throw new TypeError('Array with 3 numbers expected for second argument'); }
 
         return _distance3d(x[0], x[1], x[2], y[0], y[1], y[2]);
       }
@@ -57364,10 +57280,10 @@ function factory$194 (type, config, load, typed) {
     },
     'Object, Object': function(x, y){
       if (Object.keys(x).length == 2 && Object.keys(y).length == 3){
-        if (!_2d(x)) { throw new TypeError('Values of pointX and pointY should be numbers or BigNumbers'); }
-        if (!_3d(y)) { throw new TypeError('Values of xCoeffLine, yCoeffLine and constant should be numbers or BigNumbers'); }
+        if (!_2d(x)) { throw new TypeError('Values of pointX and pointY should be numbers'); }
+        if (!_3d(y)) { throw new TypeError('Values of xCoeffLine, yCoeffLine and constant should be numbers'); }
         if (x.hasOwnProperty('pointX') && x.hasOwnProperty('pointY') && y.hasOwnProperty('xCoeffLine') &&
-          y.hasOwnProperty('yCoeffLine') && y.hasOwnProperty('constant')){
+          y.hasOwnProperty('yCoeffLine') && y.hasOwnProperty('yCoeffLine')){
 
           return _distancePointLine2D(x.pointX, x.pointY, y.xCoeffLine, y.yCoeffLine, y.constant);
         }
@@ -57377,8 +57293,8 @@ function factory$194 (type, config, load, typed) {
       }
       // Point to Line 3D
       else if (Object.keys(x).length == 3 && Object.keys(y).length == 6){
-        if (!_3d(x)) { throw new TypeError('Values of pointX, pointY and pointZ should be numbers or BigNumbers'); }
-        if (!_parametricLine(y)) { throw new TypeError('Values of x0, y0, z0, a, b and c should be numbers or BigNumbers'); }
+        if (!_3d(x)) { throw new TypeError('Values of pointX, pointY and pointZ should be numbers'); }
+        if (!_parametricLine(y)) { throw new TypeError('Values of x0, y0, z0, a, b and c should be numbers'); }
         if (x.hasOwnProperty('pointX') && x.hasOwnProperty('pointY') && y.hasOwnProperty('x0') &&
           y.hasOwnProperty('y0') && y.hasOwnProperty('z0') && y.hasOwnProperty('a') &&
           y.hasOwnProperty('b') && y.hasOwnProperty('c')){
@@ -57391,8 +57307,8 @@ function factory$194 (type, config, load, typed) {
       }
       // Point to Point 2D
       else if (Object.keys(x).length == 2 && Object.keys(y).length == 2){
-        if (!_2d(x)) { throw new TypeError('Values of pointOneX and pointOneY should be numbers or BigNumbers'); }
-        if (!_2d(y)) { throw new TypeError('Values of pointTwoX and pointTwoY should be numbers or BigNumbers'); }
+        if (!_2d(x)) { throw new TypeError('Values of pointOneX and pointOneY should be numbers'); }
+        if (!_2d(y)) { throw new TypeError('Values of pointTwoX and pointTwoY should be numbers'); }
         if (x.hasOwnProperty('pointOneX') && x.hasOwnProperty('pointOneY') &&
           y.hasOwnProperty('pointTwoX') && y.hasOwnProperty('pointTwoY')){
 
@@ -57404,8 +57320,8 @@ function factory$194 (type, config, load, typed) {
       }
       // Point to Point 3D
       else if(Object.keys(x).length == 3 && Object.keys(y).length == 3){
-        if (!_3d(x)) { throw new TypeError('Values of pointOneX, pointOneY and pointOneZ should be numbers or BigNumbers'); }
-        if (!_3d(y)) { throw new TypeError('Values of pointTwoX, pointTwoY and pointTwoZ should be numbers or BigNumbers'); }
+        if (!_3d(x)) { throw new TypeError('Values of pointOneX, pointOneY and pointOneZ should be numbers'); }
+        if (!_3d(y)) { throw new TypeError('Values of pointTwoX, pointTwoY and pointTwoZ should be numbers'); }
         if (x.hasOwnProperty('pointOneX') && x.hasOwnProperty('pointOneY') && x.hasOwnProperty('pointOneZ') &&
           y.hasOwnProperty('pointTwoX') && y.hasOwnProperty('pointTwoY') && y.hasOwnProperty('pointTwoZ')){
 
@@ -57425,117 +57341,110 @@ function factory$194 (type, config, load, typed) {
       return _distancePairwise(arr);
     }
   });
-
-  function _isNumber(a) {
-    // distance supports numbers and bignumbers
-    return (typeof a === 'number' || type.isBigNumber(a));
-  }
-
-  function _2d(a){
-    // checks if the number of arguments are correct in count and are valid (should be numbers)
-    if (a.constructor !== Array){
-      a = _objectToArray(a);
-    }
-    return _isNumber(a[0]) && _isNumber(a[1]);
-  }
-
-  function _3d(a){
-    // checks if the number of arguments are correct in count and are valid (should be numbers)
-    if (a.constructor !== Array){
-      a = _objectToArray(a);
-    }
-    return _isNumber(a[0]) && _isNumber(a[1]) &&  _isNumber(a[2]);
-  }
-
-  function _parametricLine(a){
-    if (a.constructor !== Array){
-      a = _objectToArray(a);
-    }
-    return _isNumber(a[0]) && _isNumber(a[1]) && _isNumber(a[2]) &&
-      _isNumber(a[3]) && _isNumber(a[4]) && _isNumber(a[5]);
-  }
-
-  function _objectToArray(o){
-    var keys = Object.keys(o);
-    var a = [];
-    for (var i = 0; i < keys.length; i++) {
-      a.push(o[keys[i]]);
-    }
-    return a;
-  }
-
-  function _pairwise(a){
-    //checks for valid arguments passed to _distancePairwise(Array)
-    if (a[0].length == 2 && _isNumber(a[0][0]) && _isNumber(a[0][1])){
-      for(var i in a){
-        if (a[i].length != 2 || !_isNumber(a[i][0]) || !_isNumber(a[i][1])){
-          return false;
-        }
-      }
-    }
-    else if (a[0].length == 3 && _isNumber(a[0][0]) && _isNumber(a[0][1]) && _isNumber(a[0][2])){
-      for(var i in a){
-        if (a[i].length != 3 || !_isNumber(a[i][0]) || !_isNumber(a[i][1]) || !_isNumber(a[i][2])){
-          return false;
-        }
-      }
-    }
-    else{
-      return false;
-    }
-    return true;
-  }
-
-  function _distancePointLine2D(x, y, a, b, c){
-    var num =  abs$$2(add(add(multiply(a, x), multiply(b, y)), c));
-    var den = sqrt(add(multiply(a, a), multiply(b, b)));
-    var result = divide(num, den);
-    return result;
-  }
-
-  function _distancePointLine3D(x, y, z, x0, y0, z0, a, b, c){
-    var num = [ subtract$$2(multiply(subtract$$2(y0, y), c), multiply(subtract$$2(z0, z), b)),
-                subtract$$2(multiply(subtract$$2(z0, z), a), multiply(subtract$$2(x0, x), c)),
-                subtract$$2(multiply(subtract$$2(x0, x), b), multiply(subtract$$2(y0, y), a)) ];
-    num = sqrt(add(add(multiply(num[0], num[0]), multiply(num[1], num[1])), multiply(num[2], num[2])));
-    var den = sqrt(add(add(multiply(a, a), multiply(b, b)), multiply(c, c)));
-    var result = divide(num, den);
-    return result;
-  }
-
-  function _distance2d(x1, y1, x2, y2){
-    var yDiff = subtract$$2(y2, y1);
-    var xDiff = subtract$$2(x2, x1);
-    var radicant = add(multiply(yDiff, yDiff), multiply(xDiff, xDiff));
-    var result = sqrt(radicant);
-    return result;
-  }
-
-  function _distance3d(x1, y1, z1, x2, y2, z2){
-    var zDiff = subtract$$2(z2, z1);
-    var yDiff = subtract$$2(y2, y1);
-    var xDiff = subtract$$2(x2, x1);
-    var radicant = add(add(multiply(zDiff, zDiff), multiply(yDiff, yDiff)), multiply(xDiff, xDiff));
-    var result = sqrt(radicant);
-    return result;
-  }
-
-  function _distancePairwise(a){
-    var result = [];
-    for(var i = 0; i < a.length-1; i++){
-      for(var j = i+1; j < a.length; j++){
-        if (a[0].length == 2){
-          result.push(_distance2d(a[i][0], a[i][1], a[j][0], a[j][1]));
-        }
-        else if (a[0].length == 3){
-          result.push(_distance3d(a[i][0], a[i][1], a[i][2], a[j][0], a[j][1], a[j][2]));
-        }
-      }
-    }
-    return result;
-  }
-
   return distance;
+}
+
+function _2d(a){
+  // checks if the number of arguments are correct in count and are valid (should be numbers)
+  if (a.constructor !== Array){
+    a = _objectToArray(a);
+  }
+  return typeof a[0] === 'number' && typeof a[1] === 'number';
+}
+
+function _3d(a){
+  // checks if the number of arguments are correct in count and are valid (should be numbers)
+  if (a.constructor !== Array){
+    a = _objectToArray(a);
+  }
+  return typeof a[0] === 'number' && typeof a[1] === 'number' && typeof a[2] === 'number';
+}
+
+function _parametricLine(a){
+  if (a.constructor !== Array){
+    a = _objectToArray(a);
+  }
+  return typeof a[0] === 'number' && typeof a[1] === 'number' && typeof a[2] === 'number' &&
+    typeof a[3] === 'number' && typeof a[4] === 'number' && typeof a[5] === 'number';
+
+}
+
+function _objectToArray(o){
+  var keys = Object.keys(o);
+  var a = [];
+  for (var i = 0; i < keys.length; i++) {
+    a.push(o[keys[i]]);
+  }
+  return a;
+}
+
+function _pairwise(a){
+  //checks for valid arguments passed to _distancePairwise(Array)
+  if (a[0].length == 2 && typeof a[0][0] === 'number' && typeof a[0][1] === 'number'){
+    for(var i in a){
+      if (a[i].length != 2 || typeof a[i][0] !== 'number' || typeof a[i][1] !== 'number'){
+        return false;
+      }
+    }
+  }
+  else if (a[0].length == 3 && typeof a[0][0] === 'number' && typeof a[0][1] === 'number' && typeof a[0][2] === 'number'){
+    for(var i in a){
+      if (a[i].length != 3 || typeof a[i][0] !== 'number' || typeof a[i][1] !== 'number' || typeof a[i][2] !== 'number'){
+        return false;
+      }
+    }
+  }
+  else{
+    return false;
+  }
+  return true;
+}
+
+function _distancePointLine2D(x, y, a, b, c){
+  var num =  Math.abs(a*x + b*y + c);
+  var den = Math.pow((a*a + b*b), 0.5);
+  var result = (num/den);
+  return result;
+}
+
+function _distancePointLine3D(x, y, z, x0, y0, z0, a, b, c){
+  var num = [((y0-y)*(c))-((z0-z)*(b)), ((z0-z)*(a))-((x0-x)*(c)), ((x0-x)*(b))-((y0-y)*(a))];
+  num = Math.pow(num[0]*num[0] + num[1]*num[1] + num[2]*num[2], 0.5);
+  var den = Math.pow(a*a + b*b + c*c, 0.5);
+  var result = num/den;
+  return result;
+}
+
+function _distance2d(x1, y1, x2, y2){
+  var yDiff = y2 - y1;
+  var xDiff = x2 - x1;
+  var radicant = yDiff * yDiff + xDiff * xDiff;
+  var result = Math.pow(radicant, 0.5);
+  return result;
+}
+
+function _distance3d(x1, y1, z1, x2, y2, z2){
+  var zDiff = z2 - z1;
+  var yDiff = y2 - y1;
+  var xDiff = x2 - x1;
+  var radicant = zDiff * zDiff + yDiff * yDiff + xDiff * xDiff;
+  var result = Math.pow(radicant, 0.5);
+  return result;
+}
+
+function _distancePairwise(a){
+  var result = [];
+  for(var i = 0; i < a.length-1; i++){
+    for(var j = i+1; j < a.length; j++){
+      if (a[0].length == 2){
+        result.push(_distance2d(a[i][0], a[i][1], a[j][0], a[j][1]));
+      }
+      else if (a[0].length == 3){
+        result.push(_distance3d(a[i][0], a[i][1], a[i][2], a[j][0], a[j][1], a[j][2]));
+      }
+    }
+  }
+  return result;
 }
 
 var name$182 = 'distance';
@@ -67263,4 +67172,4 @@ exports.createUI = function(__base) {
   };
 };
 
-}((this.attitudeUI = this.attitudeUI || {}),d3,null,crypto$1));
+}((this.attitudeUI = this.attitudeUI || {}),d3));

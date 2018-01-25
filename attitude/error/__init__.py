@@ -54,4 +54,4 @@ def average_orientation(orientations):
     Find the average orientation of a set of fitted or reconstructed
     orientations, taking into account uncertainty.
     """
-    pass
+    raise NotImplementedError()

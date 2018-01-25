@@ -175,17 +175,18 @@ class PCAOrientation(BaseOrientation):
         # Get singular values
         log.debug("Running singular value decomposition")
 
+        if len(self.arr) < 3:
+            raise ValueError("Cannot fit a plane to fewer than 3 coordinates")
+
         ### Apply factor weights
         # We should be careful that they aren't too
         # large so we don't run into numerical difficulties
         w = self.weights[N.newaxis,:]
         arr = self.arr/w
-
         res = N.linalg.svd(arr,
             full_matrices=False)
 
         self._U, s, V = res
-
         ### Divide by weights ###
         #V *= w
         #V /= N.linalg.norm(V,axis=1)
