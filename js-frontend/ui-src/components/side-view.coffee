@@ -13,6 +13,9 @@ fmt = d3.format '.0f'
 M = math
 
 class SideViewComponent extends React.Component
+  @defaultProps: {
+    hovered: {uid:''}
+  }
   constructor: (props)->
     super props
   componentDidMount: ->
@@ -151,7 +154,13 @@ class SideViewComponent extends React.Component
 
     @componentDidUpdate()
 
-  componentDidUpdate: ->
+  componentDidUpdate: (prevProps={})->
+    if prevProps.azimuth != @props.azimuth
+      @updateAzimuth()
+    if prevProps.hovered != @props.hovered
+      @updateHovered()
+
+  updateAzimuth: ->
     console.log "Updated constraints"
     angle = @props.azimuth
     {x,y} = @scales
@@ -196,11 +205,12 @@ class SideViewComponent extends React.Component
       .selectAll 'path.trace'
       .data dataWithTraces
 
+    {onHover} = @props
     ese = se.enter()
       .append 'path.trace'
       .attr 'stroke', (d)->darkenColor(d.color)
       .on 'mouseover', (d)->
-        updateSelected(d.data)
+        onHover(d.data)
       .on 'click', (d)->
         collectID d.data.uid
 
@@ -209,6 +219,18 @@ class SideViewComponent extends React.Component
 
     az = fmt(fixAngle(angle+Math.PI/2)*180/Math.PI)
     @azLabel.text "Distance along #{az}º"
+
+  updateHovered: ->
+    d = @props.hovered
+    @planeContainer
+      .selectAll 'path.trace'
+      .attr 'stroke', (v)->
+        c = darkenColor(v.color)
+        if not d?
+          return c
+        if v.data.uid == d.uid
+          c = v.color
+        return c
 
   render: ->
     h 'svg.horizontal-area'

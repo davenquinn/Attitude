@@ -3,41 +3,20 @@ import {hyperbolicErrors, apparentDip, digitizedLine, PlaneData, fixAngle} from 
 import style from './ui-styles.styl'
 import {StereonetComponent} from './components/stereonet'
 import {SideViewComponent} from './components/side-view'
+import {DataPanelComponent} from './components/data-panel'
 import h from 'react-hyperscript'
 import ReactDOM from 'react-dom'
 import React from 'react'
+import { Hotkey, Hotkeys, HotkeysTarget } from "@blueprintjs/core"
 
-class AngularMeasurement extends React.Component
+class SelectionListComponent extends React.Component
   render: ->
-    {label, datum} = @props
-    datum ?= ''
-    h 'li', [
-      label
-      h 'span.data', datum
-      'º'
-    ]
-
-class PlaneDescriptionControl extends React.Component
-  render: ->
-    {attitude} = @props
-    if not attitude?
-      return h 'div.plane-desc', {style: {display: 'none'}}
-    return h 'div.plane-desc', [
-      h 'h3.data-id', [
-        "ID: "
-        h 'span.data.id'
-      ]
-      h 'h4', 'Nominal Plane'
-      h 'ul', [
-        h AngularMeasurement, {label: 'Strike: '}
-        h AngularMeasurement, {label: 'Dip:    '}
-      ]
-      h 'h4', 'Angular errors'
-      h 'ul', [
-        h AngularMeasurement, {label: 'Min: '}
-        h AngularMeasurement, {label: 'Max: '}
-      ]
-    ]
+    if @props.selection.length == 0
+      return h 'div', "Selected measurements will
+                       be listed here for copying
+                       into code"
+    cid = @props.selection.map (v)-> "\"#{v.uid}\""
+    h 'div.collected-ids', {}, "[#{cid.join(',')}]"
 
 class AttitudeUI extends React.Component
   @defaultProps: {width: 800, attitudes: []}
@@ -45,22 +24,30 @@ class AttitudeUI extends React.Component
     super props
     @state = {
       azimuth: 0
+      hovered: null
+      selection: []
     }
   render: ->
     {attitudes} = @props
-    {azimuth} = @state
+    {azimuth, hovered, selection} = @state
     data = attitudes
+    onHover = @onHover
+    updateSelection = @updateSelection
 
     h 'div.attitude-area', [
       h 'div.row', [
         h StereonetComponent, {
           data,
           onRotate: @onStereonetRotate
+          onHover
+          updateSelection
+          hovered
         }
-        h PlaneDescriptionControl
+        h DataPanelComponent, {attitude: hovered, selection}
       ]
-      h SideViewComponent, {data, azimuth}
-      h 'div.collected-ids'
+      h SideViewComponent, {data, azimuth, hovered,
+                            onHover, updateSelection}
+      h SelectionListComponent, {selection}
     ]
 
   onStereonetRotate: (pos)=>
@@ -69,98 +56,48 @@ class AttitudeUI extends React.Component
     azimuth = -Math.PI/180*lon
     @setState {azimuth}
 
-createUI = (__base) ->
-  data = __base.datum()
-  ###
-  Stereonet
-  ###
+  onHover: (hovered=null)=>
+    @setState {hovered}
 
-  el = h AttitudeUI, {attitudes: data}
-  ReactDOM.render(el, __base.node())
+  componentDidMount: ->
+    d3.select ReactDOM.findDOMNode(@)
+      .on 'mouseleave', => @onHover()
 
-  return
-
-  darkenColor = (c)->
-    chroma(c).darken(2).css()
-
-  fmt = d3.format '.0f'
-
-  updateSelected = (d)->
-    planeContainer
-      .selectAll 'path.trace'
-      .attr 'stroke', (v)->
-        c = darkenColor(v.color)
-        if not d?
-          return c
-        if v.data.uid == d.uid
-          c = v.color
-        return c
-
-    dA = __base.select "div.attitude-data div.plane-desc"
-
-    stereonet.dataArea()
-      .select 'g.hovered'
-      .remove()
-
-    if not d?
-      dA.style 'display','none'
-      return
-
-    stereonet.planes([d], selector: 'g.hovered')
-      .each (d) ->
-        s = d3.select @
-        s.select 'path.error'
-          .attrs
-            fill: d.color
-            'fill-opacity': 0.5
-
-        s.select('path.nominal')
-          .attr 'stroke', d.color
-
-    dA.style 'display','block'
-
-    dA.select "span.id"
-      .text d.uid
-
-    updateValue = (id,num)->
-      dA.select "span.#{id}"
-        .text fmt(num)
-
-    updateValue('strike',d.strike)
-    updateValue('dip',d.dip)
-    updateValue('min',d.min_angular_error)
-    updateValue('max',d.max_angular_error)
-
-  svg
-    .selectAll 'g.planes g.plane path.error'
-    .on 'mouseenter', (d)->
-      d = d3.select(@parentElement).datum()
-      updateSelected d
-    .on 'click', (d)->
-      d = d3.select(@parentElement).datum()
-      collectID d.data.uid
-
-  d3.select(".attitude-area").on 'mouseleave', ->updateSelected()
-
-  ###
-  Horizontal
-  ###
-
-  ### Update data after setup ###
-
-  ### Collected ids ###
-  collectedIDs = []
-  collectID = (id)->
-    console.log id
+  updateSelection: (id)->
+    collectedIDs = @state.selection
     ix = collectedIDs.indexOf(id)
     console.log ix
     if ix == -1
       collectedIDs.push(id)
     else
       collectedIDs.splice ix,1
-    cid = collectedIDs.map (v)-> "\"#{v}\""
-    console.log cid.join(',')
-    __base.select '.collected-ids'
-      .text "[#{cid.join(',')}]"
+    @setState selection: collectedIDs
+
+  renderHotkeys: ->
+    h Hotkeys, [
+      h Hotkey, {
+          group: "Selection"
+          combo: "s"
+          label: "Add a measurement to the selection"
+          onKeyDown: =>
+            {hovered} = @state
+            return unless hovered?
+            @updateSelection hovered
+      }
+      h Hotkey, {
+          group: "Selection"
+          combo: "backspace"
+          label: "Clear selection"
+          onKeyDown: =>
+            @setState {selection: []}
+      }
+    ]
+
+HotkeysTarget AttitudeUI
+
+createUI = (__base) ->
+  data = __base.datum()
+  el = h AttitudeUI, {attitudes: data}
+  ReactDOM.render(el, __base.node())
 
 export {createUI}

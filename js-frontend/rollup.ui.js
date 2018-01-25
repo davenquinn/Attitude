@@ -19,13 +19,17 @@ let plugins = [
 
 export default {
   input: "ui-src/index.coffee",
-  external: ['d3','d3-selection-multi','d3-jetpack'],
+  external: ['d3','d3-selection-multi','d3-jetpack',
+             '@blueprintjs/core', 'react','react-dom'],
   output: {
     file: "lib/attitude-ui.js",
     format: "iife",
     globals: {
       "d3": "d3",
-      "mathjs": "math"
+      "mathjs": "math",
+      "react": "React",
+      "react-dom": "ReactDOM",
+      "@blueprintjs/core": "Blueprint.Core"
     },
     name: "attitudeUI",
     extend: true
