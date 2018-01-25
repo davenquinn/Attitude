@@ -1,41 +1,84 @@
 import {Stereonet, opacityByCertainty, globalLabels,chroma} from "../src"
 import {hyperbolicErrors, apparentDip, digitizedLine, PlaneData, fixAngle} from "../src"
 import style from './ui-styles.styl'
+import {StereonetComponent} from './components/stereonet'
+import {SideViewComponent} from './components/side-view'
+import h from 'react-hyperscript'
+import ReactDOM from 'react-dom'
+import React from 'react'
+
+class AngularMeasurement extends React.Component
+  render: ->
+    {label, datum} = @props
+    datum ?= ''
+    h 'li', [
+      label
+      h 'span.data', datum
+      'º'
+    ]
+
+class PlaneDescriptionControl extends React.Component
+  render: ->
+    {attitude} = @props
+    if not attitude?
+      return h 'div.plane-desc', {style: {display: 'none'}}
+    return h 'div.plane-desc', [
+      h 'h3.data-id', [
+        "ID: "
+        h 'span.data.id'
+      ]
+      h 'h4', 'Nominal Plane'
+      h 'ul', [
+        h AngularMeasurement, {label: 'Strike: '}
+        h AngularMeasurement, {label: 'Dip:    '}
+      ]
+      h 'h4', 'Angular errors'
+      h 'ul', [
+        h AngularMeasurement, {label: 'Min: '}
+        h AngularMeasurement, {label: 'Max: '}
+      ]
+    ]
+
+class AttitudeUI extends React.Component
+  @defaultProps: {width: 800, attitudes: []}
+  constructor: (props)->
+    super props
+    @state = {
+      azimuth: 0
+    }
+  render: ->
+    {attitudes} = @props
+    {azimuth} = @state
+    data = attitudes
+
+    h 'div.attitude-area', [
+      h 'div.row', [
+        h StereonetComponent, {
+          data,
+          onRotate: @onStereonetRotate
+        }
+        h PlaneDescriptionControl
+      ]
+      h SideViewComponent, {data, azimuth}
+      h 'div.collected-ids'
+    ]
+
+  onStereonetRotate: (pos)=>
+    console.log pos
+    [lon,lat] = pos
+    azimuth = -Math.PI/180*lon
+    @setState {azimuth}
 
 createUI = (__base) ->
   data = __base.datum()
   ###
   Stereonet
   ###
-  stereonet = Stereonet()
-    .size(400)
-    .margin(25)
 
-  svg = __base.select('.stereonet')
-    .attr('class', 'stereonet')
-    .call(stereonet)
+  el = h AttitudeUI, {attitudes: data}
+  ReactDOM.render(el, __base.node())
 
-  c = (d) ->
-    d.color
-
-  dataA = data
-
-  stereonet.planes(dataA)
-    .each(opacityByCertainty(c, 'path.error'))
-    .classed 'in-group', (d)->d.member_of?
-    .classed 'is-group', (d)->d.members?
-    .each (d) ->
-      if d.max_angular_error > 45
-        d3.select @
-          .select 'path.error'
-          .remove()
-
-      d3.select @
-        .select('path.nominal')
-        .attr 'stroke', d.color
-
-  stereonet.call globalLabels()
-  stereonet.draw()
+  return
 
   darkenColor = (c)->
     chroma(c).darken(2).css()
@@ -103,201 +146,7 @@ createUI = (__base) ->
   Horizontal
   ###
 
-  M = math
-
-  for f in dataA
-    f.is_group = f.members?
-
-  singlePlanes = dataA
-    .filter (d)->not d.is_group
-    .map (d)->new PlaneData d
-
-  totalLength = 0
-  accum = [0,0,0]
-  weights = singlePlanes.map (plane)->
-    d = plane.data
-    if not d.centered_array?
-      return [0,0,0]
-    len = d.centered_array.length
-    totalLength += len
-    return d.center.map (a)->a*len
-
-  overallCenter = [0..2].map (i)->
-    d3.sum weights, (d)->d[i]/totalLength
-
-  xsize = 0
-  ysize = 0
-
-  for p in singlePlanes
-    p.offset = M.subtract(p.mean, overallCenter)
-    [x,y,z] = M.abs(p.offset)
-    if z > ysize
-      ysize = z
-    h = Math.hypot(x,y)
-    if h > xsize
-      xsize = h
-
-    p.in_group = false
-    if p.data.member_of?
-      group = dataA.find (d)->d.uid == p.data.member_of
-      p.group = new PlaneData group, p.mean
-      p.group.offset = p.offset
-      p.in_group = true
-
-  xsize *= 1.1
-  ysize *= 1.1
-  console.log xsize,ysize
-
-  margin = 30
-  marginLeft = 50
-  marginRight = 100
-  sz = {width: 800, height: 300}
-  innerSize =
-    width: sz.width-marginLeft-marginRight
-    height: sz.height-2*margin
-
-  svg = __base.select 'svg.horizontal-area'
-    .at sz
-    .append 'g'
-    .at transform: "translate(#{marginLeft},#{margin})"
-
-  x = d3.scaleLinear()
-    .range [0,innerSize.width]
-    .domain [-xsize, xsize]
-
-  y = d3.scaleLinear()
-    .range [innerSize.height,0]
-    .domain [-ysize, ysize]
-
-  dataArea = svg.append 'g.data'
-
-  ### Setup data ###
-
-  errorContainer = dataArea.append 'g.errors'
-  errorContainerGrouped = dataArea.append 'g.errors-grouped'
-  planeContainer = dataArea.append 'g.planes'
-
-  setScale = (scale, mPerPx)->
-    r = scale.range()
-    w = r[1]-r[0]
-    mWidth = Math.abs(w*mPerPx)
-    scale.domain [-mWidth/2,mWidth/2]
-
-  # For 1:1
-  yRatio = Math.abs(1/(y(1)-y(0)))
-  xRatio = Math.abs(1/(x(1)-x(0)))
-
-  if xRatio > yRatio
-    setScale(y, xRatio)
-  else
-    setScale(x, yRatio)
-
-  lineGenerator = d3.line()
-    .x (d)->x(d[0])
-    .y (d)->y(d[1])
-
-  updatePlanes = (angle)->
-
-    v_ = M.eye(3).toArray()
-    hyp = hyperbolicErrors(angle, v_, x,y)
-      .width(150)
-      .nominal(false)
-
-    if not __base.select('#gradient').node()
-      errorContainer.call hyp.setupGradient
-
-    # Individual data
-    ## We have some problems showing large error angles
-    sel = errorContainer
-      .selectAll 'g.error-hyperbola'
-      .data singlePlanes
-
-    esel = sel.enter()
-      .append 'g.error-hyperbola'
-      .classed 'in-group', (d)->d.group?
-
-    esel.merge(sel)
-        .each hyp
-        .sort (a,b)->a.__z-b.__z
-
-    # Grouped data
-    gp = singlePlanes.filter (d)->d.group?
-            .map (d)->d.group
-
-    sel = errorContainerGrouped
-      .selectAll 'g.error-hyperbola'
-      .data gp
-    esel = sel.enter()
-      .append 'g.error-hyperbola'
-    esel.merge(sel)
-        .each hyp
-        .sort (a,b)->a.__z-b.__z
-
-    dataWithTraces = singlePlanes.filter (d)->d.centered?
-    se = planeContainer
-      .selectAll 'path.trace'
-      .data dataWithTraces
-
-    ese = se.enter()
-      .append 'path.trace'
-      .attr 'stroke', (d)->darkenColor(d.color)
-      .on 'mouseover', (d)->
-        updateSelected(d.data)
-      .on 'click', (d)->
-        collectID d.data.uid
-
-    df = digitizedLine(angle, lineGenerator)
-    ese.merge(se).each df
-
-    az = fmt(fixAngle(angle+Math.PI/2)*180/Math.PI)
-    azLabel.text "Distance along #{az}º"
-
-  stereonet.on 'rotate.cb', ->
-    [lon,lat] = @centerPosition()
-    az = lon
-    az *= -Math.PI/180
-    updatePlanes(az)
-
-  ### Setup axes ###
-  axes = svg.append 'g.axes'
-
-  yA = d3.scaleLinear()
-    .domain y.domain().map (d)->d+overallCenter[2]
-    .range y.range()
-
-  yAx = d3.axisLeft yA
-    .tickFormat fmt
-    .tickSizeOuter 0
-
-  axes.append 'g.y.axis'
-    .call yAx
-    .append 'text.axis-label'
-    .text 'Elevation (m)'
-    .attr 'transform', "translate(-40,#{innerSize.height/2}) rotate(-90)"
-    .style 'text-anchor','middle'
-
-  __domain = x.domain()
-  __dw = (__domain[1]-__domain[0])
-
-  xA = d3.scaleLinear()
-    .domain [0,__dw]
-    .range x.range()
-
-  xAx = d3.axisBottom xA
-    .tickFormat fmt
-    .tickSizeOuter 0
-
-  _x = axes.append 'g.x.axis'
-    .translate [0,innerSize.height]
-    .call xAx
-
-  azLabel = _x.append 'text.axis-label'
-    .attr 'transform', "translate(#{innerSize.width/2},20)"
-    .style 'text-anchor','middle'
-
   ### Update data after setup ###
-  updatePlanes(0)
-
 
   ### Collected ids ###
   collectedIDs = []

@@ -14,7 +14,7 @@
         <script type="text/javascript" src="/lib/attitude-ui.js"></script>
         <script type="text/javascript">
           d3.json('/data.json', function (data) {
-            d3.select(".attitude-area")
+            d3.select(".attitude-area-container")
               .datum(data)
               .call(attitudeUI.createUI);
           });
@@ -22,27 +22,6 @@
     </head>
     <body>
       <h1>Collection</h1>
-      <div class='attitude-area'>
-        <div class='row'>
-          <svg class="stereonet"></svg>
-          <div class="attitude-data">
-            <div class='plane-desc' style='display:none;'>
-              <h3 class='data-id'>ID: <span class='data id'></span></h3>
-              <h4>Nominal plane</h4>
-              <ul>
-                <li>Strike: <span class='data strike'></span>º</li>
-                <li>Dip:    <span class='data dip'></span>º</li>
-              </ul>
-              <h4>Angular errors</h4>
-              <ul>
-                <li>Min: <span class='data min'></span></li>
-                <li>Max: <span class='data max'></span></li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        <svg class="horizontal-area"></svg>
-        <div class='collected-ids'></div>
-      </svg>
+      <div class='attitude-area-container'></div>
     </body>
 </html>

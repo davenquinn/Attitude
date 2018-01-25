@@ -4225,7 +4225,7 @@ exports.Stereonet = function() {
     }
     return el.selectAll('path').attr('d', path.pointRadius(2));
   };
-  dispatch$$1 = d3.dispatch('rotate', 'redraw');
+  dispatch$$1 = d3.dispatch(uid + 'rotate', uid + 'redraw');
   f = function(_el, opts = {}) {
     var int, item, j, len, neatlineId, sphereId;
     // This should be integrated into a reusable
@@ -4314,7 +4314,7 @@ exports.Stereonet = function() {
       return proj.rotate();
     }
     proj.rotate(coords);
-    dispatch$$1.call('rotate', f);
+    dispatch$$1.call(uid + 'rotate', f);
     return __redraw();
   };
   f.centerPosition = function() {
@@ -4323,7 +4323,7 @@ exports.Stereonet = function() {
   };
   f.d3 = d3;
   f.on = function(event$$1, callback) {
-    return dispatch$$1.on(event$$1, callback);
+    return dispatch$$1.on(uid + event$$1, callback);
   };
   setGraticule = function(lon, lat) {
     //# Could also make this take a d3.geoGraticule object ##

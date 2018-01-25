@@ -158,7 +158,7 @@ Stereonet = ->
     el.selectAll 'path'
       .attr 'd', path.pointRadius(2)
 
-  dispatch = d3.dispatch 'rotate', 'redraw'
+  dispatch = d3.dispatch uid+'rotate', uid+'redraw'
 
   f = (_el, opts={})->
     # This should be integrated into a reusable
@@ -245,7 +245,7 @@ Stereonet = ->
     unless coords?
       return proj.rotate()
     proj.rotate coords
-    dispatch.call 'rotate', f
+    dispatch.call uid+'rotate', f
     __redraw()
 
   f.centerPosition = ->
@@ -255,7 +255,7 @@ Stereonet = ->
   f.d3 = d3
 
   f.on = (event,callback)->
-    dispatch.on event, callback
+    dispatch.on uid+event, callback
 
   setGraticule = (lon, lat)->
     ## Could also make this take a d3.geoGraticule object ##
