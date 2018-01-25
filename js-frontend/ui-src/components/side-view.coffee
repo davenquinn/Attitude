@@ -14,7 +14,7 @@ M = math
 
 class SideViewComponent extends React.Component
   @defaultProps: {
-    hovered: {uid:''}
+    hovered: [{uid:''}]
   }
   constructor: (props)->
     super props
@@ -211,8 +211,6 @@ class SideViewComponent extends React.Component
       .attr 'stroke', (d)->darkenColor(d.color)
       .on 'mouseover', (d)->
         onHover(d.data)
-      .on 'click', (d)->
-        collectID d.data.uid
 
     df = digitizedLine(angle, @lineGenerator)
     ese.merge(se).each df
@@ -221,14 +219,14 @@ class SideViewComponent extends React.Component
     @azLabel.text "Distance along #{az}º"
 
   updateHovered: ->
-    d = @props.hovered
+    {hovered} = @props
+    return unless hovered?
+    hoveredIDs = hovered.map (d)->d.uid
     @planeContainer
       .selectAll 'path.trace'
       .attr 'stroke', (v)->
         c = darkenColor(v.color)
-        if not d?
-          return c
-        if v.data.uid == d.uid
+        if hoveredIDs.indexOf(v.data.uid) != -1
           c = v.color
         return c
 

@@ -5917,8 +5917,14 @@ globalLabels = function() {
         }
         return `translate(${x + offset},${y - 2 + offsetY})`;
       }).style("display", function(d) {
-        d = d3$1.geoDistance(centerPos, d.geometry.coordinates);
-        if (d > Math.PI / 2 + 0.01) {
+        var dist;
+        dist = d3$1.geoDistance(centerPos, d.geometry.coordinates);
+        if (d.name === 'Up' || d.name === 'Down') {
+          if (dist < Math.PI / 4) {
+            return 'none';
+          }
+        }
+        if (dist > Math.PI / 2 + 0.01) {
           return 'none';
         } else {
           return 'inline';
@@ -6215,11 +6221,14 @@ Stereonet = function() {
     if (el == null) {
       throw "Stereonet must be initialized to an element before adding data";
     }
+    if (o.selector == null) {
+      o.selector = 'g.poles';
+    }
+    con = dataArea.selectAppend(o.selector);
     fn = createErrorEllipse(opts);
     createEllipse = function(d) {
       return d3$1.select(this).append('path').attr('class', 'error').datum(fn(d));
     };
-    con = dataArea.append('g').attr('class', 'normal-vectors');
     sel = con.selectAll('g.normal').data(data).enter().append('g').classed('normal', true).each(createEllipse);
     sel.each(function(d) {
       var color, e;
@@ -67038,7 +67047,10 @@ function isChildren(x) {
   return typeof x === 'string' || typeof x === 'number' || Array.isArray(x);
 }
 
+var InteractiveStereonetComponent;
 var StereonetComponent;
+var _extends$1 = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+var boundMethodCheck$1 = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
 
 StereonetComponent = (function() {
   class StereonetComponent extends React.Component {
@@ -67047,61 +67059,109 @@ StereonetComponent = (function() {
     }
 
     componentDidMount() {
-      var c, data, node, onHover, onRotate, svg;
+      var data, node, onHover, onRotate, svg;
       ({data} = this.props);
       this.stereonet = Stereonet().size(400).margin(25);
       node = ReactDOM.findDOMNode(this);
       svg = d3$1.select(node).call(this.stereonet);
-      c = function(d) {
-        return d.color;
-      };
-      this.stereonet.planes(data).each(opacityByCertainty(c, 'path.error')).classed('in-group', function(d) {
-        return d.member_of != null;
-      }).classed('is-group', function(d) {
-        return d.members != null;
-      }).each(function(d) {
-        if (d.max_angular_error > 45) {
-          d3$1.select(this).select('path.error').remove();
-        }
-        return d3$1.select(this).select('path.nominal').attr('stroke', d.color);
-      });
+      this.updateFeatureMode();
       this.stereonet.call(globalLabels());
-      this.stereonet.draw();
       ({onRotate, onHover} = this.props);
-      this.stereonet.on('rotate.cb', function() {
+      return this.stereonet.on('rotate.cb', function() {
         return onRotate(this.centerPosition());
-      });
-      return svg.selectAll('g.planes g.plane path.error').on('mouseenter', function(d) {
-        d = d3$1.select(this.parentElement).datum();
-        return onHover(d);
       });
     }
 
     componentDidUpdate(prevProps) {
+      if (prevProps.mode !== this.props.mode) {
+        this.updateFeatureMode();
+      }
       if (prevProps.hovered !== this.props.hovered) {
         return this.updateHovered();
       }
     }
 
     updateHovered() {
-      var hovered;
+      var hovered, mode, setHoveredFill;
       console.log("Updating hovered on stereonet");
-      ({hovered} = this.props);
+      ({hovered, mode} = this.props);
       this.stereonet.dataArea().select('g.hovered').remove();
+      setHoveredFill = function(d) {
+        var err, s;
+        s = d3$1.select(this);
+        err = s.select('path.error');
+        err.styles({
+          'fill': d.color,
+          'stroke': d.color,
+          'fill-opacity': 0.1
+        });
+        s.select('path.nominal').style('stroke', d.color);
+        if (d.member_of != null) {
+          return;
+        }
+        return err.styles({
+          'fill-opacity': 0.5
+        });
+      };
       if (hovered == null) {
         return;
       }
-      return this.stereonet.planes([hovered], {
-        selector: 'g.hovered'
-      }).each(function(d) {
-        var s;
-        s = d3$1.select(this);
-        s.select('path.error').attrs({
-          fill: d.color,
-          'fill-opacity': 0.5
+      if (hovered.length === 0) {
+        return;
+      }
+      if (mode === 'planes') {
+        return this.stereonet.planes(hovered, {
+          selector: 'g.hovered'
+        }).each(function() {
+          return d3$1.select(this).select('path.nominal').remove();
+        }).each(setHoveredFill).classed('in-group', function(d) {
+          return d.member_of != null;
+        }).classed('is-group', function(d) {
+          return d.members != null;
         });
-        return s.select('path.nominal').attr('stroke', d.color);
+      } else {
+        return this.stereonet.ellipses(hovered, {
+          selector: 'g.hovered'
+        }).each(setHoveredFill).classed('in-group', function(d) {
+          return d.member_of != null;
+        }).classed('is-group', function(d) {
+          return d.members != null;
+        });
+      }
+    }
+
+    updateFeatureMode() {
+      var c, data, mode, onHover;
+      ({mode, data, onHover} = this.props);
+      c = function(d) {
+        return d.color;
+      };
+      this.stereonet.dataArea().select('g.planes').remove();
+      this.stereonet.dataArea().select('g.poles').remove();
+      if (mode === 'planes') {
+        this.stereonet.planes(data).each(opacityByCertainty(c, 'path.error')).classed('in-group', function(d) {
+          return d.member_of != null;
+        }).classed('is-group', function(d) {
+          return d.members != null;
+        }).each(function(d) {
+          if (d.max_angular_error > 45) {
+            d3$1.select(this).select('path.error').remove();
+          }
+          return d3$1.select(this).select('path.nominal').attr('stroke', d.color);
+        });
+      } else {
+        this.stereonet.ellipses(data).each(opacityByCertainty(c, 'path.error')).classed('in-group', function(d) {
+          return d.member_of != null;
+        }).classed('is-group', function(d) {
+          return d.members != null;
+        });
+      }
+      this.stereonet.draw();
+      this.stereonet.dataArea().selectAll('path.error').on('mouseenter', function(d) {
+        d = d3$1.select(this.parentElement).datum();
+        return onHover(d);
       });
+      return this.updateHovered();
     }
 
     render() {
@@ -67111,12 +67171,54 @@ StereonetComponent = (function() {
   }
 
   StereonetComponent.defaultProps = {
-    onRotate: function() {}
+    onRotate: function() {},
+    mode: 'planes',
+    hovered: []
   };
 
   return StereonetComponent;
 
 })();
+
+InteractiveStereonetComponent = class InteractiveStereonetComponent extends React.Component {
+  constructor(props) {
+    super(props);
+    this.handleModeSwitch = this.handleModeSwitch.bind(this);
+    this.state = {
+      planeMode: true
+    };
+  }
+
+  render() {
+    var mode, planeMode;
+    ({planeMode} = this.state);
+    mode = planeMode ? "planes" : "poles";
+    return reactHyperscript('div', [
+      reactHyperscript(StereonetComponent,
+      _extends$1({mode},
+      this.props)),
+      reactHyperscript('div.toolbar',
+      [
+        reactHyperscript('input',
+        {
+          type: 'checkbox',
+          checked: planeMode,
+          onChange: this.handleModeSwitch
+        }),
+        reactHyperscript('span',
+        'Planes')
+      ])
+    ]);
+  }
+
+  handleModeSwitch() {
+    boundMethodCheck$1(this, InteractiveStereonetComponent);
+    return this.setState({
+      planeMode: !this.state.planeMode
+    });
+  }
+
+};
 
 var M$1;
 var SideViewComponent;
@@ -67301,8 +67403,6 @@ SideViewComponent = (function() {
         return darkenColor(d.color);
       }).on('mouseover', function(d) {
         return onHover(d.data);
-      }).on('click', function(d) {
-        return collectID(d.data.uid);
       });
       df = digitizedLine(angle, this.lineGenerator);
       ese.merge(se).each(df);
@@ -67311,15 +67411,18 @@ SideViewComponent = (function() {
     }
 
     updateHovered() {
-      var d;
-      d = this.props.hovered;
+      var hovered, hoveredIDs;
+      ({hovered} = this.props);
+      if (hovered == null) {
+        return;
+      }
+      hoveredIDs = hovered.map(function(d) {
+        return d.uid;
+      });
       return this.planeContainer.selectAll('path.trace').attr('stroke', function(v) {
         var c;
         c = darkenColor(v.color);
-        if (d == null) {
-          return c;
-        }
-        if (v.data.uid === d.uid) {
+        if (hoveredIDs.indexOf(v.data.uid) !== -1) {
           c = v.color;
         }
         return c;
@@ -67333,9 +67436,11 @@ SideViewComponent = (function() {
   }
 
   SideViewComponent.defaultProps = {
-    hovered: {
-      uid: ''
-    }
+    hovered: [
+      {
+        uid: ''
+      }
+    ]
   };
 
   return SideViewComponent;
@@ -67362,15 +67467,16 @@ AngularMeasurement = class AngularMeasurement extends React.Component {
 
 DataPanelComponent = class DataPanelComponent extends React.Component {
   render() {
-    var __, attitude, dip, isSelected, selection, selectionInfo, selectionInfoA, strike, uid;
+    var __, attitude, dip, isSelected, memberInfo, members, selection, selectionInfo, selectionInfoA, strike, uid;
     ({attitude, selection} = this.props);
-    if (attitude == null) {
+    if ((attitude == null) || attitude.length === 0) {
       return reactHyperscript('div.plane-desc', [reactHyperscript('p', {}, "Roll over a measurement to see details")]);
     }
+    attitude = attitude[0];
     isSelected = selection.find(function(d) {
       return d.uid === attitude.uid;
     });
-    ({strike, dip, uid} = attitude);
+    ({strike, dip, uid, members} = attitude);
     if (isSelected) {
       __ = 'remove from selection';
     } else {
@@ -67380,11 +67486,18 @@ DataPanelComponent = class DataPanelComponent extends React.Component {
     if (selection.length > 0) {
       selectionInfoA = reactHyperscript('p.info', ["Type ", reactHyperscript("code", "backspace"), " to clear selection"]);
     }
+    if (members == null) {
+      members = [];
+    }
+    if (members.length > 0) {
+      memberInfo = reactHyperscript('p', `Group of ${members.length} measurements`);
+    }
     return reactHyperscript('div.plane-desc', [
       reactHyperscript('h3.data-id',
       ["ID: ",
       reactHyperscript('span.data.id',
       uid)]),
+      memberInfo,
       reactHyperscript('h4',
       'Nominal Plane'),
       reactHyperscript('ul',
@@ -67434,6 +67547,8 @@ var AttitudeUI;
 var SelectionListComponent;
 var boundMethodCheck = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
 
+core.FocusStyleManager.onlyShowFocusOnTabs();
+
 SelectionListComponent = class SelectionListComponent extends React.Component {
   render() {
     var cid;
@@ -67461,6 +67576,19 @@ AttitudeUI = (function() {
       };
     }
 
+    findAttitudes(list) {
+      var attitudes, i, len, o, out;
+      ({attitudes} = this.props);
+      out = [];
+      for (i = 0, len = list.length; i < len; i++) {
+        o = list[i];
+        out.push(attitudes.find(function(d) {
+          return o === d.uid;
+        }));
+      }
+      return out;
+    }
+
     render() {
       var attitudes, azimuth, data, hovered, onHover, selection, updateSelection;
       ({attitudes} = this.props);
@@ -67471,7 +67599,7 @@ AttitudeUI = (function() {
       return reactHyperscript('div.attitude-area', [
         reactHyperscript('div.row',
         [
-          reactHyperscript(StereonetComponent,
+          reactHyperscript(InteractiveStereonetComponent,
           {
             data,
             onRotate: this.onStereonetRotate,
@@ -67505,8 +67633,21 @@ AttitudeUI = (function() {
       return this.setState({azimuth});
     }
 
-    onHover(hovered = null) {
+    onHover(d) {
+      var hovered;
       boundMethodCheck(this, AttitudeUI);
+      if (d == null) {
+        this.setState({
+          hovered: null
+        });
+        return;
+      }
+      if (d.members != null) {
+        hovered = [d, ...this.findAttitudes(d.members)];
+      } else {
+        hovered = [d];
+      }
+      console.log(hovered);
       return this.setState({hovered});
     }
 
@@ -67516,15 +67657,21 @@ AttitudeUI = (function() {
       });
     }
 
-    updateSelection(id) {
-      var collectedIDs, ix;
+    updateSelection(ids) {
+      var collectedIDs, i, id, ix, len;
       collectedIDs = this.state.selection;
-      ix = collectedIDs.indexOf(id);
-      console.log(ix);
-      if (ix === -1) {
-        collectedIDs.push(id);
-      } else {
-        collectedIDs.splice(ix, 1);
+      console.log(this.state.selection);
+      for (i = 0, len = ids.length; i < len; i++) {
+        id = ids[i];
+        if (id.members != null) {
+          continue;
+        }
+        ix = collectedIDs.indexOf(id);
+        if (ix === -1) {
+          collectedIDs.push(id);
+        } else {
+          collectedIDs.splice(ix, 1);
+        }
       }
       return this.setState({
         selection: collectedIDs

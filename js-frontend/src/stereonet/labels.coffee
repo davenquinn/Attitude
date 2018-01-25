@@ -85,8 +85,10 @@ globalLabels = ->
             offsetY = 5
           return "translate(#{x+offset},#{y-2+offsetY})"
         .style "display", (d)->
-          d = geoDistance(centerPos,d.geometry.coordinates)
-          return if d > Math.PI/2+0.01 then 'none' else 'inline'
+          dist = geoDistance(centerPos,d.geometry.coordinates)
+          if (d.name == 'Up' or d.name == 'Down')
+            return 'none' if dist < Math.PI/4
+          return if dist > Math.PI/2+0.01 then 'none' else 'inline'
 
     stereonet.call horizontalLine
 

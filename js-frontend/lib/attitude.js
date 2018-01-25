@@ -7939,8 +7939,14 @@ exports.globalLabels = function() {
         }
         return `translate(${x + offset},${y - 2 + offsetY})`;
       }).style("display", function(d) {
-        d = d3.geoDistance(centerPos, d.geometry.coordinates);
-        if (d > Math.PI / 2 + 0.01) {
+        var dist;
+        dist = d3.geoDistance(centerPos, d.geometry.coordinates);
+        if (d.name === 'Up' || d.name === 'Down') {
+          if (dist < Math.PI / 4) {
+            return 'none';
+          }
+        }
+        if (dist > Math.PI / 2 + 0.01) {
           return 'none';
         } else {
           return 'inline';
@@ -8235,11 +8241,14 @@ exports.Stereonet = function() {
     if (el == null) {
       throw "Stereonet must be initialized to an element before adding data";
     }
+    if (o.selector == null) {
+      o.selector = 'g.poles';
+    }
+    con = dataArea.selectAppend(o.selector);
     fn = createErrorEllipse(opts);
     createEllipse = function(d) {
       return d3.select(this).append('path').attr('class', 'error').datum(fn(d));
     };
-    con = dataArea.append('g').attr('class', 'normal-vectors');
     sel = con.selectAll('g.normal').data(data).enter().append('g').classed('normal', true).each(createEllipse);
     sel.each(function(d) {
       var color, e;

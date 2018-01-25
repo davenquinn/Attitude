@@ -57,9 +57,15 @@
 
 
   .stereonet
-    g.plane
+    g.plane, g.normal
       &.in-group
         path.error
           fill none
           stroke-dasharray 2,2
+
+  .toolbar
+    display flex
+    flex-direction row
+    &>span
+      margin-right 0.2em
 

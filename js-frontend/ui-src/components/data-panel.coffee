@@ -18,14 +18,15 @@ class AngularMeasurement extends React.Component
 class DataPanelComponent extends React.Component
   render: ->
     {attitude, selection} = @props
-    if not attitude?
+    if (not attitude? or attitude.length == 0)
       return h 'div.plane-desc', [
         h 'p', {}, "Roll over a measurement to see details"
       ]
+    attitude = attitude[0]
 
     isSelected = selection.find (d)->d.uid == attitude.uid
 
-    {strike,dip,uid} = attitude
+    {strike,dip,uid,members} = attitude
 
     if isSelected
       __ = 'remove from selection'
@@ -40,11 +41,16 @@ class DataPanelComponent extends React.Component
         "Type ", h("code","backspace"), " to clear selection"
       ]
 
+    members ?= []
+    if members.length > 0
+      memberInfo = h 'p', "Group of #{members.length} measurements"
+
     return h 'div.plane-desc', [
       h 'h3.data-id', [
         "ID: "
         h 'span.data.id', uid
       ]
+      memberInfo
       h 'h4', 'Nominal Plane'
       h 'ul', [
         h AngularMeasurement, {label: 'Strike: ', datum: strike}

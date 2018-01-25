@@ -98,7 +98,15 @@ g.in_group path.hyperbola {
   color: #444;
   font-family: "Consolas", monospace;
 }
-.stereonet g.plane.in-group path.error {
+.stereonet g.plane.in-group path.error,
+.stereonet g.normal.in-group path.error {
   fill: none;
   stroke-dasharray: 2, 2;
+}
+.toolbar {
+  display: flex;
+  flex-direction: row;
+}
+.toolbar>span {
+  margin-right: 0.2em;
 }

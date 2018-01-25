@@ -103,6 +103,10 @@ Stereonet = ->
     if not el?
       throw "Stereonet must be initialized to an element before adding data"
 
+    if not o.selector?
+      o.selector = 'g.poles'
+    con = dataArea.selectAppend o.selector
+
     fn = functions.errorEllipse opts
 
     createEllipse = (d)->
@@ -110,9 +114,6 @@ Stereonet = ->
         .append 'path'
         .attr 'class', 'error'
         .datum fn(d)
-
-    con = dataArea.append 'g'
-      .attr 'class','normal-vectors'
 
     sel = con.selectAll 'g.normal'
       .data data
