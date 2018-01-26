@@ -26,17 +26,8 @@ def init_notebook_mode():
     with open(path.join(__here__,'nbextension-inject.html')) as f:
         script = f.read()
 
-    script = script.replace("<<<d3>>>",
-                            get_library("d3v4+jetpack.js")+
-                            get_library("d3-selection-multi.min.js"))
-    script = script.replace("<<<mathjs>>>",
-                            get_library("math.js"))
     script = script.replace("<<<attitudeUI>>>",
                             get_library("attitude-ui.js"))
-
-    script = script.replace("<<<stylesheet>>>",
-                            get_library("ui-styles.css"))
-
     display_bundle = {
         'text/html': script
     }
