@@ -4,13 +4,12 @@ import h from 'react-hyperscript'
 import * as d3 from 'd3'
 import {opacityByCertainty,chroma} from "../../src"
 import {hyperbolicErrors, apparentDip, digitizedLine, PlaneData, fixAngle} from "../../src"
+import * as M from 'mathjs'
 
 darkenColor = (c)->
   chroma(c).darken(2).css()
 
 fmt = d3.format '.0f'
-
-M = math
 
 class SideViewComponent extends React.Component
   @defaultProps: {
@@ -20,7 +19,6 @@ class SideViewComponent extends React.Component
     super props
   componentDidMount: ->
     {data} = @props
-    M = math
 
     for f in data
       f.is_group = f.members?
