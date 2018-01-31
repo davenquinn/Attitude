@@ -1,33 +1,5 @@
-<div class='attitude-area <<<hash>>>'>
-  <div class='row'>
-    <svg class="stereonet"></svg>
-    <div class="attitude-data">
-      <div class='plane-desc' style='display:none;'>
-        <h3 class='data-id'>ID: <span class='data id'></span></h3>
-        <h4>Nominal plane</h4>
-        <ul>
-          <li>Strike: <span class='data strike'></span>º</li>
-          <li>Dip:    <span class='data dip'></span>º</li>
-        </ul>
-        <h4>Angular errors</h4>
-        <ul>
-          <li>Min: <span class='data min'></span></li>
-          <li>Max: <span class='data max'></span></li>
-        </ul>
-      </div>
-    </div>
-  </div>
-  <svg class="horizontal-area"></svg>
-  <div class='collected-ids'></div>
-</div>
+<div id='a__<<<hash>>>'></div>
 <script type='text/javascript'>
-  var data='<<<data>>>';
-  var c = d3.select(".attitude-area.<<<hash>>>");
-
-  c.datum(JSON.parse(data))
-    .call(attitudeUI.createUI);
-
-  d3.select(c.node().parentElement.parentElement)
-    .style('max-height',900)
-    .style('background-color','white');
+  var data=JSON.parse('<<<data>>>');
+  attitudeUI(document.querySelector('#a__<<<hash>>>'),data);
 </script>

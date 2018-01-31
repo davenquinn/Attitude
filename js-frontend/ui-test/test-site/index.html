@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="/lib/attitude-ui.js"></script>
+        <script type="text/javascript">
+          d3.json('/data.json', function (data) {
+            attitudeUI(document.querySelector('.attitude-area-container'), data);
+          });
+        </script>
+    </head>
+    <body>
+      <h1>Collection</h1>
+      <div class='attitude-area-container'></div>
+    </body>
+</html>

@@ -154,6 +154,9 @@ Stereonet = ->
     if el?
       el.attrs height: scale, width: scale
 
+  __setScaleOnly = (n)->
+    proj.scale n
+
   __redraw = =>
     return unless el?
     el.selectAll 'path'
@@ -232,6 +235,9 @@ Stereonet = ->
   f.size = __getSet(
     ->scale,
     __setScale)
+  f.scale = __getSet(
+    ->scale,
+    __setScaleOnly)
   f.innerSize = ->scale-margin
   f.projection = ->proj
   f.clip = __getSet(

@@ -1,0 +1,6 @@
+#!/usr/bin/env zsh
+
+export BASE=${0:h:A}
+python $BASE/process-onis-planes.py $BASE/test-site/data.json
+
+

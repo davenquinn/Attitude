@@ -1,4 +1,8 @@
 #!/bin/bash
-find src -name '*.*' | entr ./build & \
-find ui-src -name '*.*' | entr rollup -c rollup.ui.js
+export BASE='ui-test'
+export DATA='ui-test/data'
+python $BASE/process-onis-planes.py $BASE/test-site/data.json
+find src -name '*.*' | \
+  entr ./build --rollup-only & \
+  $(npm bin)/webpack --config webpack.ui.js --watch
 

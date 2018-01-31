@@ -1,11 +1,8 @@
 #!/bin/zsh
 
-cp node_modules/mathjs/dist/math.js lib
-cp node_modules/d3-jetpack/build/d3v4+jetpack.js lib
-cp node_modules/d3-selection-multi/build/d3-selection-multi.min.js lib
-cp node_modules/@blueprintjs/core/lib/css/blueprint.css lib
-cp node_modules/@blueprintjs/core/dist/core.bundle.js lib
-
 rollup -c rollup.config.js
 rollup -c rollup.node.js
-rollup -c rollup.ui.js
+
+if [ "$1" != '--rollup-only' ]; then
+  $(npm bin)/webpack --config webpack.ui.js
+fi

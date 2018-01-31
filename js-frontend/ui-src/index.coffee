@@ -5,8 +5,10 @@ import {InteractiveStereonetComponent} from './components/stereonet'
 import {SideViewComponent} from './components/side-view'
 import {DataPanelComponent} from './components/data-panel'
 import h from 'react-hyperscript'
-import ReactDOM from 'react-dom'
 import React from 'react'
+import ReactDOM from 'react-dom'
+import * as d3 from 'd3'
+import 'd3-jetpack'
 import { FocusStyleManager, Hotkey, Hotkeys, HotkeysTarget } from "@blueprintjs/core"
 
 FocusStyleManager.onlyShowFocusOnTabs()
@@ -117,9 +119,11 @@ class AttitudeUI extends React.Component
 
 HotkeysTarget AttitudeUI
 
-createUI = (__base) ->
-  data = __base.datum()
+createUI = (node,data) ->
   el = h AttitudeUI, {attitudes: data}
-  ReactDOM.render(el, __base.node())
+  ReactDOM.render(el, node)
+
+global.attitudeUI = createUI
+global.d3 = d3
 
 export {createUI}
