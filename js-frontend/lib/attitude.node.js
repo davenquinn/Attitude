@@ -4125,7 +4125,7 @@ getterSetter = function(main) {
 };
 
 exports.Stereonet = function() {
-  var _, __getSet, __redraw, __setScale, callStack, clipAngle, data, dataArea, dispatch$$1, drawEllipses, drawPlanes, el, ell, ellipses, f, graticule, margin, overlay, path, planes, proj, s, scale, setGraticule, shouldClip, uid;
+  var _, __getSet, __redraw, __setScale, __setScaleOnly, callStack, clipAngle, data, dataArea, dispatch$$1, drawEllipses, drawPlanes, el, ell, ellipses, f, graticule, margin, overlay, path, planes, proj, s, scale, setGraticule, shouldClip, uid;
   data = null;
   el = null;
   dataArea = null;
@@ -4228,6 +4228,9 @@ exports.Stereonet = function() {
       });
     }
   };
+  __setScaleOnly = function(n) {
+    return proj.scale(n);
+  };
   __redraw = () => {
     if (el == null) {
       return;
@@ -4301,6 +4304,9 @@ exports.Stereonet = function() {
   f.size = __getSet(function() {
     return scale;
   }, __setScale);
+  f.scale = __getSet(function() {
+    return scale;
+  }, __setScaleOnly);
   f.innerSize = function() {
     return scale - margin;
   };
