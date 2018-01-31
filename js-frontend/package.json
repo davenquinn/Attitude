@@ -11,6 +11,7 @@
     "d3": "^4.12.0",
     "d3-jetpack": "^2.0.16",
     "d3-selection-multi": "^1.0.0",
+    "extract-text-webpack-plugin": "^3.0.2",
     "geojson-rewind": "^0.1.0",
     "mathjs": "^3.16.5",
     "quaternion": "^2.0.0",
@@ -50,6 +51,7 @@
     "stylus": "^0.54.5",
     "stylus-loader": "^3.0.1",
     "turf": "^3.0.14",
+    "uglifyjs-webpack-plugin": "^1.1.8",
     "watchify": "^3.6.1",
     "webpack": "^3.10.0"
   },

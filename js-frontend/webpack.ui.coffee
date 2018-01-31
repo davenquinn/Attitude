@@ -1,5 +1,6 @@
 path = require 'path'
 BrowserSyncPlugin = require 'browser-sync-webpack-plugin'
+UglifyJS = require 'uglifyjs-webpack-plugin'
 {IgnorePlugin} = require 'webpack'
 webRoot = path.resolve './ui-test/test-site'
 
@@ -14,7 +15,7 @@ browserSync = new BrowserSyncPlugin {
   }
 }
 
-plugins = [browserSync]
+plugins = [browserSync, new UglifyJS()]
 
 babelLoader = {
   loader: 'babel-loader'
@@ -31,13 +32,18 @@ coffeeLoader = {
   options: {sourceMap: false}
 }
 
+cssLoader = {
+  loader: 'css-loader',
+  options: {minimize: true}
+}
+
 module.exports = {
   module:
     rules: [
       {test: /\.coffee$/, use: [babelLoader, coffeeLoader], exclude}
       {test: /\.(js|jsx)$/, use: [babelLoader], exclude}
-      {test: /\.styl$/, use: ["style-loader","css-loader", "stylus-loader"]}
-      {test: /\.css$/, use: ["style-loader", "css-loader"]}
+      {test: /\.styl$/, use: ["style-loader", cssLoader, "stylus-loader"]}
+      {test: /\.css$/, use: ["style-loader", cssLoader]}
     ]
   resolve:
     extensions: [".coffee", ".js"]
