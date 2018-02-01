@@ -15,7 +15,7 @@ browserSync = new BrowserSyncPlugin {
   }
 }
 
-shouldMinify = false
+shouldMinify = true
 
 plugins = [browserSync]
 

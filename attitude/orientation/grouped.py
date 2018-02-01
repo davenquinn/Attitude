@@ -40,7 +40,7 @@ def create_groups(orientations, *groups, **kwargs):
     # Copy all datasets to be safe (this could be bad for
     # memory usage, so can be disabled).
     if kwargs.pop('copy', True):
-        orientations = [o.copy() for o in orientations]
+        orientations = [copy(o) for o in orientations]
 
     for o in orientations:
         # Get rid of and recreate group membership
