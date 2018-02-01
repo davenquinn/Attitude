@@ -25,6 +25,7 @@ class StereonetComponent extends React.Component
     drawPlanes: true
     drawPoles: false
     hovered: []
+    precision: 0.2
     center: [0,0]
   }
   constructor: (props)->
@@ -32,10 +33,13 @@ class StereonetComponent extends React.Component
     @state = {center: @props.center}
 
   componentDidMount: ->
-    {data, center} = @props
+    {data, center, precision} = @props
     @stereonet = Stereonet()
       .size(400)
       .margin(25)
+
+    @stereonet.projection()
+      .precision(precision)
 
     node = ReactDOM.findDOMNode(@)
     svg = d3.select(node)

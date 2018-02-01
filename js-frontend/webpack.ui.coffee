@@ -15,7 +15,12 @@ browserSync = new BrowserSyncPlugin {
   }
 }
 
-plugins = [browserSync, new UglifyJS()]
+shouldMinify = false
+
+plugins = [browserSync]
+
+if shouldMinify
+  plugins.push new UglifyJS()
 
 babelLoader = {
   loader: 'babel-loader'
@@ -34,7 +39,7 @@ coffeeLoader = {
 
 cssLoader = {
   loader: 'css-loader',
-  options: {minimize: true}
+  options: {minimize: shouldMinify}
 }
 
 module.exports = {

@@ -43,7 +43,7 @@ class AttitudeUI extends React.Component
     return out
 
   render: ->
-    {attitudes} = @props
+    {attitudes, stereonetPrecision} = @props
     {azimuth, hovered, selection} = @state
     data = attitudes
     onHover = @onHover
@@ -55,6 +55,7 @@ class AttitudeUI extends React.Component
           onRotate: @onStereonetRotate
           onHover
           updateSelection
+          precision: stereonetPrecision
           hovered
         }
         h DataPanelComponent, {attitude: hovered, selection}
@@ -86,7 +87,12 @@ class AttitudeUI extends React.Component
     @setState {hovered}
 
   componentDidMount: ->
+
+
     d3.select ReactDOM.findDOMNode(@)
+      .on 'mouseenter', ->
+        console.log "Focusing on", @
+        @focus()
       .on 'mouseleave', => @onHover()
 
   updateSelection: (ids)->
@@ -101,7 +107,7 @@ class AttitudeUI extends React.Component
         collectedIDs.splice ix,1
     @setState selection: collectedIDs
 
-  renderHotkeys: ->
+  renderHotkeys: =>
     h Hotkeys, [
       h Hotkey, {
           group: "Selection"
@@ -110,6 +116,7 @@ class AttitudeUI extends React.Component
           onKeyDown: =>
             {hovered} = @state
             return unless hovered?
+            console.log "Updating selection"
             @updateSelection hovered
       }
       h Hotkey, {

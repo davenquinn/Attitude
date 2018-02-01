@@ -1,6 +1,7 @@
 from os import path
 from uuid import uuid4
 from json import dumps
+from collections import Sequence
 from IPython import display
 
 __here__ = path.dirname(__file__)
@@ -38,7 +39,10 @@ def plot_interactive(attitudes):
     with open(path.join(__here__,'assets', 'nbextension-view.html')) as f:
         script = f.read()
 
-    attitudes = [a.to_mapping() if hasattr(a,'to_mapping') else a
+    if not isinstance(attitudes, Sequence):
+        attitudes = [attitudes]
+    attitudes = [a.to_mapping()
+                 if hasattr(a,'to_mapping') else a
                  for a in attitudes]
 
     data = dumps(attitudes)

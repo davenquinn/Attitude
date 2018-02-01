@@ -3,4 +3,4 @@ from .orientation import (
     ReconstructedPlane,
     create_groups)
 from .coordinates import centered
-from .plot import plot_aligned
+from .display import plot_aligned
