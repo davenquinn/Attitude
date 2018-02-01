@@ -23,7 +23,11 @@ class SelectionListComponent extends React.Component
     h 'div.collected-ids', {}, "[#{cid.join(',')}]"
 
 class AttitudeUI extends React.Component
-  @defaultProps: {width: 800, attitudes: []}
+  @defaultProps: {
+    width: 800
+    attitudes: []
+    stereonetPrecision: 0.1
+  }
   constructor: (props)->
     super props
     @state = {

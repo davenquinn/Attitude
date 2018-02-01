@@ -23,7 +23,7 @@ def init_notebook_mode():
     """
     global __ATTITUDE_INITIALIZED
 
-    with open(path.join(__here__,'nbextension-inject.html')) as f:
+    with open(path.join(__here__,'assets','nbextension-inject.html')) as f:
         script = f.read()
 
     script = script.replace("<<<attitudeUI>>>",
@@ -35,7 +35,7 @@ def init_notebook_mode():
     __ATTITUDE_INITIALIZED = True
 
 def plot_interactive(attitudes):
-    with open(path.join(__here__,'nbextension-view.html')) as f:
+    with open(path.join(__here__,'assets', 'nbextension-view.html')) as f:
         script = f.read()
 
     attitudes = [a.to_mapping() if hasattr(a,'to_mapping') else a
