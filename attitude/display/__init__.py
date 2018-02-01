@@ -17,6 +17,7 @@ from .plot import (setup_figure, strike_dip, normal,
 from .error_comparison import error_comparison
 from .pca_aligned import plot_aligned
 from .stereonet import girdle_error, pole_error, uncertain_plane
+from .cartopy import cartopy_girdle, cartopy_normal
 
 # These aren't particularly well-organized
 from ..stereonet import plane_errors, normal_errors

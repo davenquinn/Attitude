@@ -54,6 +54,7 @@ class AttitudeUI extends React.Component
           h SelectionListComponent, {
             attitudes, selection,
             onHover,
+            onClearSelection: (d)=>@setState selection: []
             hovered, onClick: (d)=>
               @updateSelection([d])
           }
@@ -65,7 +66,6 @@ class AttitudeUI extends React.Component
     ]
 
   onStereonetRotate: (pos)=>
-    console.log pos
     [lon,lat] = pos
     azimuth = -Math.PI/180*lon
     @setState {azimuth}

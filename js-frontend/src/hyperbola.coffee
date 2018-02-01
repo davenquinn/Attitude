@@ -140,7 +140,6 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
         .attr('visibility','hidden')
       return
 
-    #console.log "Error: ", angularError
     # find length at which tangent is x long
     lengthShown = width/2
 
@@ -222,7 +221,7 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
       .attr 'transform', "translate(#{translate[0]},#{translate[1]})
                           rotate(#{v})"
 
-    hyp.classed 'in_group', d.in_group
+    hyp.classed 'in_group', d.inGroup
 
     lim = width/2
     lim = Math.abs inPlaneLength
@@ -379,7 +378,7 @@ class PlaneData
     @axes = data.axes
     @color = color
     @lengths = hyperbolic_axes
-    @in_group = data.in_group
+    @inGroup = data.in_group
     @array = extracted
     @data = data
     @centered = data.centered_array

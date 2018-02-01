@@ -10256,7 +10256,6 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
       hyp = select$2(this).attr('visibility', 'hidden');
       return;
     }
-    //console.log "Error: ", angularError
     // find length at which tangent is x long
     lengthShown = width / 2;
     if (scaleErrorAngles) {
@@ -10338,7 +10337,7 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     }
     //# Start DOM manipulation ###
     hyp = select$2(this).attr('visibility', 'visible').attr('transform', `translate(${translate[0]},${translate[1]}) rotate(${v})`);
-    hyp.classed('in_group', d.in_group);
+    hyp.classed('in_group', d.inGroup);
     lim = width / 2;
     lim = Math.abs(inPlaneLength);
     masksz = {
@@ -10505,7 +10504,7 @@ exports.PlaneData = class PlaneData {
     this.axes = data.axes;
     this.color = color;
     this.lengths = hyperbolic_axes;
-    this.in_group = data.in_group;
+    this.inGroup = data.in_group;
     this.array = extracted;
     this.data = data;
     this.centered = data.centered_array;

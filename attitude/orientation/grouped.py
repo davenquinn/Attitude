@@ -1,5 +1,6 @@
 from .pca import PCAOrientation, centered
 import numpy as N
+from copy import copy
 """
 A helper class and functions for grouped orientations
 """
@@ -36,6 +37,11 @@ def create_groups(orientations, *groups, **kwargs):
     Create groups of an orientation measurement dataset
     """
     grouped = []
+    # Copy all datasets to be safe (this could be bad for
+    # memory usage).
+    if kwargs.pop('copy', True):
+        orientations = [o.copy() for o in orientations]
+
     for o in orientations:
         # Get rid of and recreate group membership
         o.member_of = None

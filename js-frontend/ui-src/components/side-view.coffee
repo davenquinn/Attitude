@@ -43,13 +43,13 @@ class SideViewComponent extends React.Component
       if hyp > xsize
         xsize = h
 
-      p.in_group = false
+      p.inGroup = false
       if p.data.member_of?
         group = data.find (d)->d.uid == p.data.member_of
         if group?
           p.group = new PlaneData group, p.mean
           p.group.offset = p.offset
-          p.in_group = true
+          p.inGroup = true
         p.data.member_of = null
 
     xsize *= 1.1

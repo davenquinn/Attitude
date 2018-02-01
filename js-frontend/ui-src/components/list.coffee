@@ -12,11 +12,18 @@ class SelectionListComponent extends React.Component
     onHover: ->
   }
   render: =>
-    {attitudes, selection} = @props
+    {attitudes, selection, onClearSelection} = @props
     disabled = selection.length == 0
+
+    clearSelectionButton = null
+    if onClearSelection?
+      onClick = onClearSelection
+      clearSelectionButton = h Button, {
+        disabled, onClick
+      }, "Clear selection"
     h 'div.selection-list', [
       h 'ul', attitudes.map @createListItem
-      h 'p', 'Select items on the list'
+      clearSelectionButton
       h CopyToClipboard, {text: @selectionText()}, [
         h Button, {disabled}, "Copy to clipboard"
       ]
@@ -27,15 +34,23 @@ class SelectionListComponent extends React.Component
     selected = selection.find (sel)->
       sel.uid == d.uid
     isHovered = false
+    inGroup = d.member_of?
     if hovered?
       isHovered = hovered.find (hov)->
         hov.uid == d.uid
 
     className = classNames {selected, hovered: isHovered}
-    style = {}
-    if isHovered
-      style = {
-        backgroundColor: d.color or 'gray',
+
+    style = do ->
+      return {} unless isHovered
+      c = d.color or 'gray'
+      if inGroup
+        return {
+          stroke: c
+          color: c
+        }
+      return {
+        backgroundColor: c
         color: 'white'
       }
     onClick = @onClick(d)
