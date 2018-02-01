@@ -11,6 +11,8 @@ class SelectionListComponent extends React.Component
     selection: []
     onHover: ->
     showGroups: true
+    zoomedToSelection: false
+    zoomToSelection: ->
   }
   render: =>
     {attitudes, selection, onClearSelection} = @props
@@ -29,10 +31,14 @@ class SelectionListComponent extends React.Component
         checked: @props.showGroups
         onChange: @props.onToggleShowGroups
       }
-      clearSelectionButton
+      h Button, {
+        disabled: disabled and @props.attitudes.length != 0,
+        onClick: @props.zoomToSelection
+      }, if @props.zoomedToSelection then "Show all data" else "Show only selection"
       h CopyToClipboard, {text: @selectionText()}, [
         h Button, {disabled}, "Copy to clipboard"
       ]
+      clearSelectionButton
     ]
 
   createListItem: (d)=>

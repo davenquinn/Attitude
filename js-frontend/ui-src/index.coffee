@@ -16,9 +16,10 @@ FocusStyleManager.onlyShowFocusOnTabs()
 
 class AttitudeUI extends React.Component
   @defaultProps: {
-    width: 800
+    width: 760
     attitudes: []
     stereonetPrecision: 0.1
+    allowGroupSelection: true
   }
   constructor: (props)->
     super props
@@ -37,8 +38,8 @@ class AttitudeUI extends React.Component
     return out
 
   render: ->
-    {attitudes, stereonetPrecision} = @props
-    {azimuth, hovered, selection, showGroups} = @state
+    {attitudes, stereonetPrecision, width} = @props
+    {azimuth, hovered, selection, showGroups, zoomedToSelection} = @state
     data = attitudes
     onHover = @onHover
     updateSelection = @updateSelection
@@ -46,6 +47,9 @@ class AttitudeUI extends React.Component
     selectionList = h SelectionListComponent, {
       attitudes, selection,
       showGroups,
+      zoomedToSelection,
+      zoomToSelection: =>
+        @setState {zoomedToSelection: not @state.zoomedToSelection}
       onToggleShowGroups: =>
         @setState {showGroups: not @state.showGroups}
       onHover,
@@ -57,10 +61,10 @@ class AttitudeUI extends React.Component
     dataPanel = h DataPanelComponent, {attitude: hovered}
 
 
-    h 'div.attitude-area', [
+    h 'div.attitude-area', {style: {width}}, [
       h 'div.row', [
         h InteractiveStereonetComponent, {
-          data,
+          data: @getData()
           onRotate: @onStereonetRotate
           onHover
           updateSelection
@@ -76,6 +80,12 @@ class AttitudeUI extends React.Component
       h SideViewComponent, {data, azimuth, hovered,
                             onHover, updateSelection}
     ]
+
+  getData: =>
+    {attitudes} = @props
+    {zoomedToSelection, selection} = @state
+    return attitudes unless zoomedToSelection
+    return selection
 
   onStereonetRotate: (pos)=>
     [lon,lat] = pos
@@ -109,7 +119,7 @@ class AttitudeUI extends React.Component
   updateSelection: (ids)->
     collectedIDs = @state.selection
     for id in ids
-      continue if id.members?
+      continue if id.members? and not @props.allowGroupSelection
       ix = collectedIDs.indexOf(id)
       if ix == -1
         collectedIDs.push(id)

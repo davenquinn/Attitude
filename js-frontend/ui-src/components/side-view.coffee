@@ -59,15 +59,17 @@ class SideViewComponent extends React.Component
     margin = 30
     marginLeft = 50
     marginRight = 100
+    marginTop = 5
+    marginBottom = 35
     sz = {width: 800, height: 300}
     innerSize =
       width: sz.width-marginLeft-marginRight
-      height: sz.height-2*margin
+      height: sz.height-marginTop-marginBottom
 
     @svg = d3.select ReactDOM.findDOMNode(@)
       .at sz
       .append 'g'
-      .at transform: "translate(#{marginLeft},#{margin})"
+      .at transform: "translate(#{marginLeft},#{marginTop})"
 
     x = d3.scaleLinear()
       .range [0,innerSize.width]
@@ -138,7 +140,7 @@ class SideViewComponent extends React.Component
       .call xAx
 
     @azLabel = _x.append 'text.axis-label'
-      .attr 'transform', "translate(#{innerSize.width/2},20)"
+      .attr 'transform', "translate(#{innerSize.width/2},24)"
       .style 'text-anchor','middle'
 
     @scales = {x,y}
@@ -153,7 +155,7 @@ class SideViewComponent extends React.Component
 
   updateAzimuth: ->
     console.log "Updated constraints"
-    angle = @props.azimuth
+    angle = @props.azimuth - Math.PI/2
     {x,y} = @scales
 
     v_ = M.eye(3).toArray()
@@ -206,7 +208,7 @@ class SideViewComponent extends React.Component
     df = digitizedLine(angle, @lineGenerator)
     ese.merge(se).each df
 
-    az = fmt(fixAngle(angle+Math.PI/2)*180/Math.PI)
+    az = fmt(fixAngle(angle+Math.PI)*180/Math.PI)
     @azLabel.text "Distance along #{az}º"
 
   updateHovered: ->

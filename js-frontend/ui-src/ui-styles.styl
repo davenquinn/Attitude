@@ -2,7 +2,6 @@
   div.attitude-area
     @require "./blueprint"
 
-    width: 760px
     background: white
     margin 1em
     margin-bottom 2em
@@ -36,6 +35,10 @@
       &>div
         flex 1
 
+  div.stereonet-outer
+    display flex
+    flex-direction column
+
   div.selection-list
     display flex
     button
@@ -64,10 +67,10 @@
         background-color #eee
         cursor pointer
         &.selected
-          background-color #ddd
+          background-color #bbb
+          color #666
 
   div.plane-desc
-    margin-top 1em
     min-width 15em
     background-color: #eee
     padding 0.5em
@@ -117,3 +120,6 @@
     &>*
       margin-right 1em
 
+svg.horizontal-area
+  .axis-label
+    font-size: 1.2em

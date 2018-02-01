@@ -56,12 +56,14 @@ class StereonetComponent extends React.Component
       @props.onRotate center
 
   componentDidUpdate: (prevProps)->
-    {hovered} = @props
-    if prevProps.drawPlanes != @props.drawPlanes
+    {hovered, drawPlanes, drawPoles, data} = @props
+    if data.length != prevProps.data.length
+      drawPlanes = drawPoles = null
+    if prevProps.drawPlanes != drawPlanes
       @updatePlanes()
       hovered = null
 
-    if prevProps.drawPoles != @props.drawPoles
+    if prevProps.drawPoles != drawPoles
       @updatePoles()
       hovered = null
     @__finishUpdate()
@@ -148,7 +150,7 @@ class InteractiveStereonetComponent extends React.Component
   render: ->
     {drawPlanes, drawPoles, center} = @state
 
-    h 'div', [
+    h 'div.stereonet-outer', [
       h StereonetComponent, {
         drawPlanes, drawPoles, @props..., center
         ref: "component"
