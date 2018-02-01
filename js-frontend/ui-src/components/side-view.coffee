@@ -1,10 +1,12 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import h from 'react-hyperscript'
+import * as M from 'mathjs'
+
 import * as d3 from 'd3'
 import {opacityByCertainty,chroma} from "../../src"
 import {hyperbolicErrors, apparentDip, digitizedLine, PlaneData, fixAngle} from "../../src"
-import * as M from 'mathjs'
+import {computeCentroidExtrema} from '../../src/util'
 
 darkenColor = (c)->
   chroma(c).darken(2).css()
@@ -27,18 +29,7 @@ class SideViewComponent extends React.Component
       .filter (d)->not d.is_group
       .map (d)->new PlaneData d
 
-    totalLength = 0
-    accum = [0,0,0]
-    weights = @singlePlanes.map (plane)->
-      d = plane.data
-      if not d.centered_array?
-        return [0,0,0]
-      len = d.centered_array.length
-      totalLength += len
-      return d.center.map (a)->a*len
-
-    overallCenter = [0..2].map (i)->
-      d3.sum weights, (d)->d[i]/totalLength
+    overallCenter = computeCentroidExtrema(@singlePlanes)
 
     xsize = 0
     ysize = 0

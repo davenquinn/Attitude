@@ -4,7 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var d3 = require('d3');
+var d3$1 = require('d3');
 require('d3-selection-multi');
 var chroma = _interopDefault(require('chroma-js'));
 var uuid = _interopDefault(require('uuid'));
@@ -52,7 +52,7 @@ norm = function(d) {
   _ = d.map(function(a) {
     return a * a;
   });
-  return Math.sqrt(d3.sum(_));
+  return Math.sqrt(d3$1.sum(_));
 };
 
 sdot = function(a, b) {
@@ -65,7 +65,7 @@ sdot = function(a, b) {
     }
     return results;
   })();
-  return d3.sum(zipped);
+  return d3$1.sum(zipped);
 };
 
 ellipse = function(opts) {
@@ -325,8 +325,100 @@ var math = Object.freeze({
 	get deconvolveAxes () { return deconvolveAxes; }
 });
 
+function ascending(a, b) {
+  return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
+}
+
+function bisector(compare) {
+  if (compare.length === 1) compare = ascendingComparator(compare);
+  return {
+    left: function(a, x, lo, hi) {
+      if (lo == null) lo = 0;
+      if (hi == null) hi = a.length;
+      while (lo < hi) {
+        var mid = lo + hi >>> 1;
+        if (compare(a[mid], x) < 0) lo = mid + 1;
+        else hi = mid;
+      }
+      return lo;
+    },
+    right: function(a, x, lo, hi) {
+      if (lo == null) lo = 0;
+      if (hi == null) hi = a.length;
+      while (lo < hi) {
+        var mid = lo + hi >>> 1;
+        if (compare(a[mid], x) > 0) hi = mid;
+        else lo = mid + 1;
+      }
+      return lo;
+    }
+  };
+}
+
+function ascendingComparator(f) {
+  return function(d, x) {
+    return ascending(f(d), x);
+  };
+}
+
+var ascendingBisect = bisector(ascending);
+var bisectRight = ascendingBisect.right;
+
+var e10 = Math.sqrt(50);
+var e5 = Math.sqrt(10);
+var e2 = Math.sqrt(2);
+
+function ticks(start, stop, count) {
+  var reverse,
+      i = -1,
+      n,
+      ticks,
+      step;
+
+  stop = +stop, start = +start, count = +count;
+  if (start === stop && count > 0) return [start];
+  if (reverse = stop < start) n = start, start = stop, stop = n;
+  if ((step = tickIncrement(start, stop, count)) === 0 || !isFinite(step)) return [];
+
+  if (step > 0) {
+    start = Math.ceil(start / step);
+    stop = Math.floor(stop / step);
+    ticks = new Array(n = Math.ceil(stop - start + 1));
+    while (++i < n) ticks[i] = (start + i) * step;
+  } else {
+    start = Math.floor(start * step);
+    stop = Math.ceil(stop * step);
+    ticks = new Array(n = Math.ceil(start - stop + 1));
+    while (++i < n) ticks[i] = (start - i) / step;
+  }
+
+  if (reverse) ticks.reverse();
+
+  return ticks;
+}
+
+function tickIncrement(start, stop, count) {
+  var step = (stop - start) / Math.max(0, count),
+      power = Math.floor(Math.log(step) / Math.LN10),
+      error = step / Math.pow(10, power);
+  return power >= 0
+      ? (error >= e10 ? 10 : error >= e5 ? 5 : error >= e2 ? 2 : 1) * Math.pow(10, power)
+      : -Math.pow(10, -power) / (error >= e10 ? 10 : error >= e5 ? 5 : error >= e2 ? 2 : 1);
+}
+
+function tickStep(start, stop, count) {
+  var step0 = Math.abs(stop - start) / Math.max(0, count),
+      step1 = Math.pow(10, Math.floor(Math.log(step0) / Math.LN10)),
+      error = step0 / step1;
+  if (error >= e10) step1 *= 10;
+  else if (error >= e5) step1 *= 5;
+  else if (error >= e2) step1 *= 2;
+  return stop < start ? -step1 : step1;
+}
+
 var cloneOptions;
 
+//import qh from 'quickhull3d'
 cloneOptions = function(obj, newProps) {
   var a, k;
   a = {};
@@ -363,12 +455,12 @@ createErrorSurface = function(d, baseData = null) {
   // objects into error surface
   e = [d.lower, d.upper.reverse()];
   f = createFeature("Polygon", e);
-  if (!d3.geoContains(f, d.nominal[0])) {
+  if (!d3$1.geoContains(f, d.nominal[0])) {
     f = createFeature("Polygon", e.map(function(d) {
       return d.reverse();
     }));
   }
-  a = d3.geoArea(f);
+  a = d3$1.geoArea(f);
   if (f.properties == null) {
     f.properties = {};
   }
@@ -411,7 +503,7 @@ createGroupedPlane = function(opts) {
     // Make sure axes are not inverted
     axes = flipAxesIfNeeded(axes);
     e = combinedErrors(hyperbolic_axes, axes, opts);
-    el = d3.select(this);
+    el = d3$1.select(this);
     el.append("path").datum(createErrorSurface(e, p)).attr('class', 'error').classed('unconstrained', hyperbolic_axes[2] > hyperbolic_axes[1]);
     if (!opts.nominal) {
       return;
@@ -439,10 +531,10 @@ __createErrorEllipse = function(opts) {
       f = createFeature("Polygon", [e]);
       // Check winding (note: only an issue with non-traditional
       // stereonet axes)
-      a = d3.geoArea(f);
+      a = d3$1.geoArea(f);
       if (a > 2 * Math.PI) {
         f = createFeature("Polygon", [e.reverse()]);
-        a = d3.geoArea(f);
+        a = d3$1.geoArea(f);
       }
       f.properties = {
         area: a,
@@ -740,7 +832,7 @@ EnterNode.prototype = {
   querySelectorAll: function(selector) { return this._parent.querySelectorAll(selector); }
 };
 
-function constant(x) {
+function constant$1(x) {
   return function() {
     return x;
   };
@@ -829,7 +921,7 @@ function selection_data(value, key) {
       parents = this._parents,
       groups = this._groups;
 
-  if (typeof value !== "function") value = constant(value);
+  if (typeof value !== "function") value = constant$1(value);
 
   for (var m = groups.length, update = new Array(m), enter = new Array(m), exit = new Array(m), j = 0; j < m; ++j) {
     var parent = parents[j],
@@ -897,7 +989,7 @@ function selection_order() {
 }
 
 function selection_sort(compare) {
-  if (!compare) compare = ascending;
+  if (!compare) compare = ascending$1;
 
   function compareNode(a, b) {
     return a && b ? compare(a.__data__, b.__data__) : !a - !b;
@@ -915,7 +1007,7 @@ function selection_sort(compare) {
   return new Selection(sortgroups, this._parents).order();
 }
 
-function ascending(a, b) {
+function ascending$1(a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
 }
 
@@ -1399,97 +1491,6 @@ function horizontal(stereonet) {
       dy: -labelDistance - 4
     });
   };
-}
-
-function ascending$1(a, b) {
-  return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
-}
-
-function bisector(compare) {
-  if (compare.length === 1) compare = ascendingComparator(compare);
-  return {
-    left: function(a, x, lo, hi) {
-      if (lo == null) lo = 0;
-      if (hi == null) hi = a.length;
-      while (lo < hi) {
-        var mid = lo + hi >>> 1;
-        if (compare(a[mid], x) < 0) lo = mid + 1;
-        else hi = mid;
-      }
-      return lo;
-    },
-    right: function(a, x, lo, hi) {
-      if (lo == null) lo = 0;
-      if (hi == null) hi = a.length;
-      while (lo < hi) {
-        var mid = lo + hi >>> 1;
-        if (compare(a[mid], x) > 0) hi = mid;
-        else lo = mid + 1;
-      }
-      return lo;
-    }
-  };
-}
-
-function ascendingComparator(f) {
-  return function(d, x) {
-    return ascending$1(f(d), x);
-  };
-}
-
-var ascendingBisect = bisector(ascending$1);
-var bisectRight = ascendingBisect.right;
-
-var e10 = Math.sqrt(50);
-var e5 = Math.sqrt(10);
-var e2 = Math.sqrt(2);
-
-function ticks(start, stop, count) {
-  var reverse,
-      i = -1,
-      n,
-      ticks,
-      step;
-
-  stop = +stop, start = +start, count = +count;
-  if (start === stop && count > 0) return [start];
-  if (reverse = stop < start) n = start, start = stop, stop = n;
-  if ((step = tickIncrement(start, stop, count)) === 0 || !isFinite(step)) return [];
-
-  if (step > 0) {
-    start = Math.ceil(start / step);
-    stop = Math.floor(stop / step);
-    ticks = new Array(n = Math.ceil(stop - start + 1));
-    while (++i < n) ticks[i] = (start + i) * step;
-  } else {
-    start = Math.floor(start * step);
-    stop = Math.ceil(stop * step);
-    ticks = new Array(n = Math.ceil(start - stop + 1));
-    while (++i < n) ticks[i] = (start - i) / step;
-  }
-
-  if (reverse) ticks.reverse();
-
-  return ticks;
-}
-
-function tickIncrement(start, stop, count) {
-  var step = (stop - start) / Math.max(0, count),
-      power = Math.floor(Math.log(step) / Math.LN10),
-      error = step / Math.pow(10, power);
-  return power >= 0
-      ? (error >= e10 ? 10 : error >= e5 ? 5 : error >= e2 ? 2 : 1) * Math.pow(10, power)
-      : -Math.pow(10, -power) / (error >= e10 ? 10 : error >= e5 ? 5 : error >= e2 ? 2 : 1);
-}
-
-function tickStep(start, stop, count) {
-  var step0 = Math.abs(stop - start) / Math.max(0, count),
-      step1 = Math.pow(10, Math.floor(Math.log(step0) / Math.LN10)),
-      error = step0 / step1;
-  if (error >= e10) step1 *= 10;
-  else if (error >= e5) step1 *= 5;
-  else if (error >= e2) step1 *= 2;
-  return stop < start ? -step1 : step1;
 }
 
 var prefix = "$";
@@ -3943,14 +3944,14 @@ function interaction(stereonet) {
   proj = stereonet.projection();
   el = stereonet.node();
   mousedown = function() {
-    m0 = [d3.event.pageX, d3.event.pageY];
+    m0 = [d3$1.event.pageX, d3$1.event.pageY];
     o0 = stereonet.rotate();
-    return d3.event.preventDefault();
+    return d3$1.event.preventDefault();
   };
   mousemove = function() {
     var limit, m1, o1;
     if (m0) {
-      m1 = [d3.event.pageX, d3.event.pageY];
+      m1 = [d3$1.event.pageX, d3$1.event.pageY];
       o1 = [o0[0] + (m1[0] - m0[0]) / 3, o0[1] + (m0[1] - m1[1]) / 3];
       limit = 90;
       o1[1] = o1[1] > limit ? limit : o1[1] < -limit ? -limit : o1[1];
@@ -3964,7 +3965,7 @@ function interaction(stereonet) {
     }
   };
   el.on('mousedown', mousedown);
-  return d3.select(window).on("mousemove", mousemove).on("mouseup", mouseup);
+  return d3$1.select(window).on("mousemove", mousemove).on("mouseup", mouseup);
 }
 
 /*
@@ -4039,7 +4040,7 @@ exports.globalLabels = function() {
     sz = stereonet.size();
     proj = stereonet.projection();
     svg = stereonet.overlay();
-    path = d3.geoPath().projection(proj).pointRadius(1);
+    path = d3$1.geoPath().projection(proj).pointRadius(1);
     updateLabels = function() {
       var centerPos, width;
       console.log("Updating labels");
@@ -4070,7 +4071,7 @@ exports.globalLabels = function() {
         return `translate(${x + offset},${y - 2 + offsetY})`;
       }).style("display", function(d) {
         var dist;
-        dist = d3.geoDistance(centerPos, d.geometry.coordinates);
+        dist = d3$1.geoDistance(centerPos, d.geometry.coordinates);
         if (d.name === 'Up' || d.name === 'Down') {
           if (dist < Math.PI / 4) {
             return 'none';
@@ -4136,9 +4137,9 @@ exports.Stereonet = function() {
   s = 0.00001;
   shouldClip = true;
   uid = uuid.v4();
-  graticule = d3.geoGraticule().stepMinor([10, 10]).stepMajor([90, 10]).extentMinor([[-180, -80 - s], [180, 80 + s]]).extentMajor([[-180, -90 + s], [180, 90 - s]]);
-  proj = d3.geoOrthographic().clipAngle(clipAngle).precision(0.01).rotate([0, 0]).scale(300);
-  path = d3.geoPath().projection(proj).pointRadius(2);
+  graticule = d3$1.geoGraticule().stepMinor([10, 10]).stepMajor([90, 10]).extentMinor([[-180, -80 - s], [180, 80 + s]]).extentMajor([[-180, -90 + s], [180, 90 - s]]);
+  proj = d3$1.geoOrthographic().clipAngle(clipAngle).precision(0.01).rotate([0, 0]).scale(300);
+  path = d3$1.geoPath().projection(proj).pointRadius(2);
   // Items to be added once DOM is available
   // (e.g. interaction)
   callStack = [];
@@ -4162,7 +4163,7 @@ exports.Stereonet = function() {
       } else {
         color = o.color;
       }
-      e = d3.select(this);
+      e = d3$1.select(this);
       e.selectAll('path.error').attrs({
         fill: color
       });
@@ -4187,7 +4188,7 @@ exports.Stereonet = function() {
     con = dataArea.selectAppend(o.selector);
     fn = createErrorEllipse(opts);
     createEllipse = function(d) {
-      return d3.select(this).append('path').attr('class', 'error').datum(fn(d));
+      return d3$1.select(this).append('path').attr('class', 'error').datum(fn(d));
     };
     sel = con.selectAll('g.normal').data(data).enter().append('g').classed('normal', true).each(createEllipse);
     sel.each(function(d) {
@@ -4197,7 +4198,7 @@ exports.Stereonet = function() {
       } else {
         color = o.color;
       }
-      return e = d3.select(this).selectAll('path.error').attrs({
+      return e = d3$1.select(this).selectAll('path.error').attrs({
         fill: color
       });
     });
@@ -4220,7 +4221,7 @@ exports.Stereonet = function() {
     } else {
       proj.scale(radius).translate([scale / 2, scale / 2]);
     }
-    path = d3.geoPath().projection(proj);
+    path = d3$1.geoPath().projection(proj);
     if (el != null) {
       return el.attrs({
         height: scale,
@@ -4237,7 +4238,7 @@ exports.Stereonet = function() {
     }
     return el.selectAll('path').attr('d', path.pointRadius(2));
   };
-  dispatch$$1 = d3.dispatch(uid + 'rotate', uid + 'redraw');
+  dispatch$$1 = d3$1.dispatch(uid + 'rotate', uid + 'redraw');
   f = function(_el, opts = {}) {
     var int, item, j, len, neatlineId, sphereId;
     // This should be integrated into a reusable
@@ -4336,14 +4337,14 @@ exports.Stereonet = function() {
     var centerPos;
     return centerPos = proj.invert([scale / 2, scale / 2]);
   };
-  f.d3 = d3;
+  f.d3 = d3$1;
   f.on = function(event$$1, callback) {
     return dispatch$$1.on(uid + event$$1, callback);
   };
   setGraticule = function(lon, lat) {
     //# Could also make this take a d3.geoGraticule object ##
     s = 0.00001;
-    return graticule = d3.geoGraticule().stepMinor([lon, lat]).stepMajor([90, lat]).extentMinor([[-180, -90 + lat - s], [180, 90 - lat + s]]).extentMajor([[-180, -90 + s], [180, 90 - s]]);
+    return graticule = d3$1.geoGraticule().stepMinor([lon, lat]).stepMajor([90, lat]).extentMinor([[-180, -90 + lat - s], [180, 90 - lat + s]]).extentMajor([[-180, -90 + s], [180, 90 - s]]);
   };
   f.graticule = __getSet(function() {
     return graticule;
@@ -4406,7 +4407,7 @@ exports.opacityByCertainty = function(colorFunc, accessor = null) {
   };
   darkenStroke = 0.2;
   maxOpacity = 5;
-  alphaScale = d3.scalePow(4).range([0.8, 0.1]).domain([0, maxOpacity]);
+  alphaScale = d3$1.scalePow(4).range([0.8, 0.1]).domain([0, maxOpacity]);
   alphaScale.clamp(true);
   f = function(d, i) {
     var al, angError, color, e, fill, stroke;
@@ -4415,7 +4416,7 @@ exports.opacityByCertainty = function(colorFunc, accessor = null) {
     color = chroma(colorFunc(d));
     fill = color.alpha(al).css();
     stroke = color.alpha(al + darkenStroke).css();
-    e = d3.select(this);
+    e = d3$1.select(this);
     if (accessor != null) {
       e = e.selectAll('path.error');
     }
@@ -4766,7 +4767,7 @@ var transpose$2;
 var vecAngle;
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-select$2 = d3.select;
+select$2 = d3$1.select;
 
 exports.fixAngle = function(a) {
   // Put an angle on the interval [-Pi,Pi]

@@ -17,9 +17,26 @@
     fill: transparent
     stroke-width: 2px
 
+
   mono()
     font-family "Consolas", monospace
 
+  div.selection-list
+    max-height 410px
+    display flex
+    flex-direction column
+    ul
+      border 2px solid #ddd
+      overflow-y scroll
+      list-style none
+      padding-left 0
+      flex 1
+      mono()
+      li
+        padding 0.2em 0.5em
+        cursor pointer
+        &.selected
+          background-color #ddd
 
   div.plane-desc
     margin-top 1em
