@@ -2,7 +2,7 @@
   div.attitude-area
     @require "./blueprint"
 
-    width: 800px
+    width: 760px
     background: white
     margin 1em
     margin-bottom 2em
@@ -14,7 +14,7 @@
       flex-direction: row
       &>div
         flex 1
-
+      max-height 420px
   path.trace
     fill: transparent
     stroke-width: 2px
@@ -23,22 +23,45 @@
   mono()
     font-family "Consolas", monospace
 
+  div.data-panel.pt-tabs
+    display: flex
+    flex-direction column
+    &>.pt-tab-panel[aria-hidden=false]
+      width 100%
+      heigth 100%
+      flex 1
+      position relative
+      display flex
+      flex-direction column
+      &>div
+        flex 1
+
   div.selection-list
-    flex-grow 1
-    max-height 410px
     display flex
     button
       margin-bottom 0.4em
     flex-direction column
+    position relative
     ul
-      border 2px solid #ddd
+      display flex
+      flex-flow row wrap
+      align-content center
+      justify-content space-between
+      width 100%
       overflow-y scroll
       list-style none
       padding-left 0
       flex 1
+      margin -0.2em
+      margin-bottom 1em
       mono()
       li
         padding 0.2em 0.5em
+        margin 0.2em
+        font-size 0.9em
+        color #888
+        border-radius 0.2em
+        background-color #eee
         cursor pointer
         &.selected
           background-color #ddd

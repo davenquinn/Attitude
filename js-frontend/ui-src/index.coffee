@@ -10,7 +10,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import * as d3 from 'd3'
 import 'd3-jetpack'
-import { FocusStyleManager, Hotkey, Hotkeys, HotkeysTarget } from "@blueprintjs/core"
+import { FocusStyleManager, Tab, Tabs } from "@blueprintjs/core"
 
 FocusStyleManager.onlyShowFocusOnTabs()
 
@@ -23,8 +23,10 @@ class AttitudeUI extends React.Component
   constructor: (props)->
     super props
     @state = {
+      showGroups: true
       azimuth: 0
       hovered: null
+      zoomedToSelection: false
       selection: []
     }
   findAttitudes: (list)->
@@ -36,10 +38,25 @@ class AttitudeUI extends React.Component
 
   render: ->
     {attitudes, stereonetPrecision} = @props
-    {azimuth, hovered, selection} = @state
+    {azimuth, hovered, selection, showGroups} = @state
     data = attitudes
     onHover = @onHover
     updateSelection = @updateSelection
+
+    selectionList = h SelectionListComponent, {
+      attitudes, selection,
+      showGroups,
+      onToggleShowGroups: =>
+        @setState {showGroups: not @state.showGroups}
+      onHover,
+      onClearSelection: (d)=>@setState selection: []
+      hovered, onClick: (d)=>
+        @updateSelection([d])
+    }
+
+    dataPanel = h DataPanelComponent, {attitude: hovered}
+
+
     h 'div.attitude-area', [
       h 'div.row', [
         h InteractiveStereonetComponent, {
@@ -50,19 +67,14 @@ class AttitudeUI extends React.Component
           precision: stereonetPrecision
           hovered
         }
-        h 'div.data-panel', [
-          h SelectionListComponent, {
-            attitudes, selection,
-            onHover,
-            onClearSelection: (d)=>@setState selection: []
-            hovered, onClick: (d)=>
-              @updateSelection([d])
-          }
+        h Tabs, {className: 'data-panel'}, [
+          h Tab, {id: 'measurement-data', title: 'Info', panel: dataPanel}
+          h Tab, {id: 'selection-list', title: 'List', panel: selectionList}
+          h Tabs.Expander
         ]
       ]
       h SideViewComponent, {data, azimuth, hovered,
                             onHover, updateSelection}
-      h SelectionListComponent, {selection}
     ]
 
   onStereonetRotate: (pos)=>
@@ -96,7 +108,6 @@ class AttitudeUI extends React.Component
 
   updateSelection: (ids)->
     collectedIDs = @state.selection
-    console.log @state.selection
     for id in ids
       continue if id.members?
       ix = collectedIDs.indexOf(id)

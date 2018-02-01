@@ -10,6 +10,7 @@ class SelectionListComponent extends React.Component
     attitudes: []
     selection: []
     onHover: ->
+    showGroups: true
   }
   render: =>
     {attitudes, selection, onClearSelection} = @props
@@ -23,6 +24,11 @@ class SelectionListComponent extends React.Component
       }, "Clear selection"
     h 'div.selection-list', [
       h 'ul', attitudes.map @createListItem
+      h Switch, {
+        label: "Show groups"
+        checked: @props.showGroups
+        onChange: @props.onToggleShowGroups
+      }
       clearSelectionButton
       h CopyToClipboard, {text: @selectionText()}, [
         h Button, {disabled}, "Copy to clipboard"
@@ -30,7 +36,9 @@ class SelectionListComponent extends React.Component
     ]
 
   createListItem: (d)=>
-    {selection, hovered} = @props
+    {selection, hovered, showGroups} = @props
+    if d.members? and not showGroups
+      return null
     selected = selection.find (sel)->
       sel.uid == d.uid
     isHovered = false

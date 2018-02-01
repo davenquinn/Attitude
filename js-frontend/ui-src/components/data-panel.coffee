@@ -24,22 +24,7 @@ class DataPanelComponent extends React.Component
       ]
     attitude = attitude[0]
 
-    isSelected = selection.find (d)->d.uid == attitude.uid
-
     {strike,dip,uid,members} = attitude
-
-    if isSelected
-      __ = 'remove from selection'
-    else
-      __ = 'select this measurement'
-
-    selectionInfo = h 'p.info', [
-      "Type ", h("code","s"), " to "+__
-    ]
-    if selection.length > 0
-      selectionInfoA = h 'p.info', [
-        "Type ", h("code","backspace"), " to clear selection"
-      ]
 
     members ?= []
     if members.length > 0
@@ -58,8 +43,6 @@ class DataPanelComponent extends React.Component
       ]
       h 'h4', 'Angular errors'
       @angularErrors()
-      selectionInfo
-      selectionInfoA or null
     ]
 
   angularErrors: ->

@@ -38,7 +38,7 @@ def create_groups(orientations, *groups, **kwargs):
     """
     grouped = []
     # Copy all datasets to be safe (this could be bad for
-    # memory usage).
+    # memory usage, so can be disabled).
     if kwargs.pop('copy', True):
         orientations = [o.copy() for o in orientations]
 
