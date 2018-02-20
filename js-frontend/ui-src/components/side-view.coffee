@@ -204,7 +204,8 @@ class SideViewComponent extends React.Component
       .on 'mouseover', (d)->
         onHover(d.data)
 
-    df = digitizedLine(angle, @lineGenerator)
+    #df = digitizedLine(angle, @lineGenerator)
+    df = apparentDip(angle, x,y)
     ese.merge(se).each df
 
     az = fmt(fixAngle(angle+Math.PI)*180/Math.PI)

@@ -34,7 +34,7 @@ exclude = /node_modules/
 
 coffeeLoader = {
   loader: 'coffee-loader'
-  options: {sourceMap: false}
+  options: {sourceMap: true}
 }
 
 cssLoader = {

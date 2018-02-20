@@ -337,40 +337,41 @@ apparentDip = (viewpoint, xScale,yScale)->
       #.attr 'd',lineGenerator(lineData)
       #.attr 'transform', "translate(#{xScale(offs[0])},#{yScale(offs[2])})rotate(#{v})"
 
-    planeAxes = d.axes
+    plane = d
     if d.group?
-      planeAxes = d.group.axes
+      plane = d.group
     ### Create a line from input points ###
     ### Put in axis-aligned coordinates ###
     q = Q.fromAxisAngle [0,0,1], viewpoint
-    R = M.transpose matrix(axes)
 
-    A = planeAxes
-    # Find fit normal in new coordinates
-    normal = dot(A[2],R,q)
-    # Get transform that puts normal in xz plane
-    n = normal.toArray()
-    n[1] = Math.abs(n[1])
-    n1 = [n[0],0,n[2]]
-    n1 = n1.map (d)->d/M.norm(n1)
-    qR = Q.fromBetweenVectors(n,n1)
+    angle = viewpoint #-viewpoint+Math.PI/2
+    cv = Math.cos(angle)
+    sv = Math.sin(angle)
+    Ra = matrix([[cv,-sv,0],[sv,cv,0],[0,0,1]])
+
+    A = matrix(plane.axes)
 
     # Without adding this other quaternion, it is the same as just showing
     # digitized lines
-    qA = q.mul qR
 
-    v = dot(d.centered, R)
-    a = dot(v, qA)
-    ### Map down to two dimensions (the x-z plane of the viewing geometry) ###
-    data = dot(a, T).toArray()
+    #trans = dot(M.transpose(Ra), M.transpose(A), Ra)
 
+    v = dot(d.centered, M.transpose(A), Ra)
+
+    console.log(plane.apparentDip())
+
+     ### Map down to two dimensions (the x-z plane of the viewing geometry) ###
+    data = dot(v, T).toArray()
 
     # Get offset of angles
-    offs = dot(d.offset,R,q,T).toArray()
+    offs = dot(d.offset,q,T).toArray()
+
+    v = plane.apparentDip(-viewpoint+Math.PI/2)
+    v = -Math.atan2(Math.tan(v),screenRatio)*180/Math.PI
 
     select(@)
       .attr 'd', lineGenerator(data)
-      .attr 'transform', "translate(#{xScale(offs[0])},#{yScale(offs[1])})"
+      .attr 'transform', "translate(#{xScale(offs[0])},#{yScale(offs[1])}) rotate(#{v})"
 
 
   f.axes = (o)->
