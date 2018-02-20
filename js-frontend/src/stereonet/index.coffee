@@ -404,8 +404,10 @@ opacityByCertainty = (colorFunc, accessor=null)->
 
   __getSet = getterSetter(f)
 
+  f.alphaScale = __getSet alphaScale, (v)->alphaScale = v
   f.angularError = __getSet angularError, (v)->angularError = v
   f.max = __getSet maxOpacity, (v)->maxOpacity=v
+  f.domain = __getSet alphaScale.domain(), (v)->alphaScale.domain(v)
 
   return f
 

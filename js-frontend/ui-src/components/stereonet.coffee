@@ -125,6 +125,7 @@ class StereonetComponent extends React.Component
       .remove()
     return unless drawPoles
 
+
     @stereonet.ellipses(data)
       .each(opacityByCertainty(c, 'path.error'))
       .classed 'in-group', (d)->d.member_of?

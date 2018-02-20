@@ -1,10 +1,9 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3'), require('crypto'), require('mathjs')) :
-	typeof define === 'function' && define.amd ? define(['exports', 'd3', 'crypto', 'mathjs'], factory) :
-	(factory((global.attitude = global.attitude || {}),global.d3,global.crypto,global.math));
-}(this, (function (exports,d3$1,crypto,M) { 'use strict';
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3'), require('mathjs')) :
+	typeof define === 'function' && define.amd ? define(['exports', 'd3', 'mathjs'], factory) :
+	(factory((global.attitude = global.attitude || {}),global.d3,global.math));
+}(this, (function (exports,d3$1,M) { 'use strict';
 
-crypto = crypto && crypto.hasOwnProperty('default') ? crypto['default'] : crypto;
 M = M && M.hasOwnProperty('default') ? M['default'] : M;
 
 var xhtml = "http://www.w3.org/1999/xhtml";
@@ -44,124 +43,6 @@ function creator(name) {
   return (fullname.local
       ? creatorFixed
       : creatorInherit)(fullname);
-}
-
-var matcher = function(selector) {
-  return function() {
-    return this.matches(selector);
-  };
-};
-
-if (typeof document !== "undefined") {
-  var element = document.documentElement;
-  if (!element.matches) {
-    var vendorMatches = element.webkitMatchesSelector
-        || element.msMatchesSelector
-        || element.mozMatchesSelector
-        || element.oMatchesSelector;
-    matcher = function(selector) {
-      return function() {
-        return vendorMatches.call(this, selector);
-      };
-    };
-  }
-}
-
-var matcher$1 = matcher;
-
-var filterEvents = {};
-
-
-
-if (typeof document !== "undefined") {
-  var element$1 = document.documentElement;
-  if (!("onmouseenter" in element$1)) {
-    filterEvents = {mouseenter: "mouseover", mouseleave: "mouseout"};
-  }
-}
-
-function filterContextListener(listener, index, group) {
-  listener = contextListener(listener, index, group);
-  return function(event$$1) {
-    var related = event$$1.relatedTarget;
-    if (!related || (related !== this && !(related.compareDocumentPosition(this) & 8))) {
-      listener.call(this, event$$1);
-    }
-  };
-}
-
-function contextListener(listener, index, group) {
-  return function(event1) {
-    try {
-      listener.call(this, this.__data__, index, group);
-    } finally {
-      
-    }
-  };
-}
-
-function parseTypenames(typenames) {
-  return typenames.trim().split(/^|\s+/).map(function(t) {
-    var name = "", i = t.indexOf(".");
-    if (i >= 0) name = t.slice(i + 1), t = t.slice(0, i);
-    return {type: t, name: name};
-  });
-}
-
-function onRemove(typename) {
-  return function() {
-    var on = this.__on;
-    if (!on) return;
-    for (var j = 0, i = -1, m = on.length, o; j < m; ++j) {
-      if (o = on[j], (!typename.type || o.type === typename.type) && o.name === typename.name) {
-        this.removeEventListener(o.type, o.listener, o.capture);
-      } else {
-        on[++i] = o;
-      }
-    }
-    if (++i) on.length = i;
-    else delete this.__on;
-  };
-}
-
-function onAdd(typename, value, capture) {
-  var wrap = filterEvents.hasOwnProperty(typename.type) ? filterContextListener : contextListener;
-  return function(d, i, group) {
-    var on = this.__on, o, listener = wrap(value, i, group);
-    if (on) for (var j = 0, m = on.length; j < m; ++j) {
-      if ((o = on[j]).type === typename.type && o.name === typename.name) {
-        this.removeEventListener(o.type, o.listener, o.capture);
-        this.addEventListener(o.type, o.listener = listener, o.capture = capture);
-        o.value = value;
-        return;
-      }
-    }
-    this.addEventListener(typename.type, listener, capture);
-    o = {type: typename.type, name: typename.name, value: value, listener: listener, capture: capture};
-    if (!on) this.__on = [o];
-    else on.push(o);
-  };
-}
-
-function selection_on(typename, value, capture) {
-  var typenames = parseTypenames(typename + ""), i, n = typenames.length, t;
-
-  if (arguments.length < 2) {
-    var on = this.node().__on;
-    if (on) for (var j = 0, m = on.length, o; j < m; ++j) {
-      for (i = 0, o = on[j]; i < n; ++i) {
-        if ((t = typenames[i]).type === o.type && t.name === o.name) {
-          return o.value;
-        }
-      }
-    }
-    return;
-  }
-
-  on = value ? onAdd : onRemove;
-  if (capture == null) capture = false;
-  for (i = 0; i < n; ++i) this.each(on(typenames[i], value, capture));
-  return this;
 }
 
 function none() {}
@@ -211,6 +92,29 @@ function selection_selectAll(select$$1) {
 
   return new Selection(subgroups, parents);
 }
+
+var matcher = function(selector) {
+  return function() {
+    return this.matches(selector);
+  };
+};
+
+if (typeof document !== "undefined") {
+  var element = document.documentElement;
+  if (!element.matches) {
+    var vendorMatches = element.webkitMatchesSelector
+        || element.msMatchesSelector
+        || element.mozMatchesSelector
+        || element.oMatchesSelector;
+    matcher = function(selector) {
+      return function() {
+        return vendorMatches.call(this, selector);
+      };
+    };
+  }
+}
+
+var matcher$1 = matcher;
 
 function selection_filter(match) {
   if (typeof match !== "function") match = matcher$1(match);
@@ -772,10 +676,117 @@ function selection_remove() {
   return this.each(remove);
 }
 
+function selection_cloneShallow() {
+  return this.parentNode.insertBefore(this.cloneNode(false), this.nextSibling);
+}
+
+function selection_cloneDeep() {
+  return this.parentNode.insertBefore(this.cloneNode(true), this.nextSibling);
+}
+
+function selection_clone(deep) {
+  return this.select(deep ? selection_cloneDeep : selection_cloneShallow);
+}
+
 function selection_datum(value) {
   return arguments.length
       ? this.property("__data__", value)
       : this.node().__data__;
+}
+
+var filterEvents = {};
+
+
+
+if (typeof document !== "undefined") {
+  var element$1 = document.documentElement;
+  if (!("onmouseenter" in element$1)) {
+    filterEvents = {mouseenter: "mouseover", mouseleave: "mouseout"};
+  }
+}
+
+function filterContextListener(listener, index, group) {
+  listener = contextListener(listener, index, group);
+  return function(event$$1) {
+    var related = event$$1.relatedTarget;
+    if (!related || (related !== this && !(related.compareDocumentPosition(this) & 8))) {
+      listener.call(this, event$$1);
+    }
+  };
+}
+
+function contextListener(listener, index, group) {
+  return function(event1) {
+    try {
+      listener.call(this, this.__data__, index, group);
+    } finally {
+      
+    }
+  };
+}
+
+function parseTypenames(typenames) {
+  return typenames.trim().split(/^|\s+/).map(function(t) {
+    var name = "", i = t.indexOf(".");
+    if (i >= 0) name = t.slice(i + 1), t = t.slice(0, i);
+    return {type: t, name: name};
+  });
+}
+
+function onRemove(typename) {
+  return function() {
+    var on = this.__on;
+    if (!on) return;
+    for (var j = 0, i = -1, m = on.length, o; j < m; ++j) {
+      if (o = on[j], (!typename.type || o.type === typename.type) && o.name === typename.name) {
+        this.removeEventListener(o.type, o.listener, o.capture);
+      } else {
+        on[++i] = o;
+      }
+    }
+    if (++i) on.length = i;
+    else delete this.__on;
+  };
+}
+
+function onAdd(typename, value, capture) {
+  var wrap = filterEvents.hasOwnProperty(typename.type) ? filterContextListener : contextListener;
+  return function(d, i, group) {
+    var on = this.__on, o, listener = wrap(value, i, group);
+    if (on) for (var j = 0, m = on.length; j < m; ++j) {
+      if ((o = on[j]).type === typename.type && o.name === typename.name) {
+        this.removeEventListener(o.type, o.listener, o.capture);
+        this.addEventListener(o.type, o.listener = listener, o.capture = capture);
+        o.value = value;
+        return;
+      }
+    }
+    this.addEventListener(typename.type, listener, capture);
+    o = {type: typename.type, name: typename.name, value: value, listener: listener, capture: capture};
+    if (!on) this.__on = [o];
+    else on.push(o);
+  };
+}
+
+function selection_on(typename, value, capture) {
+  var typenames = parseTypenames(typename + ""), i, n = typenames.length, t;
+
+  if (arguments.length < 2) {
+    var on = this.node().__on;
+    if (on) for (var j = 0, m = on.length, o; j < m; ++j) {
+      for (i = 0, o = on[j]; i < n; ++i) {
+        if ((t = typenames[i]).type === o.type && t.name === o.name) {
+          return o.value;
+        }
+      }
+    }
+    return;
+  }
+
+  on = value ? onAdd : onRemove;
+  if (capture == null) capture = false;
+  for (i = 0; i < n; ++i) this.each(on(typenames[i], value, capture));
+  return this;
 }
 
 function dispatchEvent(node, type, params) {
@@ -850,6 +861,7 @@ Selection.prototype = selection.prototype = {
   append: selection_append,
   insert: selection_insert,
   remove: selection_remove,
+  clone: selection_clone,
   datum: selection_datum,
   on: selection_on,
   dispatch: selection_dispatch
@@ -1080,7 +1092,7 @@ function schedule(node, name, id, index, group, timing) {
   var schedules = node.__transition;
   if (!schedules) node.__transition = {};
   else if (id in schedules) return;
-  create(node, id, {
+  create$1(node, id, {
     name: name,
     index: index, // For context during callback.
     group: group, // For context during callback.
@@ -1113,7 +1125,7 @@ function get(node, id) {
   return schedule;
 }
 
-function create(node, id, self) {
+function create$1(node, id, self) {
   var schedules = node.__transition,
       tween;
 
@@ -2727,19 +2739,19 @@ var sdot;
 var transpose;
 
 transpose = function(array, length = null) {
-  var i, j, k, l, m, newArray, ref, ref1, results;
+  var i, j, k, l, newArray, ref, ref1;
   if (length == null) {
     length = array[0].length;
   }
   newArray = (function() {
-    results = [];
+    var results = [];
     for (var k = 0; 0 <= length ? k < length : k > length; 0 <= length ? k++ : k--){ results.push(k); }
     return results;
   }).apply(this).map(function() {
     return [];
   });
-  for (i = l = 0, ref = array.length; 0 <= ref ? l < ref : l > ref; i = 0 <= ref ? ++l : --l) {
-    for (j = m = 0, ref1 = length; 0 <= ref1 ? m < ref1 : m > ref1; j = 0 <= ref1 ? ++m : --m) {
+  for (i = k = 0, ref = array.length; undefined !== 0 && (0 <= ref ? 0 <= k && k < ref : 0 >= k && k > ref); i = 0 <= ref ? ++k : --k) {
+    for (j = l = 0, ref1 = length; undefined !== 0 && (0 <= ref1 ? 0 <= l && l < ref1 : 0 >= l && l > ref1); j = 0 <= ref1 ? ++l : --l) {
       newArray[j].push(array[i][j]);
     }
   }
@@ -2762,7 +2774,7 @@ sdot = function(a, b) {
   zipped = (function() {
     var k, ref, results;
     results = [];
-    for (i = k = 0, ref = a.length; 0 <= ref ? k <= ref : k >= ref; i = 0 <= ref ? ++k : --k) {
+    for (i = k = 0, ref = a.length; undefined !== 0 && (0 <= ref ? 0 <= k && k <= ref : 0 >= k && k >= ref); i = 0 <= ref ? ++k : --k) {
       results.push(a[i] * b[i]);
     }
     return results;
@@ -2791,11 +2803,11 @@ ellipse = function(opts) {
     // interval [1,-1]
     angles = [];
     angles.push(Math.PI - Math.asin(i_));
-    for (i = k = 0, ref = v; 0 <= ref ? k < ref : k > ref; i = 0 <= ref ? ++k : --k) {
+    for (i = k = 0, ref = v; undefined !== 0 && (0 <= ref ? 0 <= k && k < ref : 0 >= k && k > ref); i = 0 <= ref ? ++k : --k) {
       i_ -= step;
       angles.push(Math.PI - Math.asin(i_));
     }
-    for (i = l = 0, ref1 = v; 0 <= ref1 ? l < ref1 : l > ref1; i = 0 <= ref1 ? ++l : --l) {
+    for (i = l = 0, ref1 = v; undefined !== 0 && (0 <= ref1 ? 0 <= l && l < ref1 : 0 >= l && l > ref1); i = 0 <= ref1 ? ++l : --l) {
       i_ += step;
       v = Math.asin(i_);
       if (v < 0) {
@@ -2819,7 +2831,7 @@ ellipse = function(opts) {
     angles = (function() {
       var k, ref, results;
       results = [];
-      for (i = k = 0, ref = opts.n; 0 <= ref ? k < ref : k > ref; i = 0 <= ref ? ++k : --k) {
+      for (i = k = 0, ref = opts.n; undefined !== 0 && (0 <= ref ? 0 <= k && k < ref : 0 >= k && k > ref); i = 0 <= ref ? ++k : --k) {
         results.push(i * step);
       }
       return results;
@@ -3006,8 +3018,8 @@ deconvolveAxes = function(axes) {
   // Inverse of `convolveAxes`
   ax = transpose(axes);
   sv = ax.map(norm);
-  for (i = k = 0, ref = axes.length; 0 <= ref ? k < ref : k > ref; i = 0 <= ref ? ++k : --k) {
-    for (j = l = 0, ref1 = axes.length; 0 <= ref1 ? l < ref1 : l > ref1; j = 0 <= ref1 ? ++l : --l) {
+  for (i = k = 0, ref = axes.length; undefined !== 0 && (0 <= ref ? 0 <= k && k < ref : 0 >= k && k > ref); i = 0 <= ref ? ++k : --k) {
+    for (j = l = 0, ref1 = axes.length; undefined !== 0 && (0 <= ref1 ? 0 <= l && l < ref1 : 0 >= l && l > ref1); j = 0 <= ref1 ? ++l : --l) {
       axes[j][i] /= sv[i];
     }
   }
@@ -3502,7 +3514,7 @@ var chroma = createCommonjsModule(function (module, exports) {
     root.chroma = chroma;
   }
 
-  chroma.version = '1.3.4';
+  chroma.version = '1.3.5';
 
   _input = {};
 
@@ -5417,7 +5429,7 @@ var chroma = createCommonjsModule(function (module, exports) {
   };
 
   chroma.scale = function(colors, positions) {
-    var _classes, _colorCache, _colors, _correctLightness, _domain, _fixed, _max, _min, _mode, _nacol, _out, _padding, _pos, _spread, _useCache, classifyValue, f, getClass, getColor, resetCache, setColors, tmap;
+    var _classes, _colorCache, _colors, _correctLightness, _domain, _fixed, _gamma, _max, _min, _mode, _nacol, _out, _padding, _pos, _spread, _useCache, classifyValue, f, getClass, getColor, resetCache, setColors, tmap;
     _mode = 'rgb';
     _nacol = chroma('#ccc');
     _spread = 0;
@@ -5432,6 +5444,7 @@ var chroma = createCommonjsModule(function (module, exports) {
     _correctLightness = false;
     _colorCache = {};
     _useCache = true;
+    _gamma = 1;
     setColors = function(colors) {
       var c, col, o, ref, ref1, w;
       if (colors == null) {
@@ -5483,11 +5496,8 @@ var chroma = createCommonjsModule(function (module, exports) {
         if (_classes && _classes.length > 2) {
           c = getClass(val);
           t = c / (_classes.length - 2);
-          t = _padding[0] + (t * (1 - _padding[0] - _padding[1]));
         } else if (_max !== _min) {
           t = (val - _min) / (_max - _min);
-          t = _padding[0] + (t * (1 - _padding[0] - _padding[1]));
-          t = Math.min(1, Math.max(0, t));
         } else {
           t = 1;
         }
@@ -5497,6 +5507,11 @@ var chroma = createCommonjsModule(function (module, exports) {
       if (!bypassMap) {
         t = tmap(t);
       }
+      if (_gamma !== 1) {
+        t = pow(t, _gamma);
+      }
+      t = _padding[0] + (t * (1 - _padding[0] - _padding[1]));
+      t = Math.min(1, Math.max(0, t));
       k = Math.floor(t * 10000);
       if (_useCache && _colorCache[k]) {
         col = _colorCache[k];
@@ -5700,9 +5715,18 @@ var chroma = createCommonjsModule(function (module, exports) {
     };
     f.cache = function(c) {
       if (c != null) {
-        return _useCache = c;
+        _useCache = c;
+        return f;
       } else {
         return _useCache;
+      }
+    };
+    f.gamma = function(g) {
+      if (g != null) {
+        _gamma = g;
+        return f;
+      } else {
+        return _gamma;
       }
     };
     return f;
@@ -6595,7 +6619,7 @@ function formatLocale(locale) {
 
         // Compute the prefix and suffix.
         valuePrefix = (valueNegative ? (sign === "(" ? sign : "-") : sign === "-" || sign === "(" ? "" : sign) + valuePrefix;
-        valueSuffix = valueSuffix + (type === "s" ? prefixes[8 + prefixExponent / 3] : "") + (valueNegative && sign === "(" ? ")" : "");
+        valueSuffix = (type === "s" ? prefixes[8 + prefixExponent / 3] : "") + valueSuffix + (valueNegative && sign === "(" ? ")" : "");
 
         // Break the formatted value into the integer “value” part that can be
         // grouped, and fractional or exponential “suffix” part that is not.
@@ -8015,14 +8039,40 @@ exports.globalLabels = function() {
   };
 };
 
-// Unique ID creation requires a high quality random # generator.  In node.js
-// this is pretty straight-forward - we use the crypto API.
+var rngBrowser = createCommonjsModule(function (module) {
+// Unique ID creation requires a high quality random # generator.  In the
+// browser this is a little complicated due to unknown quality of Math.random()
+// and inconsistent support for the `crypto` API.  We do the best we can via
+// feature-detection
 
+// getRandomValues needs to be invoked in a context where "this" is a Crypto implementation.
+var getRandomValues = (typeof(crypto) != 'undefined' && crypto.getRandomValues.bind(crypto)) ||
+                      (typeof(msCrypto) != 'undefined' && msCrypto.getRandomValues.bind(msCrypto));
+if (getRandomValues) {
+  // WHATWG crypto RNG - http://wiki.whatwg.org/wiki/Crypto
+  var rnds8 = new Uint8Array(16); // eslint-disable-line no-undef
 
+  module.exports = function whatwgRNG() {
+    getRandomValues(rnds8);
+    return rnds8;
+  };
+} else {
+  // Math.random()-based (RNG)
+  //
+  // If all else fails, use Math.random().  It's fast, but is of unspecified
+  // quality.
+  var rnds = new Array(16);
 
-var rng = function nodeRNG() {
-  return crypto.randomBytes(16);
-};
+  module.exports = function mathRNG() {
+    for (var i = 0, r; i < 16; i++) {
+      if ((i & 0x03) === 0) r = Math.random() * 0x100000000;
+      rnds[i] = r >>> ((i & 0x03) << 3) & 0xff;
+    }
+
+    return rnds;
+  };
+}
+});
 
 /**
  * Convert array of 16 byte values to UUID string format of the form:
@@ -8073,7 +8123,7 @@ function v1(options, buf, offset) {
   // specified.  We do this lazily to minimize issues related to insufficient
   // system entropy.  See #189
   if (node == null || clockseq == null) {
-    var seedBytes = rng();
+    var seedBytes = rngBrowser();
     if (node == null) {
       // Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
       node = _nodeId = [
@@ -8164,7 +8214,7 @@ function v4(options, buf, offset) {
   }
   options = options || {};
 
-  var rnds = options.random || (options.rng || rng)();
+  var rnds = options.random || (options.rng || rngBrowser)();
 
   // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
   rnds[6] = (rnds[6] & 0x0f) | 0x40;
@@ -8552,11 +8602,17 @@ exports.opacityByCertainty = function(colorFunc, accessor = null) {
     return e.attr('fill', fill).attr('stroke', stroke);
   };
   __getSet = getterSetter(f);
+  f.alphaScale = __getSet(alphaScale, function(v) {
+    return alphaScale = v;
+  });
   f.angularError = __getSet(angularError, function(v) {
     return angularError = v;
   });
   f.max = __getSet(maxOpacity, function(v) {
     return maxOpacity = v;
+  });
+  f.domain = __getSet(alphaScale.domain(), function(v) {
+    return alphaScale.domain(v);
   });
   return f;
 };
@@ -10272,13 +10328,14 @@ __planeAngle = function(axes, angle) {
 };
 
 exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
-  var angle, centerPoint, dfunc, gradient, lineGenerator, n, nCoords, nominal, ratioX, ratioY, scaleErrorAngles, screenRatio, width;
+  var alphaScale, angle, centerPoint, dfunc, gradient, lineGenerator, n, nCoords, nominal, ratioX, ratioY, scaleErrorAngles, screenRatio, width;
   // Viewpoint should be an angle from north in radians
   n = 10;
   angle = viewpoint;
   width = 400;
   nominal = false;
   centerPoint = false;
+  alphaScale = null;
   // Whether to exaggerate error angles along with scale
   scaleErrorAngles = true;
   // For 3 coordinates on each half of the hyperbola, we collapse down to
@@ -10289,7 +10346,7 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
   ({ratioX, ratioY, screenRatio, lineGenerator} = getRatios(xScale, yScale));
   dfunc = function(d) {
     /* Project axes to 2d */
-    var R, a, a1, angles, angularError, arr, ax, b, center, coords, cutAngle, cutAngle2, hyp, inPlaneLength, j, largeNumber, lengthShown, lim, limit, loc, mask, masksz, mid, oa, offs, poly, q, rax, results, s, top, translate, v, zind;
+    var R, a, a1, angles, angularError, arr, ax, b, center, coords, cutAngle, cutAngle2, hyp, inPlaneLength, largeNumber, lengthShown, lim, limit, loc, mask, masksz, mid, oa, offs, poly, q, rax, s, top, translate, v, zind;
     // Get a single level of planar errors (or the
     // plane's nominal value) as a girdle
     rax = d.axes;
@@ -10339,7 +10396,7 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     // coordinate plane.
     if (nCoords > 3) {
       angles = (function() {
-        results = [];
+        var results = [];
         for (var j = 0; 0 <= n ? j < n : j > n; 0 <= n ? j++ : j--){ results.push(j); }
         return results;
       }).apply(this).map(function(d) {
@@ -10387,6 +10444,9 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     }).angularError(function() {
       return angularError;
     }).max(5);
+    if (alphaScale != null) {
+      oa.alphaScale(alphaScale);
+    }
     // Correct for apparent dip
     //apparent = apparentDipCorrection(screenRatio)
 
@@ -10479,6 +10539,13 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
       return nominal;
     }
     nominal = o;
+    return dfunc;
+  };
+  dfunc.alphaScale = function(o) {
+    if (o == null) {
+      return alphaScale;
+    }
+    alphaScale = o;
     return dfunc;
   };
   return dfunc;

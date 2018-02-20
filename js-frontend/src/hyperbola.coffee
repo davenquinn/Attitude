@@ -91,6 +91,7 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
   width = 400
   nominal = false
   centerPoint = false
+  alphaScale = null
   # Whether to exaggerate error angles along with scale
   scaleErrorAngles = true
 
@@ -199,6 +200,9 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
       .angularError -> angularError
       .max 5
 
+    if alphaScale?
+      oa.alphaScale alphaScale
+
     # Correct for apparent dip
     #apparent = apparentDipCorrection(screenRatio)
 
@@ -289,6 +293,11 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
   dfunc.nominal = (o)->
     return nominal unless o?
     nominal = o
+    return dfunc
+
+  dfunc.alphaScale = (o)->
+    return alphaScale unless o?
+    alphaScale = o
     return dfunc
 
   return dfunc

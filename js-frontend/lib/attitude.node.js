@@ -25,19 +25,19 @@ var sdot;
 var transpose;
 
 transpose = function(array, length = null) {
-  var i, j, k, l, m, newArray, ref, ref1, results;
+  var i, j, k, l, newArray, ref, ref1;
   if (length == null) {
     length = array[0].length;
   }
   newArray = (function() {
-    results = [];
+    var results = [];
     for (var k = 0; 0 <= length ? k < length : k > length; 0 <= length ? k++ : k--){ results.push(k); }
     return results;
   }).apply(this).map(function() {
     return [];
   });
-  for (i = l = 0, ref = array.length; 0 <= ref ? l < ref : l > ref; i = 0 <= ref ? ++l : --l) {
-    for (j = m = 0, ref1 = length; 0 <= ref1 ? m < ref1 : m > ref1; j = 0 <= ref1 ? ++m : --m) {
+  for (i = k = 0, ref = array.length; undefined !== 0 && (0 <= ref ? 0 <= k && k < ref : 0 >= k && k > ref); i = 0 <= ref ? ++k : --k) {
+    for (j = l = 0, ref1 = length; undefined !== 0 && (0 <= ref1 ? 0 <= l && l < ref1 : 0 >= l && l > ref1); j = 0 <= ref1 ? ++l : --l) {
       newArray[j].push(array[i][j]);
     }
   }
@@ -60,7 +60,7 @@ sdot = function(a, b) {
   zipped = (function() {
     var k, ref, results;
     results = [];
-    for (i = k = 0, ref = a.length; 0 <= ref ? k <= ref : k >= ref; i = 0 <= ref ? ++k : --k) {
+    for (i = k = 0, ref = a.length; undefined !== 0 && (0 <= ref ? 0 <= k && k <= ref : 0 >= k && k >= ref); i = 0 <= ref ? ++k : --k) {
       results.push(a[i] * b[i]);
     }
     return results;
@@ -89,11 +89,11 @@ ellipse = function(opts) {
     // interval [1,-1]
     angles = [];
     angles.push(Math.PI - Math.asin(i_));
-    for (i = k = 0, ref = v; 0 <= ref ? k < ref : k > ref; i = 0 <= ref ? ++k : --k) {
+    for (i = k = 0, ref = v; undefined !== 0 && (0 <= ref ? 0 <= k && k < ref : 0 >= k && k > ref); i = 0 <= ref ? ++k : --k) {
       i_ -= step;
       angles.push(Math.PI - Math.asin(i_));
     }
-    for (i = l = 0, ref1 = v; 0 <= ref1 ? l < ref1 : l > ref1; i = 0 <= ref1 ? ++l : --l) {
+    for (i = l = 0, ref1 = v; undefined !== 0 && (0 <= ref1 ? 0 <= l && l < ref1 : 0 >= l && l > ref1); i = 0 <= ref1 ? ++l : --l) {
       i_ += step;
       v = Math.asin(i_);
       if (v < 0) {
@@ -117,7 +117,7 @@ ellipse = function(opts) {
     angles = (function() {
       var k, ref, results;
       results = [];
-      for (i = k = 0, ref = opts.n; 0 <= ref ? k < ref : k > ref; i = 0 <= ref ? ++k : --k) {
+      for (i = k = 0, ref = opts.n; undefined !== 0 && (0 <= ref ? 0 <= k && k < ref : 0 >= k && k > ref); i = 0 <= ref ? ++k : --k) {
         results.push(i * step);
       }
       return results;
@@ -304,8 +304,8 @@ deconvolveAxes = function(axes) {
   // Inverse of `convolveAxes`
   ax = transpose(axes);
   sv = ax.map(norm);
-  for (i = k = 0, ref = axes.length; 0 <= ref ? k < ref : k > ref; i = 0 <= ref ? ++k : --k) {
-    for (j = l = 0, ref1 = axes.length; 0 <= ref1 ? l < ref1 : l > ref1; j = 0 <= ref1 ? ++l : --l) {
+  for (i = k = 0, ref = axes.length; undefined !== 0 && (0 <= ref ? 0 <= k && k < ref : 0 >= k && k > ref); i = 0 <= ref ? ++k : --k) {
+    for (j = l = 0, ref1 = axes.length; undefined !== 0 && (0 <= ref1 ? 0 <= l && l < ref1 : 0 >= l && l > ref1); j = 0 <= ref1 ? ++l : --l) {
       axes[j][i] /= sv[i];
     }
   }
@@ -678,124 +678,6 @@ function creator(name) {
       : creatorInherit)(fullname);
 }
 
-var matcher = function(selector) {
-  return function() {
-    return this.matches(selector);
-  };
-};
-
-if (typeof document !== "undefined") {
-  var element = document.documentElement;
-  if (!element.matches) {
-    var vendorMatches = element.webkitMatchesSelector
-        || element.msMatchesSelector
-        || element.mozMatchesSelector
-        || element.oMatchesSelector;
-    matcher = function(selector) {
-      return function() {
-        return vendorMatches.call(this, selector);
-      };
-    };
-  }
-}
-
-var matcher$1 = matcher;
-
-var filterEvents = {};
-
-
-
-if (typeof document !== "undefined") {
-  var element$1 = document.documentElement;
-  if (!("onmouseenter" in element$1)) {
-    filterEvents = {mouseenter: "mouseover", mouseleave: "mouseout"};
-  }
-}
-
-function filterContextListener(listener, index, group) {
-  listener = contextListener(listener, index, group);
-  return function(event$$1) {
-    var related = event$$1.relatedTarget;
-    if (!related || (related !== this && !(related.compareDocumentPosition(this) & 8))) {
-      listener.call(this, event$$1);
-    }
-  };
-}
-
-function contextListener(listener, index, group) {
-  return function(event1) {
-    try {
-      listener.call(this, this.__data__, index, group);
-    } finally {
-      
-    }
-  };
-}
-
-function parseTypenames(typenames) {
-  return typenames.trim().split(/^|\s+/).map(function(t) {
-    var name = "", i = t.indexOf(".");
-    if (i >= 0) name = t.slice(i + 1), t = t.slice(0, i);
-    return {type: t, name: name};
-  });
-}
-
-function onRemove(typename) {
-  return function() {
-    var on = this.__on;
-    if (!on) return;
-    for (var j = 0, i = -1, m = on.length, o; j < m; ++j) {
-      if (o = on[j], (!typename.type || o.type === typename.type) && o.name === typename.name) {
-        this.removeEventListener(o.type, o.listener, o.capture);
-      } else {
-        on[++i] = o;
-      }
-    }
-    if (++i) on.length = i;
-    else delete this.__on;
-  };
-}
-
-function onAdd(typename, value, capture) {
-  var wrap = filterEvents.hasOwnProperty(typename.type) ? filterContextListener : contextListener;
-  return function(d, i, group) {
-    var on = this.__on, o, listener = wrap(value, i, group);
-    if (on) for (var j = 0, m = on.length; j < m; ++j) {
-      if ((o = on[j]).type === typename.type && o.name === typename.name) {
-        this.removeEventListener(o.type, o.listener, o.capture);
-        this.addEventListener(o.type, o.listener = listener, o.capture = capture);
-        o.value = value;
-        return;
-      }
-    }
-    this.addEventListener(typename.type, listener, capture);
-    o = {type: typename.type, name: typename.name, value: value, listener: listener, capture: capture};
-    if (!on) this.__on = [o];
-    else on.push(o);
-  };
-}
-
-function selection_on(typename, value, capture) {
-  var typenames = parseTypenames(typename + ""), i, n = typenames.length, t;
-
-  if (arguments.length < 2) {
-    var on = this.node().__on;
-    if (on) for (var j = 0, m = on.length, o; j < m; ++j) {
-      for (i = 0, o = on[j]; i < n; ++i) {
-        if ((t = typenames[i]).type === o.type && t.name === o.name) {
-          return o.value;
-        }
-      }
-    }
-    return;
-  }
-
-  on = value ? onAdd : onRemove;
-  if (capture == null) capture = false;
-  for (i = 0; i < n; ++i) this.each(on(typenames[i], value, capture));
-  return this;
-}
-
 function none() {}
 
 function selector(selector) {
@@ -843,6 +725,29 @@ function selection_selectAll(select$$1) {
 
   return new Selection(subgroups, parents);
 }
+
+var matcher = function(selector) {
+  return function() {
+    return this.matches(selector);
+  };
+};
+
+if (typeof document !== "undefined") {
+  var element = document.documentElement;
+  if (!element.matches) {
+    var vendorMatches = element.webkitMatchesSelector
+        || element.msMatchesSelector
+        || element.mozMatchesSelector
+        || element.oMatchesSelector;
+    matcher = function(selector) {
+      return function() {
+        return vendorMatches.call(this, selector);
+      };
+    };
+  }
+}
+
+var matcher$1 = matcher;
 
 function selection_filter(match) {
   if (typeof match !== "function") match = matcher$1(match);
@@ -1404,10 +1309,117 @@ function selection_remove() {
   return this.each(remove);
 }
 
+function selection_cloneShallow() {
+  return this.parentNode.insertBefore(this.cloneNode(false), this.nextSibling);
+}
+
+function selection_cloneDeep() {
+  return this.parentNode.insertBefore(this.cloneNode(true), this.nextSibling);
+}
+
+function selection_clone(deep) {
+  return this.select(deep ? selection_cloneDeep : selection_cloneShallow);
+}
+
 function selection_datum(value) {
   return arguments.length
       ? this.property("__data__", value)
       : this.node().__data__;
+}
+
+var filterEvents = {};
+
+
+
+if (typeof document !== "undefined") {
+  var element$1 = document.documentElement;
+  if (!("onmouseenter" in element$1)) {
+    filterEvents = {mouseenter: "mouseover", mouseleave: "mouseout"};
+  }
+}
+
+function filterContextListener(listener, index, group) {
+  listener = contextListener(listener, index, group);
+  return function(event$$1) {
+    var related = event$$1.relatedTarget;
+    if (!related || (related !== this && !(related.compareDocumentPosition(this) & 8))) {
+      listener.call(this, event$$1);
+    }
+  };
+}
+
+function contextListener(listener, index, group) {
+  return function(event1) {
+    try {
+      listener.call(this, this.__data__, index, group);
+    } finally {
+      
+    }
+  };
+}
+
+function parseTypenames(typenames) {
+  return typenames.trim().split(/^|\s+/).map(function(t) {
+    var name = "", i = t.indexOf(".");
+    if (i >= 0) name = t.slice(i + 1), t = t.slice(0, i);
+    return {type: t, name: name};
+  });
+}
+
+function onRemove(typename) {
+  return function() {
+    var on = this.__on;
+    if (!on) return;
+    for (var j = 0, i = -1, m = on.length, o; j < m; ++j) {
+      if (o = on[j], (!typename.type || o.type === typename.type) && o.name === typename.name) {
+        this.removeEventListener(o.type, o.listener, o.capture);
+      } else {
+        on[++i] = o;
+      }
+    }
+    if (++i) on.length = i;
+    else delete this.__on;
+  };
+}
+
+function onAdd(typename, value, capture) {
+  var wrap = filterEvents.hasOwnProperty(typename.type) ? filterContextListener : contextListener;
+  return function(d, i, group) {
+    var on = this.__on, o, listener = wrap(value, i, group);
+    if (on) for (var j = 0, m = on.length; j < m; ++j) {
+      if ((o = on[j]).type === typename.type && o.name === typename.name) {
+        this.removeEventListener(o.type, o.listener, o.capture);
+        this.addEventListener(o.type, o.listener = listener, o.capture = capture);
+        o.value = value;
+        return;
+      }
+    }
+    this.addEventListener(typename.type, listener, capture);
+    o = {type: typename.type, name: typename.name, value: value, listener: listener, capture: capture};
+    if (!on) this.__on = [o];
+    else on.push(o);
+  };
+}
+
+function selection_on(typename, value, capture) {
+  var typenames = parseTypenames(typename + ""), i, n = typenames.length, t;
+
+  if (arguments.length < 2) {
+    var on = this.node().__on;
+    if (on) for (var j = 0, m = on.length, o; j < m; ++j) {
+      for (i = 0, o = on[j]; i < n; ++i) {
+        if ((t = typenames[i]).type === o.type && t.name === o.name) {
+          return o.value;
+        }
+      }
+    }
+    return;
+  }
+
+  on = value ? onAdd : onRemove;
+  if (capture == null) capture = false;
+  for (i = 0; i < n; ++i) this.each(on(typenames[i], value, capture));
+  return this;
 }
 
 function dispatchEvent(node, type, params) {
@@ -1482,6 +1494,7 @@ Selection.prototype = selection.prototype = {
   append: selection_append,
   insert: selection_insert,
   remove: selection_remove,
+  clone: selection_clone,
   datum: selection_datum,
   on: selection_on,
   dispatch: selection_dispatch
@@ -2724,7 +2737,7 @@ function formatLocale(locale) {
 
         // Compute the prefix and suffix.
         valuePrefix = (valueNegative ? (sign === "(" ? sign : "-") : sign === "-" || sign === "(" ? "" : sign) + valuePrefix;
-        valueSuffix = valueSuffix + (type === "s" ? prefixes[8 + prefixExponent / 3] : "") + (valueNegative && sign === "(" ? ")" : "");
+        valueSuffix = (type === "s" ? prefixes[8 + prefixExponent / 3] : "") + valueSuffix + (valueNegative && sign === "(" ? ")" : "");
 
         // Break the formatted value into the integer “value” part that can be
         // grouped, and fractional or exponential “suffix” part that is not.
@@ -4508,11 +4521,17 @@ exports.opacityByCertainty = function(colorFunc, accessor = null) {
     return e.attr('fill', fill).attr('stroke', stroke);
   };
   __getSet = getterSetter(f);
+  f.alphaScale = __getSet(alphaScale, function(v) {
+    return alphaScale = v;
+  });
   f.angularError = __getSet(angularError, function(v) {
     return angularError = v;
   });
   f.max = __getSet(maxOpacity, function(v) {
     return maxOpacity = v;
+  });
+  f.domain = __getSet(alphaScale.domain(), function(v) {
+    return alphaScale.domain(v);
   });
   return f;
 };
@@ -4930,13 +4949,14 @@ __planeAngle = function(axes, angle) {
 };
 
 exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
-  var angle, centerPoint, dfunc, gradient, lineGenerator, n, nCoords, nominal, ratioX, ratioY, scaleErrorAngles, screenRatio, width;
+  var alphaScale, angle, centerPoint, dfunc, gradient, lineGenerator, n, nCoords, nominal, ratioX, ratioY, scaleErrorAngles, screenRatio, width;
   // Viewpoint should be an angle from north in radians
   n = 10;
   angle = viewpoint;
   width = 400;
   nominal = false;
   centerPoint = false;
+  alphaScale = null;
   // Whether to exaggerate error angles along with scale
   scaleErrorAngles = true;
   // For 3 coordinates on each half of the hyperbola, we collapse down to
@@ -4947,7 +4967,7 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
   ({ratioX, ratioY, screenRatio, lineGenerator} = getRatios(xScale, yScale));
   dfunc = function(d) {
     /* Project axes to 2d */
-    var R, a, a1, angles, angularError, arr, ax, b, center, coords, cutAngle, cutAngle2, hyp, inPlaneLength, j, largeNumber, lengthShown, lim, limit, loc, mask, masksz, mid, oa, offs, poly, q, rax, results, s, top, translate, v, zind;
+    var R, a, a1, angles, angularError, arr, ax, b, center, coords, cutAngle, cutAngle2, hyp, inPlaneLength, largeNumber, lengthShown, lim, limit, loc, mask, masksz, mid, oa, offs, poly, q, rax, s, top, translate, v, zind;
     // Get a single level of planar errors (or the
     // plane's nominal value) as a girdle
     rax = d.axes;
@@ -4997,7 +5017,7 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     // coordinate plane.
     if (nCoords > 3) {
       angles = (function() {
-        results = [];
+        var results = [];
         for (var j = 0; 0 <= n ? j < n : j > n; 0 <= n ? j++ : j--){ results.push(j); }
         return results;
       }).apply(this).map(function(d) {
@@ -5045,6 +5065,9 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     }).angularError(function() {
       return angularError;
     }).max(5);
+    if (alphaScale != null) {
+      oa.alphaScale(alphaScale);
+    }
     // Correct for apparent dip
     //apparent = apparentDipCorrection(screenRatio)
 
@@ -5137,6 +5160,13 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
       return nominal;
     }
     nominal = o;
+    return dfunc;
+  };
+  dfunc.alphaScale = function(o) {
+    if (o == null) {
+      return alphaScale;
+    }
+    alphaScale = o;
     return dfunc;
   };
   return dfunc;

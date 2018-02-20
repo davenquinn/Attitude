@@ -50,7 +50,6 @@ class SideViewComponent extends React.Component
           p.group = new PlaneData group, p.mean
           p.group.offset = p.offset
           p.inGroup = true
-        p.data.member_of = null
 
     xsize *= 1.1
     ysize *= 1.1

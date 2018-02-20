@@ -43,7 +43,7 @@ class ReconstructedPlane(ErrorShell, BaseOrientation):
     process, and is a single confidence interval or shell
     derived from this result.
     """
-    def __init__(self, strike, dip, rake, *angular_errors):
+    def __init__(self, strike, dip, rake, *angular_errors, **kwargs):
         _trans_arr = N.array([-1, -1, 1])
         def vec(latlon):
             lat, lon = latlon
@@ -51,6 +51,8 @@ class ReconstructedPlane(ErrorShell, BaseOrientation):
             val = N.array(_).flatten()
             val = N.roll(val,-1)
             return val * _trans_arr
+
+        normal_error = kwargs.pop('normal_error',1)
 
         self.__strike = strike
         self.__dip = dip
@@ -83,8 +85,8 @@ class ReconstructedPlane(ErrorShell, BaseOrientation):
         if self.axes[-1,-1] < 0:
             self.axes *= -1
 
-        lengths = 1/N.tan(errors[::-1])
-        self.hyperbolic_axes = N.array(list(lengths)+[1])
+        lengths = normal_error/N.tan(errors[::-1])
+        self.hyperbolic_axes = N.array(list(lengths)+[normal_error])
         self.covariance_matrix = N.diag(self.hyperbolic_axes)
 
     def strike_dip_rake(self):
