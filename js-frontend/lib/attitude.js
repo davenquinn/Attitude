@@ -8220,7 +8220,7 @@ getterSetter = function(main) {
 };
 
 exports.Stereonet = function() {
-  var _, __getSet, __redraw, __setScale, __setScaleOnly, callStack, clipAngle, data, dataArea, dispatch$$1, drawEllipses, drawPlanes, el, ell, ellipses, f, graticule, margin, overlay, path, planes, proj, s, scale, setGraticule, shouldClip, uid;
+  var _, __createNeatline, __getSet, __overrideNeatlineClip, __redraw, __setScale, __setScaleOnly, callStack, clipAngle, data, dataArea, dispatch$$1, drawEllipses, drawPlanes, el, ell, ellipses, f, graticule, margin, overlay, path, planes, proj, s, scale, setGraticule, shouldClip, uid;
   data = null;
   el = null;
   dataArea = null;
@@ -8230,6 +8230,7 @@ exports.Stereonet = function() {
   clipAngle = 90;
   s = 0.00001;
   shouldClip = true;
+  __overrideNeatlineClip = false;
   uid = uuid_1.v4();
   graticule = d3$1.geoGraticule().stepMinor([10, 10]).stepMajor([90, 10]).extentMinor([[-180, -80 - s], [180, 80 + s]]).extentMajor([[-180, -90 + s], [180, 90 - s]]);
   proj = d3$1.geoOrthographic().clipAngle(clipAngle).precision(0.01).rotate([0, 0]).scale(300);
@@ -8333,21 +8334,25 @@ exports.Stereonet = function() {
     return el.selectAll('path').attr('d', path.pointRadius(2));
   };
   dispatch$$1 = d3$1.dispatch(uid + 'rotate', uid + 'redraw');
+  __createNeatline = function(sel, neatlineId) {
+    return sel.append("path").datum({
+      type: "Sphere"
+    }).attrs({
+      d: path,
+      id: neatlineId.slice(1)
+    });
+  };
   f = function(_el, opts = {}) {
-    var int, item, j, len, neatlineId, sphereId;
+    var defs, int, item, j, len, neatlineId, sphereId;
     // This should be integrated into a reusable
     // component
     el = _el;
     __setScale(); // Scale the stereonet
     sphereId = `#${uid}-sphere`;
-    el.append("defs").append("path").datum({
-      type: "Sphere"
-    }).attrs({
-      d: path,
-      id: sphereId.slice(1)
-    });
+    defs = el.append("defs");
+    defs.call(__createNeatline, sphereId);
     neatlineId = `#${uid}-neatline-clip`;
-    el.append("clipPath").attr("id", neatlineId.slice(1)).append("use").attr("xlink:href", sphereId);
+    defs.append("clipPath").attr("id", neatlineId.slice(1)).append("use").attr("xlink:href", sphereId);
     el.append("use").attrs({
       class: 'background',
       'xlink:href': sphereId,
@@ -8364,7 +8369,8 @@ exports.Stereonet = function() {
     dataArea = int.append('g').attrs({
       class: 'data'
     });
-    if (shouldClip) {
+    // This is a bit of a hack
+    if (shouldClip || __overrideNeatlineClip) {
       el.append("use").attrs({
         class: 'neatline',
         "xlink:href": sphereId
@@ -8434,6 +8440,35 @@ exports.Stereonet = function() {
   f.d3 = d3$1;
   f.on = function(event$$1, callback) {
     return dispatch$$1.on(uid + event$$1, callback);
+  };
+  f.rectangular = function(opts = {}) {
+    var height, width, x, y;
+    ({width, height, x, y} = opts);
+    // Create a rectangular neatline
+    __createNeatline = function(sel, id) {
+      if (width == null) {
+        width = scale - 2 * margin;
+      }
+      if (height == null) {
+        height = scale - 2 * margin;
+      }
+      if (x == null) {
+        x = margin;
+      }
+      if (y == null) {
+        y = margin;
+      }
+      sel.append('rect').attrs({
+        id: id.slice(1),
+        width,
+        height,
+        x,
+        y
+      });
+      proj.clipAngle(90);
+      return __overrideNeatlineClip = true;
+    };
+    return f;
   };
   setGraticule = function(lon, lat) {
     //# Could also make this take a d3.geoGraticule object ##

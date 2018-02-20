@@ -45,6 +45,7 @@ Stereonet = ->
   clipAngle = 90
   s = 0.00001
   shouldClip = true
+  __overrideNeatlineClip = false
   uid = uuid.v4()
 
   graticule = d3.geoGraticule()
@@ -164,6 +165,13 @@ Stereonet = ->
 
   dispatch = d3.dispatch uid+'rotate', uid+'redraw'
 
+  __createNeatline = (sel, neatlineId)->
+    sel.append "path"
+      .datum({type: "Sphere"})
+      .attrs
+        d: path
+        id: neatlineId.slice(1)
+
   f = (_el, opts={})->
     # This should be integrated into a reusable
     # component
@@ -173,15 +181,12 @@ Stereonet = ->
 
     sphereId = "##{uid}-sphere"
 
-    el.append "defs"
-      .append "path"
-        .datum({type: "Sphere"})
-        .attrs
-          d: path
-          id: sphereId.slice(1)
+    defs = el.append "defs"
+
+    defs.call __createNeatline, sphereId
 
     neatlineId = "##{uid}-neatline-clip"
-    el.append "clipPath"
+    defs.append "clipPath"
       .attr "id", neatlineId.slice(1)
       .append "use"
       .attr "xlink:href", sphereId
@@ -207,7 +212,8 @@ Stereonet = ->
     dataArea = int.append 'g'
       .attrs class: 'data'
 
-    if shouldClip
+    # This is a bit of a hack
+    if shouldClip or __overrideNeatlineClip
       el.append "use"
         .attrs
           class: 'neatline'
@@ -263,6 +269,26 @@ Stereonet = ->
 
   f.on = (event,callback)->
     dispatch.on uid+event, callback
+
+  f.rectangular = (opts={})->
+    {width, height, x,y} = opts
+    # Create a rectangular neatline
+    __createNeatline = (sel, id)->
+      width ?= scale - 2*margin
+      height ?= scale - 2*margin
+      x ?= margin
+      y ?= margin
+      sel.append 'rect'
+        .attrs {
+          id: id.slice(1)
+          width
+          height
+          x
+          y
+        }
+      proj.clipAngle(90)
+      __overrideNeatlineClip = true
+    return f
 
   setGraticule = (lon, lat)->
     ## Could also make this take a d3.geoGraticule object ##
