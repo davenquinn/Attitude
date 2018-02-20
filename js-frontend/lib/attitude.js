@@ -1,9 +1,10 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3'), require('mathjs')) :
-	typeof define === 'function' && define.amd ? define(['exports', 'd3', 'mathjs'], factory) :
-	(factory((global.attitude = global.attitude || {}),global.d3,global.math));
-}(this, (function (exports,d3$1,M) { 'use strict';
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3'), require('crypto'), require('mathjs')) :
+	typeof define === 'function' && define.amd ? define(['exports', 'd3', 'crypto', 'mathjs'], factory) :
+	(factory((global.attitude = global.attitude || {}),global.d3,global.crypto,global.math));
+}(this, (function (exports,d3$1,crypto,M) { 'use strict';
 
+crypto = crypto && crypto.hasOwnProperty('default') ? crypto['default'] : crypto;
 M = M && M.hasOwnProperty('default') ? M['default'] : M;
 
 var xhtml = "http://www.w3.org/1999/xhtml";
@@ -3117,16 +3118,66 @@ function tickStep(start, stop, count) {
   return stop < start ? -step1 : step1;
 }
 
-var cloneOptions;
-
 //import qh from 'quickhull3d'
-cloneOptions = function(obj, newProps) {
+exports.cloneOptions = function(obj, newProps) {
   var a, k;
   a = {};
   for (k in obj) {
     a[k] = newProps[k] || obj[k];
   }
   return a;
+};
+
+exports.computeCentroidAverage = function(planes) {
+  /*
+  Compute centroid of a group of `PlaneData` instances
+  using an average of all component measurement centers
+  */
+  var accum, overallCenter, totalLength, weights;
+  totalLength = 0;
+  weights = planes.map(function(plane) {
+    var d, len;
+    d = plane.data;
+    if (d.centered_array == null) {
+      return [0, 0, 0];
+    }
+    len = d.centered_array.length;
+    totalLength += len;
+    return d.center.map(function(a) {
+      return a * len;
+    });
+  });
+  overallCenter = [0, 1, 2].map(function(i) {
+    return d3.sum(weights, function(d) {
+      return d[i] / totalLength;
+    });
+  });
+  return overallCenter;
+};
+
+exports.computeCentroidExtrema = function(planes) {
+  var c, ext, extrema, ix, j, l, len1, len2, max, min, p;
+  extrema = [null, null, null];
+  for (j = 0, len1 = planes.length; j < len1; j++) {
+    p = planes[j];
+    for (ix = l = 0, len2 = extrema.length; l < len2; ix = ++l) {
+      ext = extrema[ix];
+      c = p.data.center[ix];
+      if (ext == null) {
+        extrema[ix] = [c, c];
+      }
+      [min, max] = extrema[ix];
+      if (c < min) {
+        extrema[ix][0] = c;
+      }
+      if (c > max) {
+        extrema[ix][1] = c;
+      }
+    }
+  }
+  return extrema.map(function([min, max]) {
+    return (min + max) / 2;
+  });
 };
 
 var __createErrorEllipse;
@@ -3264,7 +3315,7 @@ createErrorEllipse = function(opts) {
   levels = opts.level;
   __fnAtLevel = function(l) {
     var o1;
-    o1 = cloneOptions(opts, {
+    o1 = exports.cloneOptions(opts, {
       level: l
     });
     return __createErrorEllipse(o1);
@@ -7964,39 +8015,14 @@ exports.globalLabels = function() {
   };
 };
 
-// Unique ID creation requires a high quality random # generator.  In the
-// browser this is a little complicated due to unknown quality of Math.random()
-// and inconsistent support for the `crypto` API.  We do the best we can via
-// feature-detection
-var rng;
+// Unique ID creation requires a high quality random # generator.  In node.js
+// this is pretty straight-forward - we use the crypto API.
 
-var crypto = commonjsGlobal.crypto || commonjsGlobal.msCrypto; // for IE 11
-if (crypto && crypto.getRandomValues) {
-  // WHATWG crypto RNG - http://wiki.whatwg.org/wiki/Crypto
-  var rnds8 = new Uint8Array(16); // eslint-disable-line no-undef
-  rng = function whatwgRNG() {
-    crypto.getRandomValues(rnds8);
-    return rnds8;
-  };
-}
 
-if (!rng) {
-  // Math.random()-based (RNG)
-  //
-  // If all else fails, use Math.random().  It's fast, but is of unspecified
-  // quality.
-  var rnds = new Array(16);
-  rng = function() {
-    for (var i = 0, r; i < 16; i++) {
-      if ((i & 0x03) === 0) r = Math.random() * 0x100000000;
-      rnds[i] = r >>> ((i & 0x03) << 3) & 0xff;
-    }
 
-    return rnds;
-  };
-}
-
-var rngBrowser = rng;
+var rng = function nodeRNG() {
+  return crypto.randomBytes(16);
+};
 
 /**
  * Convert array of 16 byte values to UUID string format of the form:
@@ -8027,17 +8053,8 @@ var bytesToUuid_1 = bytesToUuid;
 // Inspired by https://github.com/LiosK/UUID.js
 // and http://docs.python.org/library/uuid.html
 
-// random #'s we need to init node and clockseq
-var _seedBytes = rngBrowser();
-
-// Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
-var _nodeId = [
-  _seedBytes[0] | 0x01,
-  _seedBytes[1], _seedBytes[2], _seedBytes[3], _seedBytes[4], _seedBytes[5]
-];
-
-// Per 4.2.2, randomize (14 bit) clockseq
-var _clockseq = (_seedBytes[6] << 8 | _seedBytes[7]) & 0x3fff;
+var _nodeId;
+var _clockseq;
 
 // Previous uuid creation time
 var _lastMSecs = 0;
@@ -8049,8 +8066,26 @@ function v1(options, buf, offset) {
   var b = buf || [];
 
   options = options || {};
-
+  var node = options.node || _nodeId;
   var clockseq = options.clockseq !== undefined ? options.clockseq : _clockseq;
+
+  // node and clockseq need to be initialized to random values if they're not
+  // specified.  We do this lazily to minimize issues related to insufficient
+  // system entropy.  See #189
+  if (node == null || clockseq == null) {
+    var seedBytes = rng();
+    if (node == null) {
+      // Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
+      node = _nodeId = [
+        seedBytes[0] | 0x01,
+        seedBytes[1], seedBytes[2], seedBytes[3], seedBytes[4], seedBytes[5]
+      ];
+    }
+    if (clockseq == null) {
+      // Per 4.2.2, randomize (14 bit) clockseq
+      clockseq = _clockseq = (seedBytes[6] << 8 | seedBytes[7]) & 0x3fff;
+    }
+  }
 
   // UUID timestamps are 100 nano-second units since the Gregorian epoch,
   // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
@@ -8111,7 +8146,6 @@ function v1(options, buf, offset) {
   b[i++] = clockseq & 0xff;
 
   // `node`
-  var node = options.node || _nodeId;
   for (var n = 0; n < 6; ++n) {
     b[i + n] = node[n];
   }
@@ -8125,12 +8159,12 @@ function v4(options, buf, offset) {
   var i = buf && offset || 0;
 
   if (typeof(options) == 'string') {
-    buf = options == 'binary' ? new Array(16) : null;
+    buf = options === 'binary' ? new Array(16) : null;
     options = null;
   }
   options = options || {};
 
-  var rnds = options.random || (options.rng || rngBrowser)();
+  var rnds = options.random || (options.rng || rng)();
 
   // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
   rnds[6] = (rnds[6] & 0x0f) | 0x40;

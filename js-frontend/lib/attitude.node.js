@@ -416,16 +416,66 @@ function tickStep(start, stop, count) {
   return stop < start ? -step1 : step1;
 }
 
-var cloneOptions;
-
 //import qh from 'quickhull3d'
-cloneOptions = function(obj, newProps) {
+exports.cloneOptions = function(obj, newProps) {
   var a, k;
   a = {};
   for (k in obj) {
     a[k] = newProps[k] || obj[k];
   }
   return a;
+};
+
+exports.computeCentroidAverage = function(planes) {
+  /*
+  Compute centroid of a group of `PlaneData` instances
+  using an average of all component measurement centers
+  */
+  var accum, overallCenter, totalLength, weights;
+  totalLength = 0;
+  weights = planes.map(function(plane) {
+    var d, len;
+    d = plane.data;
+    if (d.centered_array == null) {
+      return [0, 0, 0];
+    }
+    len = d.centered_array.length;
+    totalLength += len;
+    return d.center.map(function(a) {
+      return a * len;
+    });
+  });
+  overallCenter = [0, 1, 2].map(function(i) {
+    return d3.sum(weights, function(d) {
+      return d[i] / totalLength;
+    });
+  });
+  return overallCenter;
+};
+
+exports.computeCentroidExtrema = function(planes) {
+  var c, ext, extrema, ix, j, l, len1, len2, max, min, p;
+  extrema = [null, null, null];
+  for (j = 0, len1 = planes.length; j < len1; j++) {
+    p = planes[j];
+    for (ix = l = 0, len2 = extrema.length; l < len2; ix = ++l) {
+      ext = extrema[ix];
+      c = p.data.center[ix];
+      if (ext == null) {
+        extrema[ix] = [c, c];
+      }
+      [min, max] = extrema[ix];
+      if (c < min) {
+        extrema[ix][0] = c;
+      }
+      if (c > max) {
+        extrema[ix][1] = c;
+      }
+    }
+  }
+  return extrema.map(function([min, max]) {
+    return (min + max) / 2;
+  });
 };
 
 var __createErrorEllipse;
@@ -563,7 +613,7 @@ createErrorEllipse = function(opts) {
   levels = opts.level;
   __fnAtLevel = function(l) {
     var o1;
-    o1 = cloneOptions(opts, {
+    o1 = exports.cloneOptions(opts, {
       level: l
     });
     return __createErrorEllipse(o1);
