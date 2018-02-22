@@ -358,8 +358,6 @@ apparentDip = (viewpoint, xScale,yScale)->
 
     v = dot(d.centered, M.transpose(A), Ra)
 
-    console.log(plane.apparentDip())
-
      ### Map down to two dimensions (the x-z plane of the viewing geometry) ###
     data = dot(v, T).toArray()
 

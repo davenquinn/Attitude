@@ -10608,7 +10608,6 @@ exports.apparentDip = function(viewpoint, xScale, yScale) {
 
     //trans = dot(M.transpose(Ra), M.transpose(A), Ra)
     v = exports.dot(d.centered, M.transpose(A), Ra);
-    console.log(plane.apparentDip());
     data = exports.dot(v, T).toArray();
     // Get offset of angles
     offs = exports.dot(d.offset, q, T).toArray();
