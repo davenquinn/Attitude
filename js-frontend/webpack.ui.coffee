@@ -2,7 +2,7 @@ path = require 'path'
 BrowserSyncPlugin = require 'browser-sync-webpack-plugin'
 UglifyJS = require 'uglifyjs-webpack-plugin'
 {IgnorePlugin} = require 'webpack'
-webRoot = path.resolve './ui-test/test-site'
+webRoot = path.resolve './graphical-tests'
 
 browserSync = new BrowserSyncPlugin {
   port: 3000

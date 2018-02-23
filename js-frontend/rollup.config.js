@@ -16,7 +16,7 @@ let plugins = [
 
 export default {
   input: "src/index.coffee",
-  external: ["d3","mathjs"],
+  external: ["d3"],
   output: {
     file: "lib/attitude.js",
     globals: {

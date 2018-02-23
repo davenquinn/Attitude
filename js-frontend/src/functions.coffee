@@ -112,6 +112,7 @@ createErrorEllipse = (opts)->
     return __fnAtLevel(levels)
 
 export {
+  createFeature
   createGroupedPlane as plane
   createErrorSurface as errorSurface
   createNominalPlane as nominalPlane

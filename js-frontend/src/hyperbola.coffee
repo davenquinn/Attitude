@@ -12,6 +12,9 @@ import uuid from 'uuid'
 
 select = d3.select
 
+## Matrix to map down to 2 dimensions
+T = M.matrix [[1,0],[0,0],[0,1]]
+
 fixAngle = (a)->
   # Put an angle on the interval [-Pi,Pi]
   while a > Math.PI
@@ -19,9 +22,6 @@ fixAngle = (a)->
   while a < -Math.PI
     a += 2*Math.PI
   return a
-
-## Matrix to map down to 2 dimensions
-T = M.matrix [[1,0],[0,0],[0,1]]
 
 matrix = (obj)->
   if obj instanceof Q
@@ -40,14 +40,6 @@ vecAngle = (a0,a1)->
   a0_ = M.divide(a0,M.norm(a0))
   a1_ = M.divide(a1,M.norm(a1))
   return dot(a0_,a1_)
-
-fixAngle = (a)->
-  # Put an angle on the interval [-Pi,Pi]
-  while a > Math.PI
-    a -= 2*Math.PI
-  while a < -Math.PI
-    a += 2*Math.PI
-  return a
 
 apparentDipCorrection = (screenRatio=1)->
   (axes2d)->

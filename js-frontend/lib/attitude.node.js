@@ -36,8 +36,8 @@ transpose = function(array, length = null) {
   }).apply(this).map(function() {
     return [];
   });
-  for (i = k = 0, ref = array.length; undefined !== 0 && (0 <= ref ? 0 <= k && k < ref : 0 >= k && k > ref); i = 0 <= ref ? ++k : --k) {
-    for (j = l = 0, ref1 = length; undefined !== 0 && (0 <= ref1 ? 0 <= l && l < ref1 : 0 >= l && l > ref1); j = 0 <= ref1 ? ++l : --l) {
+  for (i = k = 0, ref = array.length; (0 <= ref ? k < ref : k > ref); i = 0 <= ref ? ++k : --k) {
+    for (j = l = 0, ref1 = length; (0 <= ref1 ? l < ref1 : l > ref1); j = 0 <= ref1 ? ++l : --l) {
       newArray[j].push(array[i][j]);
     }
   }
@@ -60,7 +60,7 @@ sdot = function(a, b) {
   zipped = (function() {
     var k, ref, results;
     results = [];
-    for (i = k = 0, ref = a.length; undefined !== 0 && (0 <= ref ? 0 <= k && k <= ref : 0 >= k && k >= ref); i = 0 <= ref ? ++k : --k) {
+    for (i = k = 0, ref = a.length; (0 <= ref ? k <= ref : k >= ref); i = 0 <= ref ? ++k : --k) {
       results.push(a[i] * b[i]);
     }
     return results;
@@ -69,75 +69,11 @@ sdot = function(a, b) {
 };
 
 ellipse = function(opts) {
-  var ell, ellAdaptive;
-  // Basic function to create an array
-  // of cosines and sines for error-ellipse
-  // generation
   if (opts.n == null) {
     opts.n = 50;
   }
-  if (opts.adaptive == null) {
-    opts.adaptive = true;
-  }
-  ellAdaptive = function(a, b) {
-    var angles, i, i_, k, l, ref, ref1, step, v;
-    // Takes major, minor axis lengths
-    i_ = 1;
-    v = opts.n / 2;
-    step = 2 / v;
-    // Make a linearly varying space on the
-    // interval [1,-1]
-    angles = [];
-    angles.push(Math.PI - Math.asin(i_));
-    for (i = k = 0, ref = v; undefined !== 0 && (0 <= ref ? 0 <= k && k < ref : 0 >= k && k > ref); i = 0 <= ref ? ++k : --k) {
-      i_ -= step;
-      angles.push(Math.PI - Math.asin(i_));
-    }
-    for (i = l = 0, ref1 = v; undefined !== 0 && (0 <= ref1 ? 0 <= l && l < ref1 : 0 >= l && l > ref1); i = 0 <= ref1 ? ++l : --l) {
-      i_ += step;
-      v = Math.asin(i_);
-      if (v < 0) {
-        v += 2 * Math.PI;
-      }
-      angles.push(v);
-    }
-    return (function() {
-      var len, m, results;
-      results = [];
-      for (m = 0, len = angles.length; m < len; m++) {
-        i = angles[m];
-        results.push([b * Math.cos(i), a * Math.sin(i)]);
-      }
-      return results;
-    })();
-  };
-  ell = function(a, b) {
-    var angles, i, step;
-    step = 2 * Math.PI / (opts.n - 1);
-    angles = (function() {
-      var k, ref, results;
-      results = [];
-      for (i = k = 0, ref = opts.n; undefined !== 0 && (0 <= ref ? 0 <= k && k < ref : 0 >= k && k > ref); i = 0 <= ref ? ++k : --k) {
-        results.push(i * step);
-      }
-      return results;
-    })();
-    return (function() {
-      var k, len, results;
-      results = [];
-      for (k = 0, len = angles.length; k < len; k++) {
-        i = angles[k];
-        // This reversal of B and A is causing tests to fail
-        results.push([a * Math.cos(i), b * Math.sin(i)]);
-      }
-      return results;
-    })();
-  };
-  if (opts.adaptive) {
-    return ellAdaptive;
-  } else {
-    return ell;
-  }
+  opts.adaptive = true;
+  return ellipse;
 };
 
 cart2sph = function(opts) {
@@ -304,8 +240,8 @@ deconvolveAxes = function(axes) {
   // Inverse of `convolveAxes`
   ax = transpose(axes);
   sv = ax.map(norm);
-  for (i = k = 0, ref = axes.length; undefined !== 0 && (0 <= ref ? 0 <= k && k < ref : 0 >= k && k > ref); i = 0 <= ref ? ++k : --k) {
-    for (j = l = 0, ref1 = axes.length; undefined !== 0 && (0 <= ref1 ? 0 <= l && l < ref1 : 0 >= l && l > ref1); j = 0 <= ref1 ? ++l : --l) {
+  for (i = k = 0, ref = axes.length; (0 <= ref ? k < ref : k > ref); i = 0 <= ref ? ++k : --k) {
+    for (j = l = 0, ref1 = axes.length; (0 <= ref1 ? l < ref1 : l > ref1); j = 0 <= ref1 ? ++l : --l) {
       axes[j][i] /= sv[i];
     }
   }
@@ -633,6 +569,7 @@ createErrorEllipse = function(opts) {
 
 
 var functions = Object.freeze({
+	get createFeature () { return createFeature; },
 	get plane () { return createGroupedPlane; },
 	get errorSurface () { return createErrorSurface; },
 	get nominalPlane () { return createNominalPlane; },
@@ -4873,6 +4810,9 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 
 select$2 = d3$1.select;
 
+//# Matrix to map down to 2 dimensions
+T = M.matrix([[1, 0], [0, 0], [0, 1]]);
+
 exports.fixAngle = function(a) {
   // Put an angle on the interval [-Pi,Pi]
   while (a > Math.PI) {
@@ -4883,9 +4823,6 @@ exports.fixAngle = function(a) {
   }
   return a;
 };
-
-//# Matrix to map down to 2 dimensions
-T = M.matrix([[1, 0], [0, 0], [0, 1]]);
 
 matrix = function(obj) {
   if (obj instanceof Q) {
@@ -4910,17 +4847,6 @@ vecAngle = function(a0, a1) {
   a0_ = M.divide(a0, M.norm(a0));
   a1_ = M.divide(a1, M.norm(a1));
   return exports.dot(a0_, a1_);
-};
-
-exports.fixAngle = function(a) {
-  // Put an angle on the interval [-Pi,Pi]
-  while (a > Math.PI) {
-    a -= 2 * Math.PI;
-  }
-  while (a < -Math.PI) {
-    a += 2 * Math.PI;
-  }
-  return a;
 };
 
 scaleRatio = function(scale) {

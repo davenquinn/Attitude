@@ -25,36 +25,26 @@ ellipse = (opts)->
   # of cosines and sines for error-ellipse
   # generation
   opts.n ?= 50
-  opts.adaptive ?= true
-
+  opts.adaptive = true
   ellAdaptive = (a,b)->
     # Takes major, minor axis lengths
     i_ = 1
     v = opts.n/2
-    step = 2/v
+    stepSize = 2/v
     # Make a linearly varying space on the
     # interval [1,-1]
     angles = []
-    angles.push Math.PI-Math.asin i_
-    for i in [0...v]
-      i_ -= step
-      angles.push Math.PI-Math.asin(i_)
 
     for i in [0...v]
-      i_ += step
-      v = Math.asin(i_)
-      if v < 0
-        v += 2*Math.PI
-      angles.push v
-    return ([b*Math.cos(i),a*Math.sin(i)] for i in angles)
+      sinAngle = -1+i*stepSize
+      angles.push [b*Math.cos(Math.asin(sinAngle)),a*sinAngle]
+      console.log i,sinAngle, Math.cos(Math.asin(sinAngle))
 
-  ell = (a,b)->
-    step = 2*Math.PI/(opts.n-1)
-    angles = (i*step for i in [0...opts.n])
-    # This reversal of B and A is causing tests to fail
-    return ([a*Math.cos(i),b*Math.sin(i)] for i in angles)
+    a1 = angles.map ([a,b])->[-a,b]
+    a1.reverse()
+    return [angles..., a1...]
 
-  return if opts.adaptive then ellAdaptive else ell
+  return ellipse
 
 cart2sph = (opts)->
   opts.degrees ?= false
@@ -121,9 +111,10 @@ normalErrors = (axesCovariance, axes, opts={})->
   axes = identity unless axes?
   opts.level ?= 1
 
-  scales =
+  scales = {
     upper: 1
     lower: -1
+  }
 
   s = axesCovariance.map Math.sqrt
   axes = transpose(axes)
