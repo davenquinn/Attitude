@@ -108,7 +108,9 @@ Stereonet = ->
       o.selector = 'g.poles'
     con = dataArea.selectAppend o.selector
 
-    fn = functions.errorEllipse opts
+    o1 = {opts..., o...}
+
+    fn = functions.errorEllipse o1
 
     createEllipse = (d)->
       d3.select @
@@ -287,6 +289,7 @@ Stereonet = ->
           y
         }
       proj.clipAngle(90)
+        .translate [width/2+margin, height/2+margin]
       __overrideNeatlineClip = true
     return f
 

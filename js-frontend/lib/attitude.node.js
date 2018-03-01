@@ -86,14 +86,16 @@ ellipse = function(opts = {}) {
     // interval [1,-1]
     angles = [];
     for (i = k = 0, ref = v; (0 <= ref ? k < ref : k > ref); i = 0 <= ref ? ++k : --k) {
+      console.log(i, i * stepSize);
       sinAngle = -1 + i * stepSize;
       angles.push([b * Math.cos(Math.asin(sinAngle)), a * sinAngle]);
     }
-    a1 = angles.map(function([a, b]) {
+    a1 = angles.slice(1).map(function([a, b]) {
       return [-a, b];
     });
     a1.reverse();
-    return [...angles, ...a1];
+    // Opposite of first
+    return [...angles, [0, a], ...a1];
   };
   return ellAdaptive;
 };
@@ -4071,7 +4073,7 @@ exports.globalLabels = function() {
       centerPos = proj.invert([sz / 2, sz / 2]);
       width = stereonet.size();
       v = container.selectAll(".label");
-      v.select('text').style('text-shadow', "-2px -2px white, -2px 2px white, 2px 2px white, 2px -2px white, -2px 0 white, 0 2px white, 2px 0 white, 0 -2px white").attr('alignment-baseline', 'middle').attr("text-anchor", function(d) {
+      v.select('text').attr('stroke', 'white').attr('stroke-width', '3px').attr('paint-order', 'stroke').attr('alignment-baseline', 'middle').attr("text-anchor", function(d) {
         var x;
         x = proj(d.geometry.coordinates)[0];
         if (x < width / 2 - 20) {
@@ -4125,6 +4127,7 @@ exports.globalLabels = function() {
 
 var getterSetter;
 var opts;
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 opts = {
   degrees: true,
@@ -4205,7 +4208,7 @@ exports.Stereonet = function() {
     return sel;
   };
   drawEllipses = function(data, o = {}) {
-    var con, createEllipse, fn, sel;
+    var con, createEllipse, fn, o1, sel;
     if (o.color == null) {
       o.color = '#aaaaaa';
     }
@@ -4216,7 +4219,8 @@ exports.Stereonet = function() {
       o.selector = 'g.poles';
     }
     con = dataArea.selectAppend(o.selector);
-    fn = createErrorEllipse(opts);
+    o1 = _extends({}, opts, o);
+    fn = createErrorEllipse(o1);
     createEllipse = function(d) {
       return d3$1.select(this).append('path').attr('class', 'error').datum(fn(d));
     };
@@ -4400,7 +4404,7 @@ exports.Stereonet = function() {
         x,
         y
       });
-      proj.clipAngle(90);
+      proj.clipAngle(90).translate([width / 2 + margin, height / 2 + margin]);
       return __overrideNeatlineClip = true;
     };
     return f;
@@ -4835,7 +4839,7 @@ var scaleRatio;
 var select$2;
 var transpose$2;
 var vecAngle;
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+var _extends$1 = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 select$2 = d3$1.select;
 
@@ -5055,7 +5059,7 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     mid = null;
     if (!mask.node()) {
       mid = uuid.v4();
-      mask = hyp.append('mask').attr('id', mid).attrs(masksz).append('rect').attrs(_extends({}, masksz, {
+      mask = hyp.append('mask').attr('id', mid).attrs(masksz).append('rect').attrs(_extends$1({}, masksz, {
         fill: "url(#gradient)"
       }));
     }

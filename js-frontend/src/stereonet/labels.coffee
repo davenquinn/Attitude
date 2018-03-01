@@ -64,15 +64,9 @@ globalLabels = ->
       v = container.selectAll(".label")
 
       v.select 'text'
-        .style 'text-shadow',"
-            -2px -2px white,
-            -2px 2px white,
-            2px 2px white,
-            2px -2px white,
-            -2px 0 white,
-            0 2px white,
-            2px 0 white,
-            0 -2px white"
+        .attr 'stroke', 'white'
+        .attr 'stroke-width', '3px'
+        .attr 'paint-order', 'stroke'
         .attr 'alignment-baseline', 'middle'
         .attr "text-anchor", (d)->
           x = proj(d.geometry.coordinates)[0]

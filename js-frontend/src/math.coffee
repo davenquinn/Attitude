@@ -36,12 +36,15 @@ ellipse = (opts={})->
     angles = []
 
     for i in [0...v]
+      console.log i,i*stepSize
       sinAngle = -1+i*stepSize
       angles.push [b*Math.cos(Math.asin(sinAngle)),a*sinAngle]
 
-    a1 = angles.map ([a,b])->[-a,b]
+    a1 = angles.slice(1).map ([a,b])->[-a,b]
     a1.reverse()
-    return [angles..., a1...]
+
+    # Opposite of first
+    return [angles..., [0,a], a1...]
 
   return ellAdaptive
 
