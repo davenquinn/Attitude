@@ -20,7 +20,7 @@ sdot = (a,b)->
   zipped = (a[i]*b[i] for i in [0..a.length])
   d3.sum zipped
 
-ellipse = (opts)->
+ellipse = (opts={})->
   # Basic function to create an array
   # of cosines and sines for error-ellipse
   # generation
@@ -38,13 +38,12 @@ ellipse = (opts)->
     for i in [0...v]
       sinAngle = -1+i*stepSize
       angles.push [b*Math.cos(Math.asin(sinAngle)),a*sinAngle]
-      console.log i,sinAngle, Math.cos(Math.asin(sinAngle))
 
     a1 = angles.map ([a,b])->[-a,b]
     a1.reverse()
     return [angles..., a1...]
 
-  return ellipse
+  return ellAdaptive
 
 cart2sph = (opts)->
   opts.degrees ?= false

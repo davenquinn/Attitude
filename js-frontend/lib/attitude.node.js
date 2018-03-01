@@ -68,12 +68,34 @@ sdot = function(a, b) {
   return d3$1.sum(zipped);
 };
 
-ellipse = function(opts) {
+ellipse = function(opts = {}) {
+  var ellAdaptive;
+  // Basic function to create an array
+  // of cosines and sines for error-ellipse
+  // generation
   if (opts.n == null) {
     opts.n = 50;
   }
   opts.adaptive = true;
-  return ellipse;
+  ellAdaptive = function(a, b) {
+    var a1, angles, i, i_, k, ref, sinAngle, stepSize, v;
+    // Takes major, minor axis lengths
+    v = opts.n / 2;
+    stepSize = 2 / v;
+    // Make a linearly varying space on the
+    // interval [1,-1]
+    angles = [];
+    for (i = k = 0, ref = v; (0 <= ref ? k < ref : k > ref); i = 0 <= ref ? ++k : --k) {
+      sinAngle = -1 + i * stepSize;
+      angles.push([b * Math.cos(Math.asin(sinAngle)), a * sinAngle]);
+    }
+    a1 = angles.map(function([a, b]) {
+      return [-a, b];
+    });
+    a1.reverse();
+    return [...angles, ...a1];
+  };
+  return ellAdaptive;
 };
 
 cart2sph = function(opts) {
@@ -4036,18 +4058,20 @@ exports.globalLabels = function() {
     };
   }
   return function(stereonet) {
-    var path, proj, svg, sz, updateLabels;
+    var container, esel, path, proj, svg, sz, updateLabels;
     sz = stereonet.size();
     proj = stereonet.projection();
     svg = stereonet.overlay();
     path = d3$1.geoPath().projection(proj).pointRadius(1);
+    container = svg.append("g").attr("class", "labels");
     updateLabels = function() {
-      var centerPos, width;
+      var centerPos, v, width;
       console.log("Updating labels");
       proj = this.projection();
       centerPos = proj.invert([sz / 2, sz / 2]);
       width = stereonet.size();
-      return svg.selectAll(".label").attr('alignment-baseline', 'middle').style('text-shadow', "-2px -2px white, -2px 2px white, 2px 2px white, 2px -2px white, -2px 0 white, 0 2px white, 2px 0 white, 0 -2px white").attr("text-anchor", function(d) {
+      v = container.selectAll(".label");
+      v.select('text').style('text-shadow', "-2px -2px white, -2px 2px white, 2px 2px white, 2px -2px white, -2px 0 white, 0 2px white, 2px 0 white, 0 -2px white").attr('alignment-baseline', 'middle').attr("text-anchor", function(d) {
         var x;
         x = proj(d.geometry.coordinates)[0];
         if (x < width / 2 - 20) {
@@ -4060,22 +4084,26 @@ exports.globalLabels = function() {
       }).attr("transform", function(d) {
         var offset, offsetY, x, y;
         [x, y] = proj(d.geometry.coordinates);
-        offset = x < width / 2 ? -5 : 5;
+        offset = x < width / 2 ? -3 : 3;
         offsetY = 0;
         if (y < width / 2 - 20) {
-          offsetY = -5;
+          offsetY = -9;
         }
         if (y > width / 2 + 20) {
-          offsetY = 5;
+          offsetY = 7;
         }
-        return `translate(${x + offset},${y - 2 + offsetY})`;
-      }).style("display", function(d) {
+        return `translate(${x + offset},${y + 2 + offsetY})`;
+      });
+      return v.style("display", function(d) {
         var dist;
         dist = d3$1.geoDistance(centerPos, d.geometry.coordinates);
         if (d.name === 'Up' || d.name === 'Down') {
           if (dist < Math.PI / 4) {
             return 'none';
           }
+        }
+        if (dist < 0.01) {
+          return 'none';
         }
         if (dist > Math.PI / 2 + 0.01) {
           return 'none';
@@ -4085,8 +4113,9 @@ exports.globalLabels = function() {
       });
     };
     stereonet.call(horizontalLine);
-    svg.append("g").attr("class", "points").selectAll("path").data(labels).enter().append("path").attr("class", "point");
-    svg.append("g").attr("class", "labels").selectAll("text").data(labels).enter().append("text").attr("class", "label").text(function(d) {
+    esel = container.selectAll("g.label").data(labels).enter().append('g.label');
+    esel.append("path").attr("class", "point");
+    esel.append("text").text(function(d) {
       return d.name;
     });
     updateLabels.apply(stereonet);

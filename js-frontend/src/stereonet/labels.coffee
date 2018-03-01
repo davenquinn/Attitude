@@ -51,14 +51,19 @@ globalLabels = ->
       .projection(proj)
       .pointRadius(1)
 
+    container = svg.append("g")
+      .attr("class", "labels")
+
+
     updateLabels = ->
       console.log "Updating labels"
       proj = @projection()
       centerPos = proj.invert([sz/2,sz/2])
       width = stereonet.size()
 
-      svg.selectAll(".label")
-        .attr 'alignment-baseline', 'middle'
+      v = container.selectAll(".label")
+
+      v.select 'text'
         .style 'text-shadow',"
             -2px -2px white,
             -2px 2px white,
@@ -68,6 +73,7 @@ globalLabels = ->
             0 2px white,
             2px 0 white,
             0 -2px white"
+        .attr 'alignment-baseline', 'middle'
         .attr "text-anchor", (d)->
           x = proj(d.geometry.coordinates)[0]
           if x < width/2-20
@@ -77,36 +83,33 @@ globalLabels = ->
           return 'start'
         .attr "transform", (d)->
           [x,y] = proj(d.geometry.coordinates)
-          offset = if x < width/2 then -5 else 5
+          offset = if x < width/2 then -3 else 3
           offsetY = 0
           if y < width/2-20
-            offsetY = -5
+            offsetY = -9
           if y > width/2+20
-            offsetY = 5
-          return "translate(#{x+offset},#{y-2+offsetY})"
-        .style "display", (d)->
+            offsetY = 7
+          return "translate(#{x+offset},#{y+2+offsetY})"
+
+      v.style "display", (d)->
           dist = geoDistance(centerPos,d.geometry.coordinates)
           if (d.name == 'Up' or d.name == 'Down')
             return 'none' if dist < Math.PI/4
+          return 'none' if dist < 0.01
           return if dist > Math.PI/2+0.01 then 'none' else 'inline'
 
     stereonet.call horizontalLine
 
-    svg.append("g")
-      .attr("class", "points")
-      .selectAll("path")
+    esel = container
+      .selectAll("g.label")
       .data(labels)
       .enter()
-      .append("path")
+      .append 'g.label'
+
+    esel.append("path")
       .attr("class", "point")
 
-    svg.append("g")
-      .attr("class","labels")
-      .selectAll("text")
-      .data(labels)
-      .enter()
-      .append("text")
-      .attr("class","label")
+    esel.append("text")
       .text (d)-> d.name
 
     updateLabels.apply stereonet
