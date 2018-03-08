@@ -64,7 +64,7 @@ def normal_errors(axes, covariance_matrix, **kwargs):
     _ = dot(e.T,axes).T
 
     if traditional_layout:
-        lon,lat = stereonet_math.cart2sph(_[2],_[0],_[1])
+        lon,lat = stereonet_math.cart2sph(_[2],_[0],-_[1])
     else:
         lon,lat = stereonet_math.cart2sph(-_[1],_[0],_[2])
     return list(zip(lon,lat))

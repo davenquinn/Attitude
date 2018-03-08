@@ -36,7 +36,6 @@ ellipse = (opts={})->
     angles = []
 
     for i in [0...v]
-      console.log i,i*stepSize
       sinAngle = -1+i*stepSize
       angles.push [b*Math.cos(Math.asin(sinAngle)),a*sinAngle]
 
@@ -48,8 +47,10 @@ ellipse = (opts={})->
 
   return ellAdaptive
 
-cart2sph = (opts)->
+cart2sph = (opts={})->
   opts.degrees ?= false
+  opts.traditionalLayout ?= false
+  opts.upperHemisphere ?= true
   c = if opts.degrees then 180/Math.PI else 1
   (d)->
     r = norm(d)
@@ -177,6 +178,7 @@ deconvolveAxes = (axes)->
 
 export {
   norm
+  cart2sph
   planeErrors
   normalErrors
   combinedErrors

@@ -86,7 +86,6 @@ ellipse = function(opts = {}) {
     // interval [1,-1]
     angles = [];
     for (i = k = 0, ref = v; (0 <= ref ? k < ref : k > ref); i = 0 <= ref ? ++k : --k) {
-      console.log(i, i * stepSize);
       sinAngle = -1 + i * stepSize;
       angles.push([b * Math.cos(Math.asin(sinAngle)), a * sinAngle]);
     }
@@ -100,10 +99,16 @@ ellipse = function(opts = {}) {
   return ellAdaptive;
 };
 
-cart2sph = function(opts) {
+cart2sph = function(opts = {}) {
   var c;
   if (opts.degrees == null) {
     opts.degrees = false;
+  }
+  if (opts.traditionalLayout == null) {
+    opts.traditionalLayout = false;
+  }
+  if (opts.upperHemisphere == null) {
+    opts.upperHemisphere = true;
   }
   c = opts.degrees ? 180 / Math.PI : 1;
   return function(d) {
@@ -277,6 +282,7 @@ deconvolveAxes = function(axes) {
 
 var math = Object.freeze({
 	get norm () { return norm; },
+	get cart2sph () { return cart2sph; },
 	get planeErrors () { return planeErrors; },
 	get normalErrors () { return normalErrors; },
 	get combinedErrors () { return combinedErrors$1; },
@@ -4210,7 +4216,9 @@ exports.Stereonet = function() {
   drawEllipses = function(data, o = {}) {
     var con, createEllipse, fn, o1, sel;
     if (o.color == null) {
-      o.color = '#aaaaaa';
+      o.color = function(d) {
+        return d.color || '#aaaaaa';
+      };
     }
     if (el == null) {
       throw "Stereonet must be initialized to an element before adding data";

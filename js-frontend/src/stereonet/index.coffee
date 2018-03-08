@@ -100,7 +100,7 @@ Stereonet = ->
     return sel
 
   drawEllipses = (data, o={})->
-    o.color ?= '#aaaaaa'
+    o.color ?= (d)->d.color or '#aaaaaa'
     if not el?
       throw "Stereonet must be initialized to an element before adding data"
 

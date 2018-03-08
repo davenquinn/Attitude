@@ -287,5 +287,15 @@ def regression_axes(fit, confidence_level=0.95, **kw):
     a[-1] = h[-1]**2
     return a
 
+def hyperbolic_axes(fit, **kwargs):
+    type = kwargs.pop('type', 'noise')
+    try:
+        if type == 'noise':
+            return noise_axes(fit, **kwargs)
+        else:
+            return sampling_axes(fit, **kwargs)
+    except:
+        return fit.hyperbolic_axes
+
 def variance_axes(fit):
     return fit.eigenvalues

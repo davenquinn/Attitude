@@ -5,15 +5,15 @@ from scipy.special import gamma
 from itertools import product
 from .geom.util import dot
 from .stereonet import sph2cart
-from .error.axes import sampling_covariance
+from .error.axes import sampling_covariance, sampling_axes
 
-from mplstereonet.stereonet_math import _rotate
+from mplstereonet.stereonet_math import _rotate, cart2sph
 
 def confluent_hypergeometric_function(k1, k2, n=10):
     val = 0
     for i,j in product(range(n), range(n)):
         top = gamma(i+0.5)*gamma(j+0.5)*k1**i*k2**j
-        btm = gamma(i+j+3/2)*factorial(i)*factorial(j)
+        btm = gamma(i+j+3/2.)*factorial(i)*factorial(j)
         val += top/btm
     return val
 
@@ -27,8 +27,8 @@ def bingham_pdf(fit):
     Eigenvalues are analogous to |R|/N.
     """
     # Uses eigenvectors of the covariance matrix
-    e = fit.eigenvalues #singular_values
-    e = sampling_covariance(fit) # not sure
+    e = fit.hyperbolic_axes #singular_values
+    #e = sampling_covariance(fit) # not sure
     e = e[2]**2/e
 
     kappa = (e-e[2])[:-1]
@@ -42,7 +42,7 @@ def bingham_pdf(fit):
     def pdf(lon, lat):
 
         I = lat
-        D = lon + N.pi/2
+        D = lon# + N.pi/2
         #D,I = _rotate(N.degrees(D),N.degrees(I),90)
 
         # Bingham is given in spherical coordinates of inclination
@@ -54,9 +54,9 @@ def bingham_pdf(fit):
             N.cos(I)*N.sin(D),
             -N.sin(I)))
 
-        xhat = N.roll(xhat,-1,axis=2)
+        xhat = sph2cart(D,I).T
 
-        #xhat = sph2cart(I,D).T
+        xhat[-2] *= -1
 
         return 1/F*N.exp(
               kappa[0]*dot(xhat,e1)**2
