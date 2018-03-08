@@ -86,34 +86,8 @@ def apply_error_scaling(nominal,errors, variance_on_all_axes=True):
     return N.abs(nominal)
 
 def eigenvalue_axes(fit,**kw):
+    # The simple 'data variance' method.
     return fit.eigenvalues
-
-def sampling_axes(fit, confidence_level=0.95, dof=2, **kw):
-    """
-    Hyperbolic axis lengths based on sample-size
-    normal statistics
-
-    Integrates covariance with error level
-    and degrees of freedom for plotting
-    confidence intervals.
-
-    Degrees of freedom is set to two, which is the
-    relevant number of independent dimensions to planar-fit
-    data.
-    """
-    cov = sampling_covariance(fit)
-    sigma = chi2.ppf(confidence_level,dof)
-    e = fit.eigenvalues
-    # Apply error scaling to standard errors, not covariance
-    return apply_error_scaling(e, N.sqrt(cov)*sigma)
-
-def noise_axes(fit, confidence_level=0.95, dof=2, **kw):
-    cov = noise_covariance(fit)
-    # Not sure if this needs to be a root or not
-    sigma = chi2.ppf(confidence_level,dof)
-    #sigma = fisher_statistic(fit.n, confidence_level)#/(fit.n-dof)
-    e = fit.eigenvalues
-    return apply_error_scaling(e, sigma*N.sqrt(cov), **kw)
 
 def axis_angular_error(hyp_axes, axis_length):
     """
@@ -164,63 +138,73 @@ def fisher_statistic(n, confidence_level, dof=2):
     # not sure if dof should be two or 3
     df = (dof,n-dof) # Degrees of freedom
     return f.ppf(confidence_level, *df)
-## Maybe we should use Bingham distribution instead
 
-def sampling_axes_fisher(fit, confidence_level=0.95, **kw):
+def statistical_axes(fit, **kw):
     """
-    Sampling axes using a fisher statistic instead of chi2
-    """
-    dof = kw.pop('dof',3)
-    sigma = N.sqrt(sampling_covariance(fit,**kw))
-    z = fisher_statistic(fit.n,confidence_level,dof=dof)
-    e = fit.eigenvalues
-    # Apply error scaling to standard errors, not covariance
-    return apply_error_scaling(e, z*sigma, **kw)
+    Hyperbolic error using a statistical process (either sampling or noise errors)
 
-def sampling_axes_fisher(fit, confidence_level=0.95, **kw):
-    """
-    Sampling axes using a fisher statistic instead of chi2
-    And with a treatment of beta instead of old
-    """
-    # From @Fahrmeir2013 instead of old way
-    # The math is sound but not the endpoint, I think.
-    dof = kw.pop('dof',3)
-    cov = sampling_covariance(fit,**kw)
-    z = fisher_statistic(fit.n,confidence_level,dof=dof)
-    # e = fit.eigenvalues
-    # Use definition of beta
-    l = fit.eigenvalues
-    #beta = -l/l[-1] # Plane parameters
+    Integrates covariance with error level
+    and degrees of freedom for plotting
+    confidence intervals.
 
-    # errors to plane parameters
-    # from propagation of division
-    #err = N.abs(beta)*N.sqrt(cov/l+cov[-1]/l[-1])
-    #err *= N.sqrt(2*z)
+    Degrees of freedom is set to 2, which is the
+    relevant number of independent dimensions
+    to planar fitting of *a priori* centered data.
+    """
+    method = kw.pop('method', 'noise')
+    confidence_level = kw.pop('confidence_level', 0.95)
+    dof = kw.pop('dof',2)
 
-    # Apply two fisher F parameters
+    nominal = fit.eigenvalues
+
+    if method == 'sampling':
+        cov = sampling_covariance(fit,**kw)
+    elif method == 'noise':
+        cov = noise_covariance(fit,**kw)
+
+    if kw.pop('chisq',False):
+        # Model the incorrect behaviour of using the
+        # Chi2 distribution instead of the Fisher
+        # distribution (which is a measure of the
+        # ratio between the two).
+        z = chi2.ppf(confidence_level,dof)
+    else:
+        z = fisher_statistic(fit.n,confidence_level,dof=dof)
+
+    if kw.pop('error_scaling_inside',False):
+        # If we want to model (likely incorrect) behavior of
+        # applying scaling by data variance **before**
+        # the application of a statistical distribution
+        err = z*N.sqrt(cov)
+        if kw.pop('variance_on_all_axes', True):
+            # Scale covariance by the data variance in the
+            # out-of-plane direction.
+            # The variance **itself** is the standard error
+            # on the population "true value"
+            err[-1] += chi2.ppf(confidence_level, dof)*N.sqrt(fit.eigenvalues[-1])
+        err[:-1] *= -1
+        nominal[-1] = 0
+        nominal += err
+        return N.abs(nominal)
+
+    # Apply two fisher F parameters (one along each axis)
     # Since we apply to each axis without division,
     # it is as if we are applying N.sqrt(2*F) to the entire
     # distribution, aligning us with (Francq, 2014)
     err = z*N.sqrt(cov)
+    return apply_error_scaling(nominal, err, **kw)
 
-    # Apply error scaling to standard errors, not covariance
-    return apply_error_scaling(l, err, **kw)
 
-def noise_axes_fisher(fit, confidence_level=0.95, **kw):
+
+def sampling_axes(fit, **kw):
     """
-    Sampling axes using a fisher statistic instead of chi2
+    Hyperbolic axis lengths based on sample-size
+    normal statistics
     """
-    sigma = N.sqrt(noise_covariance(fit,**kw))
-    # Not sure if extra factor of two is necessary (increases
-    # correspondence with
-    dof = kw.pop('dof',3)
-    z = fisher_statistic(fit.n,confidence_level,dof=dof)
-    e = fit.eigenvalues
-    # Apply error scaling to standard errors, not covariance
-    return apply_error_scaling(e, z*sigma, **kw)
+    return statistical_axes(fit, method='sampling', **kw)
 
-sampling_axes = sampling_axes_fisher
-noise_axes = noise_axes_fisher
+def noise_axes(fit, **kw):
+    return statistical_axes(fit, method='noise', **kw)
 
 def francq_axes(fit, confidence_level=0.95, **kw):
     n = fit.n
