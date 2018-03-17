@@ -69249,28 +69249,53 @@ __planeAngle = function(axes, angle) {
   return angle - mathjs.acos(vecAngle([a0[0], a0[1], 0], [1, 0, 0]));
 };
 
+exports.createTransform = function(viewpoint, xScale, yScale, screenRatio = null) {
+  var f;
+  if (screenRatio == null) {
+    ({screenRatio} = getRatios(xScale, yScale));
+  }
+  //if not axes?
+  f = function(d) {
+    /* Create a line from input points */
+    /* Put in axis-aligned coordinates */
+    var offs, plane, q, v;
+    //select @
+    //.attr 'd',lineGenerator(lineData)
+    //.attr 'transform', "translate(#{xScale(offs[0])},#{yScale(offs[2])})rotate(#{v})"
+    plane = d;
+    if (d.group != null) {
+      plane = d.group;
+    }
+    q = quaternion.fromAxisAngle([0, 0, 1], viewpoint);
+    // Get offset of angles
+    offs = exports.dot(d.offset, q, T).toArray();
+    v = plane.apparentDip(-viewpoint + Math.PI / 2);
+    v = -Math.atan2(Math.tan(v), screenRatio) * 180 / Math.PI;
+    return `translate(${xScale(offs[0])},${yScale(offs[1])}) rotate(${v})`;
+  };
+  return f;
+};
+
 exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
-  var alphaScale, angle, centerPoint, dfunc, gradient, lineGenerator, n, nCoords, nominal, ratioX, ratioY, scaleErrorAngles, screenRatio, width;
+  var __hideIfErrorsTooLarge, __showError, __width, alphaScale, angle, centerPoint, dfunc, gradient, lineGenerator, n, nCoords, nominal, ratioX, ratioY, scaleErrorAngles, screenRatio;
   // Viewpoint should be an angle from north in radians
   n = 10;
   angle = viewpoint;
-  width = 400;
+  __width = 400;
   nominal = false;
   centerPoint = false;
   alphaScale = null;
   // Whether to exaggerate error angles along with scale
   scaleErrorAngles = true;
-  // For 3 coordinates on each half of the hyperbola, we collapse down to
-  // a special case where no trigonometry outside of tangents have to be calculated
-  // at each step. This is much more efficient, at the cost of the fine structure
-  // of the hyperbola near the origin
+  __hideIfErrorsTooLarge = false;
   nCoords = 3;
   ({ratioX, ratioY, screenRatio, lineGenerator} = getRatios(xScale, yScale));
   dfunc = function(d) {
     /* Project axes to 2d */
-    var R, a, a1, angles, angularError, arr, ax, b, center, coords, cutAngle, cutAngle2, hyp, inPlaneLength, largeNumber, lengthShown, lim, limit, loc, mask, masksz, mid, oa, offs, poly, q, rax, s, top, translate, v, zind;
+    var R, a, a1, angles, angularError, arr, ax, b, center, coords, cutAngle, cutAngle2, hyp, inPlaneLength, largeNumber, lengthShown, lim, limit, loc, mask, masksz, mid, oa, offs, poly, q, rax, s, top, translate, v, width, zind;
     // Get a single level of planar errors (or the
     // plane's nominal value) as a girdle
+    width = __width;
     rax = d.axes;
     if (rax[2][2] < 0) {
       rax = rax.map(function(row) {
@@ -69299,7 +69324,7 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
     // Semiaxes of hyperbola
     cutAngle = Math.atan2(b, a);
     angularError = cutAngle * 2 * 180 / Math.PI;
-    if (angularError > 90) {
+    if (angularError > 90 && __hideIfErrorsTooLarge) {
       //# This plane has undefined errors
       hyp = select$2(this).attr('visibility', 'hidden');
       return;
@@ -69414,14 +69439,18 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
         fill: 'black'
       });
     }
-    return hyp.selectAppend('path.hyperbola').datum(poly).attr('d', function(v) {
+    hyp.selectAppend('path.hyperbola').datum(poly).attr('d', function(v) {
       return lineGenerator(v) + "Z";
     }).each(oa).attr('mask', `url(#${mid})`);
+    if (nominal) {
+      return hyp.selectAppend('line.nominal').attrs({
+        x1: -largeNumber,
+        x2: largeNumber
+      }).attr('stroke', function(d) {
+        return d.color;
+      }).attr('mask', `url(#${mid})`);
+    }
   };
-  //if nominal
-  //hyp.selectAppend 'line.nominal'
-  //.attrs x1: -largeNumber, x2: largeNumber
-  //.attr 'stroke', '#000000'
   dfunc.setupGradient = function(el) {
     var defs, g, stop;
     defs = el.append('defs');
@@ -69451,9 +69480,9 @@ exports.hyperbolicErrors = function(viewpoint, axes, xScale, yScale) {
   };
   dfunc.width = function(o) {
     if (o == null) {
-      return width;
+      return __width;
     }
-    width = o;
+    __width = o;
     return dfunc;
   };
   dfunc.nominal = function(o) {
@@ -69503,15 +69532,17 @@ exports.digitizedLine = function(viewpoint, lineGenerator) {
 };
 
 exports.apparentDip = function(viewpoint, xScale, yScale) {
-  var axes, f, lineGenerator, ratioX, ratioY, screenRatio;
+  var axes, f, lineGenerator, ratioX, ratioY, screenRatio, transformer, width;
   axes = mathjs.eye(3);
+  width = 400;
   ({ratioX, ratioY, screenRatio, lineGenerator} = getRatios(xScale, yScale));
+  transformer = exports.createTransform(viewpoint, xScale, yScale, screenRatio);
   //if not axes?
   f = function(d) {
     /* Map down to two dimensions (the x-z plane of the viewing geometry) */
     /* Create a line from input points */
     /* Put in axis-aligned coordinates */
-    var A, Ra, angle, cv, data, offs, plane, q, sv, v;
+    var A, Ra, _d0, cv, data, el, plane, q, sv;
     //select @
     //.attr 'd',lineGenerator(lineData)
     //.attr 'transform', "translate(#{xScale(offs[0])},#{yScale(offs[2])})rotate(#{v})"
@@ -69520,28 +69551,33 @@ exports.apparentDip = function(viewpoint, xScale, yScale) {
       plane = d.group;
     }
     q = quaternion.fromAxisAngle([0, 0, 1], viewpoint);
-    angle = viewpoint; //-viewpoint+Math.PI/2
-    cv = Math.cos(angle);
-    sv = Math.sin(angle);
+    cv = Math.cos(viewpoint);
+    sv = Math.sin(viewpoint);
     Ra = matrix([[cv, -sv, 0], [sv, cv, 0], [0, 0, 1]]);
     A = matrix(plane.axes);
-    // Without adding this other quaternion, it is the same as just showing
-    // digitized lines
-
-    //trans = dot(M.transpose(Ra), M.transpose(A), Ra)
-    v = exports.dot(d.centered, mathjs.transpose(A), Ra);
-    data = exports.dot(v, T).toArray();
-    // Get offset of angles
-    offs = exports.dot(d.offset, q, T).toArray();
-    v = plane.apparentDip(-viewpoint + Math.PI / 2);
-    v = -Math.atan2(Math.tan(v), screenRatio) * 180 / Math.PI;
-    return select$2(this).attr('d', lineGenerator(data)).attr('transform', `translate(${xScale(offs[0])},${yScale(offs[1])}) rotate(${v})`);
+    el = select$2(this);
+    if (this.tagName === 'path') {
+      _d0 = exports.dot(d.centered, mathjs.transpose(A), Ra);
+      data = exports.dot(_d0, T).toArray();
+      el.attr('d', lineGenerator(data));
+    } else if (this.tagName === 'line') {
+      el.attr('x1', -width / 2);
+      el.attr('x2', width / 2);
+    }
+    return el.attr('transform', transformer(d));
   };
   f.axes = function(o) {
     if (o == null) {
       return axes;
     }
     axes = o;
+    return f;
+  };
+  f.width = function(o) {
+    if (o == null) {
+      return width;
+    }
+    width = o;
     return f;
   };
   return f;
