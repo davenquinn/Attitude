@@ -396,7 +396,8 @@ class PCAOrientation(BaseOrientation):
         return N.degrees(self._rake())
 
     def strike_dip_rake(self):
-        return (*self.strike_dip(), self.rake())
+        _ = self.strike_dip()
+        return (_[0],_[1], self.rake())
 
     def as_conic(self, level=1):
 
@@ -484,8 +485,10 @@ class PCAOrientation(BaseOrientation):
         return super().to_mapping(**values)
 
     def __repr__(self):
+        sdr = self.strike_dip_rake()
+        ae = self.angular_errors()
         return ("Orientation:: strike: {0:.2f} dip: {1:.2f}\n"
                 "      error:: min: {3:.2f} max: {4:.2f} rake: {2:.2f}"
-                .format(*self.strike_dip_rake(), *self.angular_errors()))
+                .format(sdr[0],sdr[1],sdr[2], ae[0],ae[1]))
 
 
