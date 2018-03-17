@@ -75,17 +75,46 @@ __planeAngle = (axes, angle)->
   a0 = axes.toArray()[0]
   angle - M.acos(vecAngle([a0[0],a0[1],0],[1,0,0]))
 
+createTransform = (viewpoint, xScale,yScale, screenRatio=null)->
+  if not screenRatio?
+    {screenRatio} = getRatios(xScale, yScale)
+
+  #if not axes?
+  f = (d)->
+
+    #select @
+      #.attr 'd',lineGenerator(lineData)
+      #.attr 'transform', "translate(#{xScale(offs[0])},#{yScale(offs[2])})rotate(#{v})"
+
+    plane = d
+    if d.group?
+      plane = d.group
+    ### Create a line from input points ###
+    ### Put in axis-aligned coordinates ###
+    q = Q.fromAxisAngle [0,0,1], viewpoint
+    # Get offset of angles
+    offs = dot(d.offset,q,T).toArray()
+
+    v = plane.apparentDip(-viewpoint+Math.PI/2)
+    v = -Math.atan2(Math.tan(v),screenRatio)*180/Math.PI
+
+    return "translate(#{xScale(offs[0])},#{yScale(offs[1])}) rotate(#{v})"
+
+  return f
+
 hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
   # Viewpoint should be an angle from north in radians
   n = 10
   angle = viewpoint
   gradient = null
-  width = 400
+  __width = 400
   nominal = false
   centerPoint = false
   alphaScale = null
   # Whether to exaggerate error angles along with scale
   scaleErrorAngles = true
+  __hideIfErrorsTooLarge = false
+  __showError = true
 
   # For 3 coordinates on each half of the hyperbola, we collapse down to
   # a special case where no trigonometry outside of tangents have to be calculated
@@ -97,6 +126,7 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
   dfunc = (d)->
     # Get a single level of planar errors (or the
     # plane's nominal value) as a girdle
+    width = __width
 
     rax = d.axes
     if rax[2][2] < 0
@@ -127,7 +157,7 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
     # Semiaxes of hyperbola
     cutAngle = Math.atan2(b,a)
     angularError = cutAngle*2*180/Math.PI
-    if angularError > 90
+    if angularError > 90 and __hideIfErrorsTooLarge
       ## This plane has undefined errors
       hyp = select(@)
         .attr('visibility','hidden')
@@ -245,10 +275,11 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
       .each oa
       .attr 'mask', "url(##{mid})"
 
-    #if nominal
-      #hyp.selectAppend 'line.nominal'
-        #.attrs x1: -largeNumber, x2: largeNumber
-        #.attr 'stroke', '#000000'
+    if nominal
+      hyp.selectAppend 'line.nominal'
+        .attrs x1: -largeNumber, x2: largeNumber
+        .attr 'stroke', (d)->d.color
+        .attr 'mask', "url(##{mid})"
 
   dfunc.setupGradient = (el)->
     defs = el.append 'defs'
@@ -278,8 +309,8 @@ hyperbolicErrors = (viewpoint, axes, xScale,yScale)->
     return dfunc
 
   dfunc.width = (o)->
-    return width unless o?
-    width = o
+    return __width unless o?
+    __width = o
     return dfunc
 
   dfunc.nominal = (o)->
@@ -320,7 +351,10 @@ digitizedLine = (viewpoint, lineGenerator)->
 
 apparentDip = (viewpoint, xScale,yScale)->
   axes = M.eye(3)
+  width = 400
   {ratioX,ratioY,screenRatio, lineGenerator} = getRatios(xScale, yScale)
+
+  transformer = createTransform(viewpoint,xScale,yScale, screenRatio)
 
   #if not axes?
   f = (d)->
@@ -336,37 +370,31 @@ apparentDip = (viewpoint, xScale,yScale)->
     ### Put in axis-aligned coordinates ###
     q = Q.fromAxisAngle [0,0,1], viewpoint
 
-    angle = viewpoint #-viewpoint+Math.PI/2
-    cv = Math.cos(angle)
-    sv = Math.sin(angle)
+    cv = Math.cos(viewpoint)
+    sv = Math.sin(viewpoint)
     Ra = matrix([[cv,-sv,0],[sv,cv,0],[0,0,1]])
-
     A = matrix(plane.axes)
 
-    # Without adding this other quaternion, it is the same as just showing
-    # digitized lines
-
-    #trans = dot(M.transpose(Ra), M.transpose(A), Ra)
-
-    v = dot(d.centered, M.transpose(A), Ra)
-
-     ### Map down to two dimensions (the x-z plane of the viewing geometry) ###
-    data = dot(v, T).toArray()
-
-    # Get offset of angles
-    offs = dot(d.offset,q,T).toArray()
-
-    v = plane.apparentDip(-viewpoint+Math.PI/2)
-    v = -Math.atan2(Math.tan(v),screenRatio)*180/Math.PI
-
-    select(@)
-      .attr 'd', lineGenerator(data)
-      .attr 'transform', "translate(#{xScale(offs[0])},#{yScale(offs[1])}) rotate(#{v})"
+    el = select @
+    if @tagName == 'path'
+      _d0 = dot(d.centered, M.transpose(A), Ra)
+       ### Map down to two dimensions (the x-z plane of the viewing geometry) ###
+      data = dot(_d0, T).toArray()
+      el.attr 'd', lineGenerator(data)
+    else if @tagName == 'line'
+      el.attr 'x1', -width/2
+      el.attr 'x2', width/2
+    el.attr 'transform', transformer(d)
 
 
   f.axes = (o)->
     return axes unless o?
     axes = o
+    return f
+
+  f.width = (o)->
+    return width unless o?
+    width = o
     return f
 
   return f
@@ -409,5 +437,5 @@ class PlaneData
     sign*Math.atan(d)
 
 export {hyperbolicErrors, digitizedLine, PlaneData, fixAngle,
-        apparentDip, dot, chroma}
+        apparentDip, dot, chroma, createTransform}
 

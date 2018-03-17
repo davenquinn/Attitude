@@ -1,13 +1,14 @@
 from __future__ import division
 import numpy as N
 from math import factorial
-from scipy.special import gamma
+from scipy.special import gamma, hyp1f1
+from scipy.linalg import expm
 from itertools import product
 from .geom.util import dot
 from .stereonet import sph2cart
 from .error.axes import sampling_covariance, sampling_axes
 
-from mplstereonet.stereonet_math import _rotate, cart2sph
+from mplstereonet.stereonet_math import _rotate, cart2sph, sph2cart
 
 def confluent_hypergeometric_function(k1, k2, n=10):
     val = 0
@@ -16,6 +17,8 @@ def confluent_hypergeometric_function(k1, k2, n=10):
         btm = gamma(i+j+3/2.)*factorial(i)*factorial(j)
         val += top/btm
     return val
+
+
 
 def bingham_pdf(fit):
     """
@@ -34,12 +37,16 @@ def bingham_pdf(fit):
     kappa = (e-e[2])[:-1]
     kappa /= kappa[-1]
     F = N.sqrt(N.pi)*confluent_hypergeometric_function(*kappa)
-    ax = fit.axes
-    if ax[-1,-1] < 0:
-        ax *= -1
-    e1, e2 = ax[:-1]
 
-    def pdf(lon, lat):
+
+    ax = fit.axes
+
+    Z = 1/e
+    M = ax
+    F = 1/hyp1f1(*1/Z)
+
+    def pdf(coords):
+        lon,lat = coords
 
         I = lat
         D = lon# + N.pi/2
@@ -49,18 +56,12 @@ def bingham_pdf(fit):
         # and declination in radians
 
         # From USGS bingham statistics reference
-        xhat = N.dstack((
-            N.cos(I)*N.cos(D),
-            N.cos(I)*N.sin(D),
-            -N.sin(I)))
 
-        xhat = sph2cart(D,I).T
+        xhat = N.array(sph2cart(lon,lat)).T
 
-        xhat[-2] *= -1
+        #return F*expm(dot(xhat.T, M, N.diag(Z), M.T, xhat))
 
-        return 1/F*N.exp(
-              kappa[0]*dot(xhat,e1)**2
-            + kappa[1]*dot(xhat,e2)**2)*N.cos(I)
+        return 1/(F*N.exp(dot(xhat.T, M, N.diag(Z), M.T, xhat)))
 
     return pdf
 
