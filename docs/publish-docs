@@ -12,6 +12,7 @@ make html
 
 # Move to subdirectory and publish
 cd $build
+touch .nojekyll
 git status
 git add -A
 git commit -m "Publishing docs for $hash on $branch"
