@@ -2875,7 +2875,7 @@ planeErrors = function(axesCovariance, axes, opts = {}) {
   stepFunc = function(a) {
     var e, i, k, len, results;
     // Takes an array of [cos(a),sin(a)]
-    e = [a[0], a[1], s[2] * c1];
+    e = [a[1], a[0], s[2] * c1];
     results = [];
     for (k = 0, len = axes.length; k < len; k++) {
       i = axes[k];
@@ -8256,7 +8256,7 @@ exports.Stereonet = function() {
   __overrideNeatlineClip = false;
   uid = uuid_1.v4();
   graticule = d3$1.geoGraticule().stepMinor([10, 10]).stepMajor([90, 10]).extentMinor([[-180, -80 - s], [180, 80 + s]]).extentMajor([[-180, -90 + s], [180, 90 - s]]);
-  proj = d3$1.geoOrthographic().clipAngle(clipAngle).precision(0.01).rotate([0, 0]).scale(300);
+  proj = d3$1.geoAzimuthalEqualArea().clipAngle(clipAngle).precision(0.01).rotate([0, 0]).scale(300);
   path = d3$1.geoPath().projection(proj).pointRadius(2);
   // Items to be added once DOM is available
   // (e.g. interaction)
@@ -8333,6 +8333,10 @@ exports.Stereonet = function() {
       scale = n;
     }
     radius = scale / 2 - margin;
+    // The below is a bona-fide hack!
+    if (clipAngle === 90) {
+      radius = scale / 2.5 - margin;
+    }
     if (clipAngle < 89) {
       _pscale = radius / Math.sin(Math.PI / 180 * clipAngle);
       if (shouldClip) {

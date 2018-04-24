@@ -54,7 +54,7 @@ Stereonet = ->
     .extentMinor [[-180,-80-s],[180,80+s]]
     .extentMajor [[-180,-90+s],[180,90-s]]
 
-  proj = d3.geoOrthographic()
+  proj = d3.geoAzimuthalEqualArea()
     .clipAngle clipAngle
     .precision 0.01
     .rotate [0,0]
@@ -140,6 +140,11 @@ Stereonet = ->
     # Scale the stereonet to an appropriate size
     scale = n if n?
     radius = scale/2-margin
+
+    # The below is a bona-fide hack!
+    if clipAngle == 90
+      radius = scale/2.5-margin
+
     if clipAngle < 89
       _pscale = radius/Math.sin(Math.PI/180*clipAngle)
       if shouldClip

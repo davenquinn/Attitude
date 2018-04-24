@@ -91,8 +91,8 @@ planeErrors = (axesCovariance, axes, opts={})->
 
   stepFunc = (a)->
     # Takes an array of [cos(a),sin(a)]
-    e = [a[0],
-         a[1],
+    e = [a[1],
+         a[0],
          s[2]*c1]
     (sdot(e,i) for i in axes)
 
