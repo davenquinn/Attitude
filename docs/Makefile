@@ -53,7 +53,9 @@ $(STYL): main.styl
 	stylus -c < $^ > $@
 
 clean:
-	rm -rf $(BUILDDIR)/*
+	# Modified to not delete the structure of the directory
+	rm -rf $(BUILDDIR)/doctrees
+	rm -rf $(BUILDDIR)/html/*
 
 html: $(STYL)
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
