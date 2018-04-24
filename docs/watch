@@ -1,3 +1,0 @@
-#!/usr/bin/env zsh
-
-sphinx-autobuild -B . _build/html
