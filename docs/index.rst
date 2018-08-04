@@ -7,20 +7,31 @@ Introduction
 ========
 
 **Attitude** is a Python module for fitting the orientation of planes in
-three-dimensional space with meaningful error distributions. It also includes
-Python and Javascript components to plot error distributions. This software
-collectively represents the reference implementation of the statistical method
-described in [this working paper](http://test.paper), currently in review at an
-academic journal.
+three-dimensional space *with meaningful error distributions*. This is thought
+to be a crucial ingredient in accurate and consistent studies of geological orientations from remote sensing data.
 
 The methodology implemented here was developed to support the analysis of
-geological orientations from remotely-sensed Mars imagery, but  Its core
-mission is to compute planar fits and transform them (*along with meaningful
-error distributions*) into a form that can be used for geology. It is designed
-to support the collection of structural measurements from remote sensing data.
+geological orientations from remotely-sensed Mars imagery, but it can be applied
+to any remote-sensing dataset that produces points along a planar feature.
+The method's flexibility and independence from input view geometry make it
+particularly suited to unmanned aerial vehicle (UAV) and ad-hoc
+structure-from-motion (SfM) datasets.
 
-Statistical background
-======================
+This Python module represents the reference implementation of the statistical method described in `this working paper <http://test.paper>`_, currently in review at an academic journal. By default, the method uses principal-component analysis (PCA)
+to perform an orientation-independent regression. The Python module also contains
+helpers for plotting orientation data on one of several spherical axes.
+Several Javascript components, developed in tandem with the Python module, are included to plot error distributions for spherical orientation data.
+
+Contents
+--------
+
+.. toctree::
+   :maxdepth: 2
+
+   statistical-motivation.rst
+   python-api.rst
+   example-notebooks/Plotting-Attitudes.ipynb
+   example-notebooks/Plotting-Interactive.ipynb
 
 Usage
 =====
@@ -29,36 +40,10 @@ The module accepts input in the form of a *n*-by-3 matrix with columns
 corresponding to X, Y, and Z coordinates. These data are commonly extracted
 from linear or polygonal features on a digital elevation model.
 
-A planar fit can be constructed as such:
+A planar fit can be constructed as such:::
 
-```python
-from attitude import Orientation
-measurement = Orientation(array)
-```
-
-Contents:
-
-.. toctree::
-   :maxdepth: 2
-
-   python-api.rst
-   example-notebooks/Plotting-Attitudes.ipynb
-   example-notebooks/Plotting-Interactive.ipynb
-
-Attitude.orientation
-====================
-
-.. autoclass:: attitude.orientation.pca.PCAOrientation
-    :members:
-
-Attitude.error
-==============
-
-.. automodule:: attitude.error
-    :members:
-
-.. automodule:: attitude.error.axes
-    :members:
+  from attitude import Orientation
+  measurement = Orientation(array)
 
 Indices and tables
 ==================
