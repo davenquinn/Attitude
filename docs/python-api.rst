@@ -14,6 +14,22 @@ The core **Orientation** class
     :members:
     :undoc-members:
 
+Other orientation representations
+-------------------
+
+A few other representations of orientation error
+spaces have been prepared for use when working with
+grouped or reconstructed planes.
+
+.. automodule:: attitude.orientation.grouped
+   :members:
+
+.. automodule:: attitude.orientation.reconstructed
+   :members:
+
+Construction of error bars
+-------------
+
 .. automodule:: attitude.error
     :members:
 

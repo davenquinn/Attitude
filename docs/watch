@@ -1,3 +1,8 @@
 #!/usr/bin/env zsh
 
-sphinx-autobuild -B . _build/html
+build_dir=_build/html
+style_dir=$build_dir/_static
+
+mkdir -p $style_dir
+stylus -w -o $style_dir main.styl & \
+  sphinx-autobuild -B . $build_dir

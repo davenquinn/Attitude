@@ -29,6 +29,7 @@ Contents
    :maxdepth: 2
 
    statistical-motivation.rst
+   installation.rst
    python-api.rst
    example-notebooks/Plotting-Attitudes.ipynb
    example-notebooks/Plotting-Interactive.ipynb
