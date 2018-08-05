@@ -1,14 +1,11 @@
 Python API
 ==========
 
-.. automodule:: attitude.coordinates
-    :members:
+The core **Orientation** module
+-------------------------------
 
 .. automodule:: attitude.orientation
     :members:
-
-The core **Orientation** class
-------------------------------
 
 .. autoclass:: attitude.orientation.pca.PCAOrientation
     :members:
@@ -36,5 +33,17 @@ Construction of error bars
 .. automodule:: attitude.error.axes
     :members:
 
+Display functions
+-----------------
+
 .. automodule:: attitude.display
+    :members:
+
+.. automodule:: attitude.display.cartopy
+   :members:
+
+Helper functions
+----------------
+
+.. automodule:: attitude.coordinates
     :members:
