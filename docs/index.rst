@@ -46,6 +46,12 @@ A planar fit can be constructed as such:::
   from attitude import Orientation
   measurement = Orientation(array)
 
+Contributing
+============
+
+Submit an issue on GitHub, or even better, submit a pull request.
+We are especially open to implementing new statistical cores.
+
 Indices and tables
 ==================
 

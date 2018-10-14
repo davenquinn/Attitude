@@ -35,3 +35,8 @@ $(BUILD)/style.css: $(ASSETS)/style.styl | $(BUILD)
 .PHONY: docs
 docs:
 	cd docs && make html
+
+# Build skeleton documentation for the python API
+.PHONY: api-docs
+api-docs: attitude
+	sphinx-apidoc -o docs/python-api $^

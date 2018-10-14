@@ -37,7 +37,9 @@ horizontalLine = (stereonet)->
     .datum __horizontalLine
   stereonet.refresh()
 
-globalLabels = ->
+globalLabels = (opts={})->
+  {offsetAmount} = opts
+  offsetAmount ?= 3
   for l in labels
     l.type = 'Feature'
     l.geometry = {type: 'Point', coordinates: l.c}
@@ -77,7 +79,7 @@ globalLabels = ->
           return 'start'
         .attr "transform", (d)->
           [x,y] = proj(d.geometry.coordinates)
-          offset = if x < width/2 then -3 else 3
+          offset = if x < width/2 then -offsetAmount else offsetAmount
           offsetY = 0
           if y < width/2-20
             offsetY = -9

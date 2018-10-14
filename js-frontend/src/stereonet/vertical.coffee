@@ -19,6 +19,7 @@ export default (stereonet)->
     labels = ["N","E","S","W"]
     textAnchor = ['middle','start','middle','end']
     alignmentBaseline = [null,'middle','hanging','middle']
+    padding = [3,0,3,0]
     locs = [0,90,180,270]
 
     az = g.append 'g'
@@ -37,8 +38,9 @@ export default (stereonet)->
       .attr 'transform', (d,i)->
         szm = innerRadius+m
         angle = (locs[i]-90)*Math.PI/180
-        x = szm+Math.cos(angle)*(innerRadius+opts.labelPadding)
-        y = szm+Math.sin(angle)*(innerRadius+opts.labelPadding)
+        z = (innerRadius+opts.labelPadding+padding[i])
+        x = szm+Math.cos(angle)*z
+        y = szm+Math.sin(angle)*z
         if i == 0
           y -= 3
         return "translate(#{x} #{y})"
