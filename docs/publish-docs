@@ -5,16 +5,21 @@ docs=$root/docs
 build=$docs/_build/html
 hash=$(git rev-parse --short HEAD)
 branch=$(git rev-parse --abbrev-ref HEAD)
+origin=$(git remote get-url origin)
+gh_pages=$docs/gh-pages
 # build the docs
-cd $docs
-make clean
-make html
+(cd $docs && make html)
 
-# Move to subdirectory and publish
-cd $build
-touch .nojekyll
+
+git clone --single-branch -b gh-pages "$origin" "$gh_pages"
+rm -rf "$gh_pages/*"
+
+cp ./docs/build/html/* "$gh_pages"
+touch "$gh_pages/.nojekyll"
+cd "$gh_pages"
 git status
 git add -A
+
 git commit -m "Publishing docs for $hash on $branch"
-git push origin gh-pages
+git push -f origin gh-pages
 
