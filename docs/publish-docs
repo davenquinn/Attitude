@@ -10,16 +10,15 @@ gh_pages=$docs/gh-pages
 # build the docs
 (cd $docs && make html)
 
-
 git clone --single-branch -b gh-pages "$origin" "$gh_pages"
 rm -rf "$gh_pages/*"
 
-cp ./docs/build/html/* "$gh_pages"
+cp -r ./docs/_build/html/* "$gh_pages"
 touch "$gh_pages/.nojekyll"
-cd "$gh_pages"
-git status
+pushd "$gh_pages"
+git rm -rf *
 git add -A
-
 git commit -m "Publishing docs for $hash on $branch"
-git push -f origin gh-pages
-
+git push origin gh-pages
+popd
+rm -rf "$gh_pages"
