@@ -1,0 +1,215 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="../../../_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="../../../_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="../../../_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="../../../_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>attitude.orientation.reconstructed &#8212; Attitude 0.0.2 documentation</title>
+    <link rel="stylesheet" href="../../../_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/main.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  
+   
+
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Attitude 0.0.2 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="../../../search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="../../../index.html">Docs</a></li>
+              
+                <li><a href="../../index.html">Module code</a></li>
+              
+              <li>attitude.orientation.reconstructed</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <h1>Source code for attitude.orientation.reconstructed</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">N</span>
+<span class="kn">import</span> <span class="nn">mplstereonet.stereonet_math</span> <span class="k">as</span> <span class="nn">M</span>
+
+<span class="kn">from</span> <span class="nn">..geom</span> <span class="k">import</span> <span class="n">dot</span>
+<span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">BaseOrientation</span><span class="p">,</span> <span class="n">hash_array</span>
+<span class="kn">from</span> <span class="nn">..coordinates.rotations</span> <span class="k">import</span> <span class="n">transform</span>
+<span class="kn">from</span> <span class="nn">..stereonet</span> <span class="k">import</span> <span class="n">plane_errors</span><span class="p">,</span> <span class="n">normal_errors</span>
+
+<div class="viewcode-block" id="ErrorShell"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.reconstructed.ErrorShell">[docs]</a><span class="k">class</span> <span class="nc">ErrorShell</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Object representing a specific error level</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axes</span><span class="p">,</span> <span class="n">covariance</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">axes</span> <span class="o">=</span> <span class="n">axes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">covariance_matrix</span> <span class="o">=</span> <span class="n">covariance</span>
+
+<div class="viewcode-block" id="ErrorShell.cartopy_girdle"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.reconstructed.ErrorShell.cartopy_girdle">[docs]</a>    <span class="k">def</span> <span class="nf">cartopy_girdle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">cartopy</span> <span class="k">import</span> <span class="n">crs</span><span class="p">,</span> <span class="n">feature</span>
+        <span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="k">import</span> <span class="n">Polygon</span>
+        <span class="n">cm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">covariance_matrix</span>
+
+        <span class="n">sheets</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">N</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">plane_errors</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span>
+                        <span class="n">sheet</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">traditional_layout</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;upper&#39;</span><span class="p">,</span><span class="s1">&#39;lower&#39;</span><span class="p">)}</span>
+        <span class="n">geom</span> <span class="o">=</span> <span class="n">Polygon</span><span class="p">(</span><span class="n">sheets</span><span class="p">[</span><span class="s1">&#39;upper&#39;</span><span class="p">],</span> <span class="p">[</span><span class="n">sheets</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">]])</span>
+        <span class="n">geometries</span> <span class="o">=</span> <span class="p">[</span><span class="n">geom</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">feature</span><span class="o">.</span><span class="n">ShapelyFeature</span><span class="p">(</span><span class="n">geometries</span><span class="p">,</span> <span class="n">crs</span><span class="o">.</span><span class="n">PlateCarree</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="ErrorShell.cartopy_normal"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.reconstructed.ErrorShell.cartopy_normal">[docs]</a>    <span class="k">def</span> <span class="nf">cartopy_normal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">cartopy</span> <span class="k">import</span> <span class="n">crs</span><span class="p">,</span> <span class="n">feature</span>
+        <span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="k">import</span> <span class="n">Polygon</span>
+
+        <span class="n">cm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">covariance_matrix</span>
+        <span class="n">upper</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">normal_errors</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">traditional_layout</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+        <span class="n">geom</span> <span class="o">=</span> <span class="n">Polygon</span><span class="p">(</span><span class="n">upper</span><span class="p">)</span>
+        <span class="n">geometries</span> <span class="o">=</span> <span class="p">[</span><span class="n">geom</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">feature</span><span class="o">.</span><span class="n">ShapelyFeature</span><span class="p">(</span><span class="n">geometries</span><span class="p">,</span> <span class="n">crs</span><span class="o">.</span><span class="n">PlateCarree</span><span class="p">())</span></div></div>
+
+<div class="viewcode-block" id="ReconstructedPlane"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.reconstructed.ReconstructedPlane">[docs]</a><span class="k">class</span> <span class="nc">ReconstructedPlane</span><span class="p">(</span><span class="n">ErrorShell</span><span class="p">,</span> <span class="n">BaseOrientation</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class represents a plane with errors on two axes.</span>
+<span class="sd">    This error is presumably the result of some statistical</span>
+<span class="sd">    process, and is a single confidence interval or shell</span>
+<span class="sd">    derived from this result.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strike</span><span class="p">,</span> <span class="n">dip</span><span class="p">,</span> <span class="n">rake</span><span class="p">,</span> <span class="o">*</span><span class="n">angular_errors</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">_trans_arr</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="k">def</span> <span class="nf">vec</span><span class="p">(</span><span class="n">latlon</span><span class="p">):</span>
+            <span class="n">lat</span><span class="p">,</span> <span class="n">lon</span> <span class="o">=</span> <span class="n">latlon</span>
+            <span class="n">_</span> <span class="o">=</span> <span class="n">M</span><span class="o">.</span><span class="n">sph2cart</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">)</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">_</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">val</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">val</span> <span class="o">*</span> <span class="n">_trans_arr</span>
+
+        <span class="n">normal_error</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;normal_error&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__strike</span> <span class="o">=</span> <span class="n">strike</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__dip</span> <span class="o">=</span> <span class="n">dip</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__angular_errors</span> <span class="o">=</span> <span class="n">angular_errors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__rake</span> <span class="o">=</span> <span class="n">rake</span>
+
+        <span class="n">errors</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">angular_errors</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+        <span class="n">pole</span> <span class="o">=</span> <span class="n">M</span><span class="o">.</span><span class="n">pole</span><span class="p">(</span><span class="n">strike</span><span class="p">,</span> <span class="n">dip</span><span class="p">)</span>
+
+        <span class="c1"># Uncertain why we have to do this to get a normal vector</span>
+        <span class="c1"># but it has something to do with the stereonet coordinate</span>
+        <span class="c1"># system relative to the normal</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">normal</span> <span class="o">=</span> <span class="n">vec</span><span class="p">(</span><span class="n">pole</span><span class="p">)</span>
+        <span class="n">ll</span> <span class="o">=</span> <span class="n">M</span><span class="o">.</span><span class="n">rake</span><span class="p">(</span><span class="n">strike</span><span class="p">,</span> <span class="n">dip</span><span class="p">,</span> <span class="n">rake</span><span class="p">)</span>
+        <span class="n">max_angle</span> <span class="o">=</span> <span class="n">vec</span><span class="p">(</span><span class="n">ll</span><span class="p">)</span>
+        <span class="n">min_angle</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">normal</span><span class="p">,</span> <span class="n">max_angle</span><span class="p">)</span>
+
+        <span class="c1"># These axes have the correct length but need to be</span>
+        <span class="c1"># rotated into the correct reference frame.</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">min_angle</span><span class="p">,</span> <span class="n">max_angle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">normal</span><span class="p">))</span>
+
+        <span class="c1"># Apply right-hand rule</span>
+        <span class="c1">#ax[0:],ax[1:]</span>
+
+        <span class="c1">#T = N.eye(3)</span>
+        <span class="c1">#T[:-1,:-1] = rotate_2D(N.radians(rake))</span>
+
+        <span class="n">T</span> <span class="o">=</span> <span class="n">transform</span><span class="p">(</span><span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">max_angle</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">axes</span> <span class="o">=</span> <span class="n">ax</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">axes</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="n">lengths</span> <span class="o">=</span> <span class="n">normal_error</span><span class="o">/</span><span class="n">N</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">errors</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hyperbolic_axes</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span><span class="o">+</span><span class="p">[</span><span class="n">normal_error</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">covariance_matrix</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hyperbolic_axes</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ReconstructedPlane.strike_dip_rake"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.reconstructed.ReconstructedPlane.strike_dip_rake">[docs]</a>    <span class="k">def</span> <span class="nf">strike_dip_rake</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__strike</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dip</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__rake</span></div>
+
+<div class="viewcode-block" id="ReconstructedPlane.angular_errors"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.reconstructed.ReconstructedPlane.angular_errors">[docs]</a>    <span class="k">def</span> <span class="nf">angular_errors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__angular_errors</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hash</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">hash_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hyperbolic_axes</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">)</span></div>
+
+</pre></div>
+
+          </div>
+            
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Attitude 0.0.2 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="../../../_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2017, Daven Quinn. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

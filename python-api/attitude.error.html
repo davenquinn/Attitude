@@ -1,0 +1,336 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="../_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="../_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="../_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="../_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>attitude.error package &#8212; Attitude 0.0.2 documentation</title>
+    <link rel="stylesheet" href="../_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/main.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+  
+   
+
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Attitude 0.0.2 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Contents</h2>
+    <div class="sidebar-localtoc">
+      <ul>
+<li><a class="reference internal" href="#">attitude.error package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-attitude.error.axes">attitude.error.axes module</a></li>
+<li><a class="reference internal" href="#module-attitude.error.bootstrap">attitude.error.bootstrap module</a></li>
+<li><a class="reference internal" href="#module-attitude.error.ellipse">attitude.error.ellipse module</a></li>
+<li><a class="reference internal" href="#module-attitude.error">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+    </div>
+  </div>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/python-api/attitude.error.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="../search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="../index.html">Docs</a></li>
+              
+              <li>attitude.error package</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <div class="section" id="attitude-error-package">
+<h1>attitude.error package<a class="headerlink" href="#attitude-error-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-attitude.error.axes">
+<span id="attitude-error-axes-module"></span><h2>attitude.error.axes module<a class="headerlink" href="#module-attitude.error.axes" title="Permalink to this headline">¶</a></h2>
+<p>Functions for converting fit parameters into covariance
+and hyperbolic axes. These all operate in axis-aligned
+space—rotation into global coordinate systems should
+occur after these transformations are applied.</p>
+<dl class="function">
+<dt id="attitude.error.axes.angular_errors">
+<code class="descclassname">attitude.error.axes.</code><code class="descname">angular_errors</code><span class="sig-paren">(</span><em>hyp_axes</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error/axes.html#angular_errors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.axes.angular_errors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Minimum and maximum angular errors
+corresponding to 1st and 2nd axes
+of PCA distribution.</p>
+<p>Ordered as [minimum, maximum] angular error.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.error.axes.apply_error_level">
+<code class="descclassname">attitude.error.axes.</code><code class="descname">apply_error_level</code><span class="sig-paren">(</span><em>cov</em>, <em>level</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error/axes.html#apply_error_level"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.axes.apply_error_level" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds sigma level to covariance matrix</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.error.axes.apply_error_scaling">
+<code class="descclassname">attitude.error.axes.</code><code class="descname">apply_error_scaling</code><span class="sig-paren">(</span><em>nominal</em>, <em>errors</em>, <em>variance_on_all_axes=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error/axes.html#apply_error_scaling"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.axes.apply_error_scaling" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="attitude.error.axes.apply_error_scaling_old">
+<code class="descclassname">attitude.error.axes.</code><code class="descname">apply_error_scaling_old</code><span class="sig-paren">(</span><em>nominal</em>, <em>errors</em>, <em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error/axes.html#apply_error_scaling_old"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.axes.apply_error_scaling_old" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method does not account for errors on the
+in-plane axes</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.error.axes.axis_angular_error">
+<code class="descclassname">attitude.error.axes.</code><code class="descname">axis_angular_error</code><span class="sig-paren">(</span><em>hyp_axes</em>, <em>axis_length</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error/axes.html#axis_angular_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.axes.axis_angular_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>The angular error for an in-plane axis of
+given length (either a PCA major axis or
+an intermediate direction).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.error.axes.babamoradi_axes">
+<code class="descclassname">attitude.error.axes.</code><code class="descname">babamoradi_axes</code><span class="sig-paren">(</span><em>fit</em>, <em>confidence_level=0.95</em>, <em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error/axes.html#babamoradi_axes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.axes.babamoradi_axes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="attitude.error.axes.eigenvalue_axes">
+<code class="descclassname">attitude.error.axes.</code><code class="descname">eigenvalue_axes</code><span class="sig-paren">(</span><em>fit</em>, <em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error/axes.html#eigenvalue_axes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.axes.eigenvalue_axes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="attitude.error.axes.fisher_statistic">
+<code class="descclassname">attitude.error.axes.</code><code class="descname">fisher_statistic</code><span class="sig-paren">(</span><em>n</em>, <em>confidence_level</em>, <em>dof=2</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error/axes.html#fisher_statistic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.axes.fisher_statistic" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="attitude.error.axes.francq_axes">
+<code class="descclassname">attitude.error.axes.</code><code class="descname">francq_axes</code><span class="sig-paren">(</span><em>fit</em>, <em>confidence_level=0.95</em>, <em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error/axes.html#francq_axes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.axes.francq_axes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="attitude.error.axes.hyperbolic_axes">
+<code class="descclassname">attitude.error.axes.</code><code class="descname">hyperbolic_axes</code><span class="sig-paren">(</span><em>fit</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error/axes.html#hyperbolic_axes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.axes.hyperbolic_axes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="attitude.error.axes.jolliffe_axes">
+<code class="descclassname">attitude.error.axes.</code><code class="descname">jolliffe_axes</code><span class="sig-paren">(</span><em>fit</em>, <em>confidence_level=0.95</em>, <em>dof=2</em>, <em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error/axes.html#jolliffe_axes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.axes.jolliffe_axes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="attitude.error.axes.mean_estimator">
+<code class="descclassname">attitude.error.axes.</code><code class="descname">mean_estimator</code><span class="sig-paren">(</span><em>data_variance</em>, <em>n</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error/axes.html#mean_estimator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.axes.mean_estimator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the variance of the mean from a data variance term
+(e.g. an eigenvalue) and return an estimator of the precision of the mean</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.error.axes.noise_axes">
+<code class="descclassname">attitude.error.axes.</code><code class="descname">noise_axes</code><span class="sig-paren">(</span><em>fit</em>, <em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error/axes.html#noise_axes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.axes.noise_axes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="attitude.error.axes.noise_covariance">
+<code class="descclassname">attitude.error.axes.</code><code class="descname">noise_covariance</code><span class="sig-paren">(</span><em>fit</em>, <em>dof=2</em>, <em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error/axes.html#noise_covariance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.axes.noise_covariance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Covariance taking into account the ‘noise covariance’ of the data.
+This is technically more realistic for continuously sampled data.
+From Faber, 1993</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.error.axes.regression_axes">
+<code class="descclassname">attitude.error.axes.</code><code class="descname">regression_axes</code><span class="sig-paren">(</span><em>fit</em>, <em>confidence_level=0.95</em>, <em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error/axes.html#regression_axes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.axes.regression_axes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="attitude.error.axes.sampling_axes">
+<code class="descclassname">attitude.error.axes.</code><code class="descname">sampling_axes</code><span class="sig-paren">(</span><em>fit</em>, <em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error/axes.html#sampling_axes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.axes.sampling_axes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hyperbolic axis lengths based on sample-size
+normal statistics</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.error.axes.sampling_covariance">
+<code class="descclassname">attitude.error.axes.</code><code class="descname">sampling_covariance</code><span class="sig-paren">(</span><em>fit</em>, <em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error/axes.html#sampling_covariance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.axes.sampling_covariance" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="attitude.error.axes.statistical_axes">
+<code class="descclassname">attitude.error.axes.</code><code class="descname">statistical_axes</code><span class="sig-paren">(</span><em>fit</em>, <em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error/axes.html#statistical_axes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.axes.statistical_axes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hyperbolic error using a statistical process (either sampling or noise errors)</p>
+<p>Integrates covariance with error level
+and degrees of freedom for plotting
+confidence intervals.</p>
+<p>Degrees of freedom is set to 2, which is the
+relevant number of independent dimensions
+to planar fitting of <em>a priori</em> centered data.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.error.axes.variance_axes">
+<code class="descclassname">attitude.error.axes.</code><code class="descname">variance_axes</code><span class="sig-paren">(</span><em>fit</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error/axes.html#variance_axes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.axes.variance_axes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="attitude.error.axes.weingarten_axes">
+<code class="descclassname">attitude.error.axes.</code><code class="descname">weingarten_axes</code><span class="sig-paren">(</span><em>fit</em>, <em>confidence_level=0.95</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error/axes.html#weingarten_axes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.axes.weingarten_axes" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is basically meaningless in its current form</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-attitude.error.bootstrap">
+<span id="attitude-error-bootstrap-module"></span><h2>attitude.error.bootstrap module<a class="headerlink" href="#module-attitude.error.bootstrap" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="attitude.error.bootstrap.bootstrap">
+<code class="descclassname">attitude.error.bootstrap.</code><code class="descname">bootstrap</code><span class="sig-paren">(</span><em>array</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error/bootstrap.html#bootstrap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.bootstrap.bootstrap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides a bootstrap resampling of an array. Provides another
+statistical method to estimate the variance of a dataset.</p>
+<p>For a <cite>PCA</cite> object in this library, it should be applied to
+<cite>Orientation.array</cite> method.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-attitude.error.ellipse">
+<span id="attitude-error-ellipse-module"></span><h2>attitude.error.ellipse module<a class="headerlink" href="#module-attitude.error.ellipse" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="attitude.error.ellipse.ellipse">
+<code class="descclassname">attitude.error.ellipse.</code><code class="descname">ellipse</code><span class="sig-paren">(</span><em>center</em>, <em>covariance_matrix</em>, <em>level=1</em>, <em>n=1000</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error/ellipse.html#ellipse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.ellipse.ellipse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns error ellipse in slope-azimuth space</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-attitude.error">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-attitude.error" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="attitude.error.asymptotes">
+<code class="descclassname">attitude.error.</code><code class="descname">asymptotes</code><span class="sig-paren">(</span><em>hyp</em>, <em>n=1000</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error.html#asymptotes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.asymptotes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a cone of asymptotes for hyperbola</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.error.average_orientation">
+<code class="descclassname">attitude.error.</code><code class="descname">average_orientation</code><span class="sig-paren">(</span><em>orientations</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error.html#average_orientation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.average_orientation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the average orientation of a set of fitted or reconstructed
+orientations, taking into account uncertainty.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.error.error_bounds">
+<code class="descclassname">attitude.error.</code><code class="descname">error_bounds</code><span class="sig-paren">(</span><em>hyp_errors</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error.html#error_bounds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.error_bounds" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="attitude.error.from_normal_errors">
+<code class="descclassname">attitude.error.</code><code class="descname">from_normal_errors</code><span class="sig-paren">(</span><em>ax1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error.html#from_normal_errors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.from_normal_errors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hyperbolic error axis lengths for planes from the equivalent
+representation for normal vector endpoints</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.error.pca_to_mapping">
+<code class="descclassname">attitude.error.</code><code class="descname">pca_to_mapping</code><span class="sig-paren">(</span><em>pca</em>, <em>**extra_props</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error.html#pca_to_mapping"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.pca_to_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>A helper to return a mapping of a PCA result set suitable for
+reconstructing a planar error surface in other software packages</p>
+<p>kwargs: method (defaults to sampling axes)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.error.to_normal_errors">
+<code class="descclassname">attitude.error.</code><code class="descname">to_normal_errors</code><span class="sig-paren">(</span><em>axes</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/error.html#to_normal_errors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.error.to_normal_errors" title="Permalink to this definition">¶</a></dt>
+<dd><p>A temporary method that gets normal vector errors
+corresponding with a fitted orientation</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+            
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Attitude 0.0.2 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="../_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2017, Daven Quinn. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

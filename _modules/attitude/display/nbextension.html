@@ -1,0 +1,173 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="../../../_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="../../../_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="../../../_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="../../../_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>attitude.display.nbextension &#8212; Attitude 0.0.2 documentation</title>
+    <link rel="stylesheet" href="../../../_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/main.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  
+   
+
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Attitude 0.0.2 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="../../../search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="../../../index.html">Docs</a></li>
+              
+                <li><a href="../../index.html">Module code</a></li>
+              
+              <li>attitude.display.nbextension</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <h1>Source code for attitude.display.nbextension</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">path</span>
+<span class="kn">from</span> <span class="nn">uuid</span> <span class="k">import</span> <span class="n">uuid4</span>
+<span class="kn">from</span> <span class="nn">json</span> <span class="k">import</span> <span class="n">dumps</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">Sequence</span>
+<span class="kn">from</span> <span class="nn">IPython</span> <span class="k">import</span> <span class="n">display</span>
+
+<span class="n">__here__</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
+<span class="n">lib</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">__here__</span><span class="p">,</span><span class="s1">&#39;../../js-frontend/lib&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="get_library"><a class="viewcode-back" href="../../../python-api/attitude.display.html#attitude.display.nbextension.get_library">[docs]</a><span class="k">def</span> <span class="nf">get_library</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+    <span class="n">dn</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lib</span><span class="p">,</span><span class="n">fn</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dn</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="init_notebook_mode"><a class="viewcode-back" href="../../../python-api/attitude.display.html#attitude.display.nbextension.init_notebook_mode">[docs]</a><span class="k">def</span> <span class="nf">init_notebook_mode</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initialize attitude.js in the browser.</span>
+
+<span class="sd">    Based heavily on the `plotly` offline setup function</span>
+<span class="sd">    (https://github.com/plotly/plotly.py/blob/master/plotly/offline/offline.py)</span>
+
+<span class="sd">    Also see</span>
+<span class="sd">    https://github.com/paulgb/nbgraph/blob/master/nbgraph/client/prepare_notebook.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">__ATTITUDE_INITIALIZED</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">__here__</span><span class="p">,</span><span class="s1">&#39;assets&#39;</span><span class="p">,</span><span class="s1">&#39;nbextension-inject.html&#39;</span><span class="p">))</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">script</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+    <span class="n">script</span> <span class="o">=</span> <span class="n">script</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&lt;&lt;&lt;attitudeUI&gt;&gt;&gt;&quot;</span><span class="p">,</span>
+                            <span class="n">get_library</span><span class="p">(</span><span class="s2">&quot;attitude-ui.js&quot;</span><span class="p">))</span>
+    <span class="n">display_bundle</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;text/html&#39;</span><span class="p">:</span> <span class="n">script</span>
+    <span class="p">}</span>
+    <span class="n">display</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">display_bundle</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">__ATTITUDE_INITIALIZED</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="plot_interactive"><a class="viewcode-back" href="../../../python-api/attitude.display.html#attitude.display.nbextension.plot_interactive">[docs]</a><span class="k">def</span> <span class="nf">plot_interactive</span><span class="p">(</span><span class="n">attitudes</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">__here__</span><span class="p">,</span><span class="s1">&#39;assets&#39;</span><span class="p">,</span> <span class="s1">&#39;nbextension-view.html&#39;</span><span class="p">))</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">script</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attitudes</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">):</span>
+        <span class="n">attitudes</span> <span class="o">=</span> <span class="p">[</span><span class="n">attitudes</span><span class="p">]</span>
+    <span class="n">attitudes</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">to_mapping</span><span class="p">()</span>
+                 <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s1">&#39;to_mapping&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">a</span>
+                 <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">attitudes</span><span class="p">]</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">dumps</span><span class="p">(</span><span class="n">attitudes</span><span class="p">)</span>
+    <span class="n">script</span> <span class="o">=</span> <span class="n">script</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&lt;&lt;&lt;data&gt;&gt;&gt;&quot;</span><span class="p">,</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="n">classname</span> <span class="o">=</span> <span class="s2">&quot;A&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">uuid4</span><span class="p">())</span>
+    <span class="n">script</span> <span class="o">=</span> <span class="n">script</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&lt;&lt;&lt;hash&gt;&gt;&gt;&quot;</span><span class="p">,</span><span class="n">classname</span><span class="p">)</span>
+    <span class="n">display_bundle</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;text/html&#39;</span><span class="p">:</span> <span class="n">script</span>
+    <span class="p">}</span>
+    <span class="c1">#with open(path.join(__here__,&#39;view-filled.html&#39;), &#39;w&#39;) as f:</span>
+    <span class="c1">#    print(script,file=f)</span>
+    <span class="n">display</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">display_bundle</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+</pre></div>
+
+          </div>
+            
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Attitude 0.0.2 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="../../../_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2017, Daven Quinn. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

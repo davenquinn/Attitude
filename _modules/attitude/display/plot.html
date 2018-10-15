@@ -1,0 +1,278 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="../../../_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="../../../_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="../../../_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="../../../_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>attitude.display.plot &#8212; Attitude 0.0.2 documentation</title>
+    <link rel="stylesheet" href="../../../_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/main.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  
+   
+
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Attitude 0.0.2 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="../../../search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="../../../index.html">Docs</a></li>
+              
+                <li><a href="../../index.html">Module code</a></li>
+              
+              <li>attitude.display.plot</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <h1>Source code for attitude.display.plot</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="kn">from</span> <span class="nn">mplstereonet.stereonet_math</span> <span class="k">import</span> <span class="n">line</span><span class="p">,</span> <span class="n">pole</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">N</span>
+<span class="kn">from</span> <span class="nn">matplotlib.figure</span> <span class="k">import</span> <span class="n">Figure</span>
+<span class="kn">from</span> <span class="nn">matplotlib.backends.backend_agg</span> <span class="k">import</span> <span class="n">FigureCanvasAgg</span> <span class="k">as</span> <span class="n">FigureCanvas</span>
+<span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="k">import</span> <span class="n">Polygon</span>
+<span class="kn">from</span> <span class="nn">matplotlib.gridspec</span> <span class="k">import</span> <span class="n">GridSpec</span>
+<span class="kn">from</span> <span class="nn">matplotlib.ticker</span> <span class="k">import</span> <span class="n">FuncFormatter</span><span class="p">,</span> <span class="n">MaxNLocator</span>
+
+<span class="kn">from</span> <span class="nn">...geom.util</span> <span class="k">import</span> <span class="n">vector</span><span class="p">,</span><span class="n">plane</span>
+
+<div class="viewcode-block" id="current_axes"><a class="viewcode-back" href="../../../python-api/attitude.display.plot.html#attitude.display.plot.current_axes">[docs]</a><span class="k">def</span> <span class="nf">current_axes</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">P</span>
+    <span class="k">return</span> <span class="n">P</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="trend_plunge"><a class="viewcode-back" href="../../../python-api/attitude.display.plot.html#attitude.display.plot.trend_plunge">[docs]</a><span class="k">def</span> <span class="nf">trend_plunge</span><span class="p">(</span><span class="n">orientation</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;ax&quot;</span><span class="p">,</span><span class="n">current_axes</span><span class="p">())</span>
+    <span class="n">levels</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;levels&quot;</span><span class="p">,[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="c1">#kwargs[&quot;linewidth&quot;] = 0</span>
+    <span class="n">defaults</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">linewidth</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">k</span><span class="p">:</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">defaults</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
+
+    <span class="n">a</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;alpha&quot;</span><span class="p">,[</span><span class="mf">0.7</span><span class="p">])</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">levels</span><span class="p">):</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">levels</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">level</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">levels</span><span class="p">):</span>
+        <span class="n">el</span> <span class="o">=</span> <span class="p">[</span><span class="n">N</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span>
+            <span class="n">orientation</span><span class="o">.</span><span class="n">error_ellipse</span><span class="p">(</span><span class="n">vector</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">)]</span>
+        <span class="n">lat</span><span class="p">,</span><span class="n">lon</span> <span class="o">=</span> <span class="n">line</span><span class="p">(</span><span class="n">el</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">el</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="n">e</span> <span class="o">=</span> <span class="n">Polygon</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span><span class="n">lon</span><span class="p">),</span> <span class="n">alpha</span><span class="o">=</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">e</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="normal"><a class="viewcode-back" href="../../../python-api/attitude.display.plot.html#attitude.display.plot.normal">[docs]</a><span class="k">def</span> <span class="nf">normal</span><span class="p">(</span><span class="n">orientation</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;ax&quot;</span><span class="p">,</span><span class="n">current_axes</span><span class="p">())</span>
+    <span class="n">levels</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;levels&quot;</span><span class="p">,[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">normal</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;normal&quot;</span><span class="p">,</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;linewidth&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">a</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;alpha&quot;</span><span class="p">,</span><span class="mf">0.7</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">levels</span><span class="p">):</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">levels</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">level</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">levels</span><span class="p">):</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">orientation</span><span class="o">.</span><span class="n">error_ellipse</span><span class="p">(</span><span class="n">vector</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">)</span>
+        <span class="n">el</span> <span class="o">=</span> <span class="p">[</span><span class="n">N</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">_</span><span class="p">]</span>
+        <span class="n">lat</span><span class="p">,</span><span class="n">lon</span> <span class="o">=</span> <span class="n">line</span><span class="p">(</span><span class="n">el</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">el</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="n">Polygon</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span><span class="n">lon</span><span class="p">),</span> <span class="n">alpha</span><span class="o">=</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">e</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="plane_confidence"><a class="viewcode-back" href="../../../python-api/attitude.display.plot.html#attitude.display.plot.plane_confidence">[docs]</a><span class="k">def</span> <span class="nf">plane_confidence</span><span class="p">(</span><span class="n">orientation</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;ax&#39;</span><span class="p">,</span><span class="n">current_axes</span><span class="p">())</span>
+    <span class="n">levels</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;levels&quot;</span><span class="p">,[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">a</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;alpha&quot;</span><span class="p">,[</span><span class="mf">0.7</span><span class="p">])</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">levels</span><span class="p">):</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">levels</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">level</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">levels</span><span class="p">):</span>
+        <span class="n">a</span><span class="p">,</span><span class="n">b</span> <span class="o">=</span> <span class="n">orientation</span><span class="o">.</span><span class="n">plane_errors</span><span class="p">()</span>
+        <span class="n">el</span> <span class="o">=</span> <span class="p">[</span><span class="n">N</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">a</span><span class="p">]</span>
+        <span class="n">el2</span> <span class="o">=</span> <span class="p">[</span><span class="n">N</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">b</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">el</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">el</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span></div>
+        <span class="c1">#ax.fill(el,el2[::-1])</span>
+        <span class="c1">#lat,lon = line(el[1], el[0])</span>
+        <span class="c1">#e = Polygon(zip(lat,lon), alpha=a[i], **kwargs)</span>
+        <span class="c1">#ax.add_patch(e)</span>
+
+<div class="viewcode-block" id="strike_dip"><a class="viewcode-back" href="../../../python-api/attitude.display.plot.html#attitude.display.plot.strike_dip">[docs]</a><span class="k">def</span> <span class="nf">strike_dip</span><span class="p">(</span><span class="n">orientation</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;ax&quot;</span><span class="p">,</span><span class="n">current_axes</span><span class="p">())</span>
+    <span class="n">levels</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;levels&quot;</span><span class="p">,[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">spherical</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;spherical&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;linewidth&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">a</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;alpha&quot;</span><span class="p">,[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">levels</span><span class="p">):</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">levels</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">level</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">levels</span><span class="p">):</span>
+        <span class="n">el</span> <span class="o">=</span> <span class="p">[</span><span class="n">N</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">ell</span><span class="p">)</span> <span class="k">for</span> <span class="n">ell</span> <span class="ow">in</span>
+                <span class="n">orientation</span><span class="o">.</span><span class="n">error_ellipse</span><span class="p">(</span>
+                    <span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">,</span>
+                    <span class="n">spherical</span><span class="o">=</span><span class="n">spherical</span><span class="p">)]</span>
+
+        <span class="k">if</span> <span class="n">spherical</span><span class="p">:</span>
+            <span class="n">lat</span><span class="p">,</span><span class="n">lon</span> <span class="o">=</span> <span class="n">line</span><span class="p">(</span><span class="n">el</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">el</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lat</span> <span class="o">=</span> <span class="n">el</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">lon</span> <span class="o">=</span> <span class="mi">90</span><span class="o">-</span><span class="n">el</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">e</span> <span class="o">=</span> <span class="n">Polygon</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span><span class="n">lon</span><span class="p">)),</span> <span class="n">alpha</span><span class="o">=</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">e</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="strike_dip_montecarlo"><a class="viewcode-back" href="../../../python-api/attitude.display.plot.html#attitude.display.plot.strike_dip_montecarlo">[docs]</a><span class="k">def</span> <span class="nf">strike_dip_montecarlo</span><span class="p">(</span><span class="n">orientation</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">o</span> <span class="o">=</span> <span class="n">orientation</span>
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">N</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span><span class="o">*</span><span class="n">level</span><span class="p">,</span><span class="n">o</span><span class="o">.</span><span class="n">covariance_matrix</span><span class="p">)</span>
+    <span class="n">arr</span> <span class="o">+=</span> <span class="n">o</span><span class="o">.</span><span class="n">sigma</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="c1"># Normal vector to fit</span>
+
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span><span class="n">o</span><span class="o">.</span><span class="n">axes</span><span class="p">)</span> <span class="c1"># Rotate into cartesian coords</span>
+
+    <span class="n">mag</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">strike</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">N</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">arr</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span><span class="n">arr</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="n">dip</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">N</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">arr</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span><span class="o">/</span><span class="n">mag</span><span class="p">))</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">pole</span><span class="p">(</span><span class="n">strike</span><span class="p">,</span><span class="n">dip</span><span class="p">,</span><span class="s1">&#39;r.&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="setup_figure"><a class="viewcode-back" href="../../../python-api/attitude.display.plot.html#attitude.display.plot.setup_figure">[docs]</a><span class="k">def</span> <span class="nf">setup_figure</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">projection</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;projection&quot;</span><span class="p">,</span><span class="s2">&quot;stereonet&quot;</span><span class="p">)</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">Figure</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span> <span class="o">=</span> <span class="n">FigureCanvas</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="n">projection</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fig</span><span class="p">,</span><span class="n">ax</span></div>
+
+<div class="viewcode-block" id="error_ellipse"><a class="viewcode-back" href="../../../python-api/attitude.display.plot.html#attitude.display.plot.error_ellipse">[docs]</a><span class="k">def</span> <span class="nf">error_ellipse</span><span class="p">(</span><span class="n">fit</span><span class="p">):</span>
+
+    <span class="n">yloc</span> <span class="o">=</span> <span class="n">MaxNLocator</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+    <span class="n">xloc</span> <span class="o">=</span> <span class="n">MaxNLocator</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">u</span><span class="s2">&quot;</span><span class="si">{0}</span><span class="se">\u00b0</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+    <span class="n">formatter</span> <span class="o">=</span> <span class="n">FuncFormatter</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">setup_figure</span><span class="p">(</span><span class="n">projection</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_major_locator</span><span class="p">(</span><span class="n">yloc</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_locator</span><span class="p">(</span><span class="n">xloc</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">invert_yaxis</span><span class="p">()</span>
+
+    <span class="n">strike_dip</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span>
+        <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+        <span class="n">levels</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span>
+        <span class="n">alpha</span><span class="o">=</span><span class="p">[</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">0.4</span><span class="p">,</span><span class="mf">0.3</span><span class="p">],</span>
+        <span class="n">spherical</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">autoscale_view</span><span class="p">()</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Dip&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Strike&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fig</span></div>
+
+<div class="viewcode-block" id="error_asymptotes"><a class="viewcode-back" href="../../../python-api/attitude.display.plot.html#attitude.display.plot.error_asymptotes">[docs]</a><span class="k">def</span> <span class="nf">error_asymptotes</span><span class="p">(</span><span class="n">pca</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plots asymptotic error bounds for</span>
+<span class="sd">    hyperbola on a stereonet.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;ax&quot;</span><span class="p">,</span><span class="n">current_axes</span><span class="p">())</span>
+
+    <span class="n">lon</span><span class="p">,</span><span class="n">lat</span> <span class="o">=</span> <span class="n">pca</span><span class="o">.</span><span class="n">plane_errors</span><span class="p">(</span><span class="s1">&#39;upper&#39;</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span><span class="n">lat</span><span class="p">,</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
+
+    <span class="n">lon</span><span class="p">,</span><span class="n">lat</span> <span class="o">=</span> <span class="n">pca</span><span class="o">.</span><span class="n">plane_errors</span><span class="p">(</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span><span class="n">lat</span><span class="p">,</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">plane</span><span class="p">(</span><span class="o">*</span><span class="n">pca</span><span class="o">.</span><span class="n">strike_dip</span><span class="p">())</span></div>
+
+</pre></div>
+
+          </div>
+            
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Attitude 0.0.2 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="../../../_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2017, Daven Quinn. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>
