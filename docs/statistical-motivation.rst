@@ -4,8 +4,8 @@ Statistical motivation
 - Error reporting for remotely gathered bedding orientations is difficult
 - Many Mars mapping studies report no error ranges, or poorly repeatable
   errors based on unstated assumptions
-- Lack of visualization tools makes it difficult to assess different measurements
-  against each other
+- Lack of visualization tools makes it difficult to assess relative quality
+  of measurements
 
 .. figure:: _static/images/schematic-plane.png
    :width: 400px
@@ -17,7 +17,6 @@ Statistical motivation
        two dimensions.
 
 .. figure:: _static/images/schematic-spherical.png
-   :height: 300px
 
    Schematic representation of spherical error space
 

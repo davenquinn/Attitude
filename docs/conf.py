@@ -14,7 +14,7 @@
 
 import sys
 import os
-import guzzle_sphinx_theme
+#import guzzle_sphinx_theme
 import attitude
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -35,8 +35,8 @@ extensions = [
     'sphinx.ext.todo',
     'nbsphinx',
     'sphinx.ext.mathjax',
-    'sphinx.ext.viewcode',
-    "guzzle_sphinx_theme"
+    'sphinx.ext.viewcode'
+    #"guzzle_sphinx_theme"
 ]
 
 
@@ -114,8 +114,8 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme_path = guzzle_sphinx_theme.html_theme_path()
-html_theme = 'guzzle_sphinx_theme'
+#html_theme_path = guzzle_sphinx_theme.html_theme_path()
+#html_theme = 'guzzle_sphinx_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
