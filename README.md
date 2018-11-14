@@ -4,6 +4,6 @@ a form that can be used for geology. It is designed to support the collection of
 measurements from remote sensing data.
 
 The documentation for the module can be found at
-https://davenquinn.github.io/attitude, and a preprint publication
+https://davenquinn.github.io/Attitude, and a preprint publication
 describing the underlying statistical method is on
 [EarthArXiV](https://eartharxiv.org/4enzu/).
