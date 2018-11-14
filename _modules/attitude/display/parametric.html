@@ -1,0 +1,240 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>attitude.display.parametric &#8212; Attitude 0.1.2 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/main.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for attitude.display.parametric</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Functions to produce parametric representations of</span>
+<span class="sd">conic sections in two dimensions. This can be applied</span>
+<span class="sd">to plotting 2D slices of quadrics as well.</span>
+
+<span class="sd">We could generalize this to n dimensions, but that is probably</span>
+<span class="sd">not super useful at the moment.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">N</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">P</span>
+<span class="kn">from</span> <span class="nn">colour</span> <span class="k">import</span> <span class="n">Color</span>
+
+<span class="n">defaults</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">center</span><span class="o">=</span><span class="n">N</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
+    <span class="n">n</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+
+<div class="viewcode-block" id="hyperbola"><a class="viewcode-back" href="../../../python-api/attitude.display.html#attitude.display.parametric.hyperbola">[docs]</a><span class="k">def</span> <span class="nf">hyperbola</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plots a hyperbola that opens along y axis</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">opens_up</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;opens_up&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">center</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">])</span>
+    <span class="n">th</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="mi">500</span><span class="p">))</span>
+
+    <span class="n">vals</span> <span class="o">=</span> <span class="p">[</span><span class="n">N</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">th</span><span class="p">),</span><span class="mi">1</span><span class="o">/</span><span class="n">N</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">th</span><span class="p">)]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">opens_up</span><span class="p">:</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">vals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">vals</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">extrema</span> <span class="o">=</span> <span class="p">[</span><span class="n">N</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">x</span><span class="p">),</span><span class="n">N</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">x</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="nf">remove_asymptotes</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+        <span class="n">arr</span><span class="p">[</span><span class="n">extrema</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">return</span> <span class="n">arr</span>
+
+    <span class="n">xy</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">remove_asymptotes</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">xy</span></div>
+
+
+<div class="viewcode-block" id="ellipse"><a class="viewcode-back" href="../../../python-api/attitude.display.html#attitude.display.parametric.ellipse">[docs]</a><span class="k">def</span> <span class="nf">ellipse</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span>  <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">center</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">])</span>
+    <span class="n">th</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="mi">500</span><span class="p">))</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">N</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">th</span><span class="p">)</span><span class="o">+</span><span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">N</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">th</span><span class="p">)</span><span class="o">+</span><span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span></div>
+
+<span class="k">def</span> <span class="nf">__squished_ellipse</span><span class="p">(</span><span class="n">axes</span><span class="p">):</span>
+    <span class="n">scalar</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">ax1</span> <span class="o">=</span> <span class="n">axes</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">ax1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">scalar</span><span class="o">*</span><span class="n">N</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">N</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">center</span> <span class="o">=</span> <span class="n">scalar</span><span class="o">*</span><span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">ax1</span><span class="p">,</span> <span class="n">center</span>
+
+<span class="k">def</span> <span class="nf">__inverse_ellipse</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">scalar</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">ax1</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">axes</span><span class="o">*</span><span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">scalar</span>
+    <span class="n">center</span> <span class="o">=</span> <span class="n">ax1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">N</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ax1</span><span class="p">,</span> <span class="n">center</span>
+
+<span class="k">def</span> <span class="nf">__reverse_ellipse</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">scalar</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This method doesn&#39;t work as well</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ax1</span> <span class="o">=</span> <span class="n">axes</span><span class="o">.</span><span class="n">copy</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">scalar</span>
+    <span class="n">center</span> <span class="o">=</span> <span class="n">ax1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">N</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">scalar</span>
+    <span class="k">return</span> <span class="n">ax1</span><span class="p">,</span> <span class="n">center</span>
+
+<div class="viewcode-block" id="plot_conjugate_conics"><a class="viewcode-back" href="../../../python-api/attitude.display.html#attitude.display.parametric.plot_conjugate_conics">[docs]</a><span class="k">def</span> <span class="nf">plot_conjugate_conics</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">axes</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot_foci</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">plot_inverse_hyperbola</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="n">hyp</span><span class="p">,</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">*</span><span class="n">hyperbola</span><span class="p">(</span><span class="n">axes</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;dodgerblue&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Hyperboloid (bundle of planes)&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Normal vector ellipse axes lengths</span>
+    <span class="c1"># scales inversely\ with axes but can</span>
+    <span class="c1"># be rescaled at will</span>
+
+    <span class="n">ax1</span><span class="p">,</span><span class="n">center</span> <span class="o">=</span> <span class="n">__inverse_ellipse</span><span class="p">(</span><span class="n">axes</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">plot_inverse_hyperbola</span><span class="p">:</span>
+        <span class="c1"># Plot inverse hyperbola</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">Color</span><span class="p">(</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+        <span class="n">color</span><span class="o">.</span><span class="n">saturation</span> <span class="o">=</span> <span class="mf">0.8</span>
+        <span class="n">color</span><span class="o">.</span><span class="n">luminance</span> <span class="o">=</span> <span class="mf">0.85</span>
+        <span class="n">hyp_inv</span><span class="p">,</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">*</span><span class="n">hyperbola</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">axes</span><span class="p">,</span> <span class="n">opens_up</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                            <span class="n">color</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">color</span><span class="p">),</span> <span class="n">zorder</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Inverse hyperboloid&#39;</span><span class="p">)</span>
+
+    <span class="n">ell</span><span class="p">,</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">*</span><span class="n">ellipse</span><span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">center</span><span class="p">]),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Normal vector endpoint (fixed length)&#39;</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">*</span><span class="n">ellipse</span><span class="p">(</span><span class="n">axes</span><span class="p">),</span> <span class="n">zorder</span><span class="o">=-</span><span class="mi">5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">hyp</span><span class="o">.</span><span class="n">get_color</span><span class="p">(),</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Variance ellipsoid&#39;</span><span class="p">)</span>
+
+
+    <span class="k">if</span> <span class="n">plot_foci</span><span class="p">:</span>
+        <span class="c1"># Plot hyperbola focus</span>
+        <span class="n">hyp_c</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">N</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axes</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="n">hyp_c</span><span class="p">,</span><span class="o">-</span><span class="n">hyp_c</span><span class="p">],</span> <span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">hyp</span><span class="o">.</span><span class="n">get_color</span><span class="p">())</span>
+
+        <span class="c1"># Plot ellipse foci</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">ax1</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">ell_c</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">N</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+        <span class="c1"># Plot ellipse foci</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="n">center</span><span class="o">+</span><span class="n">ell_c</span><span class="p">,</span><span class="n">center</span><span class="o">-</span><span class="n">ell_c</span><span class="p">],</span> <span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">ell</span><span class="o">.</span><span class="n">get_color</span><span class="p">())</span>
+
+    <span class="c1"># Plot tangents</span>
+    <span class="n">xvals</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">500</span><span class="p">,</span><span class="mi">500</span><span class="p">])</span>
+    <span class="n">yvals</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">xvals</span>
+    <span class="n">kw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">zorder</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">hyp</span><span class="o">.</span><span class="n">get_color</span><span class="p">(),</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xvals</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Hyperbolic tangents&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xvals</span><span class="p">,</span> <span class="o">-</span><span class="n">yvals</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+
+    <span class="c1">#yvals = axes[0]/axes[1]*xvals</span>
+    <span class="n">kw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">zorder</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">ell</span><span class="o">.</span><span class="n">get_color</span><span class="p">(),</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">yvals</span><span class="p">,</span> <span class="n">xvals</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Normal vector tangents&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">yvals</span><span class="p">,</span> <span class="o">-</span><span class="n">xvals</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+
+    <span class="n">_</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="k">if</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="mi">6</span>
+
+    <span class="k">if</span> <span class="n">width</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">width</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">axes</span><span class="p">)</span><span class="o">*</span><span class="n">_</span>
+    <span class="n">lim</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="n">width</span><span class="p">,</span><span class="n">width</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">lim</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">lim</span><span class="o">*</span><span class="mf">0.6</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ax</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">Attitude</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../statistical-motivation.html">Statistical motivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../python-api.html">Python API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example-notebooks.html">Example notebooks</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Daven Quinn.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

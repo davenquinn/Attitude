@@ -1,0 +1,602 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>attitude.orientation.pca &#8212; Attitude 0.1.2 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/main.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for attitude.orientation.pca</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">N</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">scipy.sparse</span> <span class="k">import</span> <span class="n">bsr_matrix</span>
+<span class="kn">from</span> <span class="nn">scipy.linalg</span> <span class="k">import</span> <span class="n">lu</span>
+<span class="kn">from</span> <span class="nn">scipy.sparse.linalg</span> <span class="k">import</span> <span class="n">svds</span>
+<span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="k">import</span> <span class="n">quad</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">chain</span>
+<span class="kn">from</span> <span class="nn">..coordinates</span> <span class="k">import</span> <span class="n">centered</span>
+<span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">BaseOrientation</span><span class="p">,</span> <span class="n">rotation</span>
+<span class="kn">from</span> <span class="nn">..error.ellipse</span> <span class="k">import</span> <span class="n">ellipse</span>
+<span class="kn">from</span> <span class="nn">..stereonet</span> <span class="k">import</span> <span class="n">plane_errors</span><span class="p">,</span> <span class="n">error_coords</span>
+<span class="kn">from</span> <span class="nn">..error.axes</span> <span class="k">import</span> <span class="n">sampling_axes</span><span class="p">,</span> <span class="n">sampling_covariance</span><span class="p">,</span> <span class="n">angular_errors</span><span class="p">,</span> <span class="n">noise_axes</span>
+<span class="kn">from</span> <span class="nn">..test</span> <span class="k">import</span> <span class="n">scattered_plane</span>
+<span class="kn">from</span> <span class="nn">..geom.util</span> <span class="k">import</span> <span class="n">dot</span><span class="p">,</span> <span class="n">vector</span>
+<span class="kn">from</span> <span class="nn">..geom.util</span> <span class="k">import</span> <span class="n">angle</span> <span class="k">as</span> <span class="n">vector_angle</span>
+<span class="kn">from</span> <span class="nn">..geom.conics</span> <span class="k">import</span> <span class="n">conic</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;attitude&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="random_pca"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.pca.random_pca">[docs]</a><span class="k">def</span> <span class="nf">random_pca</span><span class="p">(</span><span class="n">scattered</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">scattered</span><span class="p">:</span>
+        <span class="n">arr</span><span class="p">,</span><span class="n">coeffs</span> <span class="o">=</span> <span class="n">scattered_plane</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">arr</span><span class="p">,</span> <span class="n">coeffs</span> <span class="o">=</span> <span class="n">random_plane</span><span class="p">()</span>
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">PCAOrientation</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="augment"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.pca.augment">[docs]</a><span class="k">def</span> <span class="nf">augment</span><span class="p">(</span><span class="n">matrix</span><span class="p">):</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="n">matrix</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">_</span><span class="p">[:</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],:</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">matrix</span>
+    <span class="k">return</span> <span class="n">_</span></div>
+
+<div class="viewcode-block" id="augment_vector"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.pca.augment_vector">[docs]</a><span class="k">def</span> <span class="nf">augment_vector</span><span class="p">(</span><span class="n">vec</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">N</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vec</span><span class="p">,[</span><span class="mi">1</span><span class="p">],</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="rotate_tensor"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.pca.rotate_tensor">[docs]</a><span class="k">def</span> <span class="nf">rotate_tensor</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span><span class="n">transform</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Transforms a tensor by an affine transform</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">dot</span><span class="p">(</span><span class="n">transform</span><span class="p">,</span> <span class="n">tensor</span><span class="p">,</span> <span class="n">transform</span><span class="o">.</span><span class="n">T</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="compose_affine"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.pca.compose_affine">[docs]</a><span class="k">def</span> <span class="nf">compose_affine</span><span class="p">(</span><span class="o">*</span><span class="n">transforms</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a composite of several affine transformations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">reduce</span><span class="p">(</span><span class="n">N</span><span class="o">.</span><span class="n">dot</span><span class="p">,</span><span class="nb">reversed</span><span class="p">(</span><span class="n">transforms</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="normalize"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.pca.normalize">[docs]</a><span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">v</span><span class="o">/</span><span class="n">N</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">v</span><span class="p">)</span></div>
+
+<span class="c1">## magnitude of vector (by row)</span>
+<span class="n">norm</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">N</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+
+<div class="viewcode-block" id="axis_transform"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.pca.axis_transform">[docs]</a><span class="k">def</span> <span class="nf">axis_transform</span><span class="p">(</span><span class="n">pca_axes</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates an affine transformation matrix to</span>
+<span class="sd">    rotate data in PCA axes into Cartesian plane</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">from_</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">to_</span> <span class="o">=</span> <span class="n">pca_axes</span>
+
+    <span class="c1"># Find inverse transform for forward transform</span>
+    <span class="c1"># y = M x -&gt; M = y (x)^(-1)</span>
+    <span class="c1"># We don&#39;t need to do least-squares since</span>
+    <span class="c1"># there is a simple transformation</span>
+    <span class="n">trans_matrix</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">from_</span><span class="p">,</span><span class="n">to_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">trans_matrix</span></div>
+
+
+<div class="viewcode-block" id="test_SVD"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.pca.test_SVD">[docs]</a><span class="k">def</span> <span class="nf">test_SVD</span><span class="p">(</span><span class="n">pca</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function to test the validity of singular</span>
+<span class="sd">    value decomposition by reconstructing original</span>
+<span class="sd">    data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="n">pca</span>
+    <span class="n">rec</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">_</span><span class="o">.</span><span class="n">U</span><span class="p">,</span><span class="n">N</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">_</span><span class="o">.</span><span class="n">sigma</span><span class="p">,</span><span class="n">_</span><span class="o">.</span><span class="n">V</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="n">N</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">_</span><span class="o">.</span><span class="n">arr</span><span class="p">,</span><span class="n">rec</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="covariance_matrix"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.pca.covariance_matrix">[docs]</a><span class="k">def</span> <span class="nf">covariance_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Constructs the covariance matrix of</span>
+<span class="sd">    input data from</span>
+<span class="sd">    the singular value decomposition. Note</span>
+<span class="sd">    that this is different than a covariance</span>
+<span class="sd">    matrix of residuals, which is what we want</span>
+<span class="sd">    for calculating fit errors.</span>
+
+<span class="sd">    Using SVD output to compute covariance matrix</span>
+<span class="sd">    X=UΣV⊤</span>
+<span class="sd">    XX⊤XX⊤=(UΣV⊤)(UΣV⊤)⊤=(UΣV⊤)(VΣU⊤)</span>
+<span class="sd">    V is an orthogonal matrix (V⊤V=I),</span>
+<span class="sd">    covariance matrix of input data: XX⊤=UΣ2U⊤</span>
+
+<span class="sd">     Because the axes represent identity in the</span>
+<span class="sd">     PCA coordinate system, the PCA major axes</span>
+<span class="sd">     themselves represent an affine transformation</span>
+<span class="sd">     matrix from PCA to Cartesian space</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">a</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">U</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="p">)</span>
+    <span class="n">cv</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">a</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+    <span class="c1"># This yields the covariance matrix in Cartesian</span>
+    <span class="c1"># coordinates</span>
+    <span class="k">return</span> <span class="n">cv</span></div>
+
+<div class="viewcode-block" id="PCAOrientation"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.pca.PCAOrientation">[docs]</a><span class="k">class</span> <span class="nc">PCAOrientation</span><span class="p">(</span><span class="n">BaseOrientation</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Gets the axis-aligned principle components</span>
+<span class="sd">        of the dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="PCAOrientation.from_axes"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.pca.PCAOrientation.from_axes">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_axes</span><span class="p">(</span><span class="n">axes</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Recovers a principal component dataset from</span>
+<span class="sd">        a set of axes (singular values*principal axes)</span>
+<span class="sd">        of the dataset.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arr</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="n">axes</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform PCA on on an input array</span>
+
+<span class="sd">        :param axes: Precalculated axes for PCA fit</span>
+<span class="sd">        :param weights: Relative axis loadings</span>
+
+<span class="sd">        Relative loadings for individual axes of the input dataset.</span>
+<span class="sd">        These will be applied transparently during the calculation</span>
+<span class="sd">        of the PCA. This allows arbitrary standardization of the</span>
+<span class="sd">        data for differently-scaled errors along coordinate axes.</span>
+
+<span class="sd">        A common use of factor weightings is to standardize differently-</span>
+<span class="sd">        scaled variables. This is accomplished by dividing by the standard</span>
+<span class="sd">        deviation as such:</span>
+<span class="sd">        `self.arr /= self.arr.std(axis=0)`</span>
+<span class="sd">        Not dividing by std leaves us with an eigen-analysis of</span>
+<span class="sd">        the *covariance matrix*, while dividing</span>
+<span class="sd">        by it leaves us with an eigen-analysis</span>
+<span class="sd">        of the *correlation matrix*.</span>
+
+<span class="sd">        Applying non-equal weights will necessarily have an impact</span>
+<span class="sd">        on the true orthagonality of the axes of error in the dataset,</span>
+<span class="sd">        which may have an impact on plotting errors in Cartesian space.</span>
+<span class="sd">        For now, this is ignore.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># For principal components, data needs</span>
+        <span class="c1"># to be pre-processed to have zero mean</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">member_of</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disabled</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="n">noise_axes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">array</span> <span class="o">=</span> <span class="n">arr</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mean</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">arr</span> <span class="o">=</span> <span class="n">centered</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+
+        <span class="c1"># Factor loadings</span>
+        <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arr</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">axes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__run_svd</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__load_saved_fit</span><span class="p">(</span><span class="n">axes</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__compute_derived_parameters</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__run_svd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Get singular values</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Running singular value decomposition&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arr</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot fit a plane to fewer than 3 coordinates&quot;</span><span class="p">)</span>
+
+        <span class="c1">### Apply factor weights</span>
+        <span class="c1"># We should be careful that they aren&#39;t too</span>
+        <span class="c1"># large so we don&#39;t run into numerical difficulties</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">N</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,:]</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arr</span><span class="o">/</span><span class="n">w</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">svd</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span>
+            <span class="n">full_matrices</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_U</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">V</span> <span class="o">=</span> <span class="n">res</span>
+        <span class="c1">### Divide by weights ###</span>
+        <span class="c1">#V *= w</span>
+        <span class="c1">#V /= N.linalg.norm(V,axis=1)</span>
+        <span class="n">s</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">singular_values</span> <span class="o">=</span> <span class="n">s</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="n">V</span>
+
+    <span class="k">def</span> <span class="nf">__load_saved_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axes</span><span class="p">):</span>
+
+        <span class="c1"># Saves us the computationally expensive</span>
+        <span class="c1"># step of running a SVD</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Loaded PCA from saved axes&quot;</span><span class="p">)</span>
+        <span class="c1">## Get from axes if these are defined</span>
+        <span class="c1"># In this case, axes must be equivalent</span>
+        <span class="c1"># to self.axes*self.singular_values</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="n">axes</span><span class="o">/</span><span class="n">s</span>
+        <span class="c1"># Don&#39;t compute U unless we have to</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_U</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">singular_values</span> <span class="o">=</span> <span class="n">s</span>
+
+    <span class="k">def</span> <span class="nf">__compute_derived_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">axes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">V</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">singular_values</span><span class="p">)</span>
+
+        <span class="c1"># Normal vector in axis-aligned coordinate frame</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">offset</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">normal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">normal</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Could create a special case for inverted bedding</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">normal</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">normal</span>
+
+        <span class="n">v</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">normal</span><span class="p">)</span>
+        <span class="n">v</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vertical</span> <span class="o">=</span> <span class="n">v</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">strike</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">normal</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_vertical</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dip_dr</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">N</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">strike</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">normal</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="c1"># Can&#39;t do this in 2D cases</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dip_dr</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Hyperbolic form of PCA</span>
+        <span class="c1">#self.hyp = self.as_hyperbola(rotated=False)</span>
+        <span class="c1">#d = N.abs(N.diagonal(self.hyp)[:-1])</span>
+        <span class="c1">#self.hyp_axes = N.sqrt(1/d)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">U</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Property to support lazy evaluation of residuals</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_U</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sinv</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">singular_values</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_U</span> <span class="o">=</span> <span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arr</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">V</span><span class="o">.</span><span class="n">T</span><span class="p">,</span><span class="n">sinv</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_U</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">eigenvalues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Eigenvalues of the data covariance matrix</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">singular_values</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+<div class="viewcode-block" id="PCAOrientation.rotated"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.pca.PCAOrientation.rotated">[docs]</a>    <span class="k">def</span> <span class="nf">rotated</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a dataset &#39;despun&#39; so that</span>
+<span class="sd">        it is aligned with the princpal</span>
+<span class="sd">        axes of the dataset.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">N</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arr</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">V</span><span class="o">.</span><span class="n">T</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PCAOrientation.residuals"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.pca.PCAOrientation.residuals">[docs]</a>    <span class="k">def</span> <span class="nf">residuals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns residuals of fit against all</span>
+<span class="sd">        three data axes (singular values 1, 2,</span>
+<span class="sd">        and 3). This takes the form of data along</span>
+<span class="sd">        singular axis 3 (axes 1 and 2 define the plane)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotated</span><span class="p">()</span>
+        <span class="n">_</span><span class="p">[:,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">_</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">arr</span> <span class="o">-</span> <span class="n">_</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">center</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">centered_array</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">arr</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hyperbolic_axes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+<div class="viewcode-block" id="PCAOrientation.angular_error"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.pca.PCAOrientation.angular_error">[docs]</a>    <span class="k">def</span> <span class="nf">angular_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis_length</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The angular error for an in-plane axis of</span>
+<span class="sd">        given length (either a PCA major axis or</span>
+<span class="sd">        an intermediate direction).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">hyp_axes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">N</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">hyp_axes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">axis_length</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PCAOrientation.angular_errors"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.pca.PCAOrientation.angular_errors">[docs]</a>    <span class="k">def</span> <span class="nf">angular_errors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">degrees</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Minimum and maximum angular errors</span>
+<span class="sd">        corresponding to 1st and 2nd axes</span>
+<span class="sd">        of PCA distribution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">hyp_axes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">angular_errors</span><span class="p">(</span><span class="n">hyp_axes</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">degrees</span><span class="p">:</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">v</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_covariance_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;noise&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructs the covariance matrix from PCA</span>
+<span class="sd">        residuals</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;sampling&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;noise&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">4</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="o">*</span><span class="n">N</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rotated</span><span class="p">(),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">covariance_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The data covariance matrix is related to the</span>
+<span class="sd">        cross-product matrix M^T M but scaled by the number of</span>
+<span class="sd">        samples.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_covariance_matrix</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">explained_variance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Proportion of variance that is explained by the</span>
+<span class="sd">        first two principal components (which together</span>
+<span class="sd">        represent the planar fit). Analogous to R^2 of</span>
+<span class="sd">        linear least squares.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">diagonal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">covariance_matrix</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">/</span><span class="n">v</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">coefficients</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">azimuth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coefficients</span>
+        <span class="k">return</span> <span class="n">N</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">slope</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coefficients</span>
+        <span class="n">mag</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">_</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">N</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">_</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">/</span><span class="n">mag</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_strike_dip</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">strike</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">n</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">-</span><span class="n">N</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span>
+        <span class="n">dip</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">n</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">/</span><span class="n">r</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">strike</span><span class="p">,</span> <span class="n">dip</span>
+
+<div class="viewcode-block" id="PCAOrientation.strike_dip"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.pca.PCAOrientation.strike_dip">[docs]</a>    <span class="k">def</span> <span class="nf">strike_dip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">degrees</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Computes strike and dip from a normal vector.</span>
+<span class="sd">        Results are usually the same as LLSQ</span>
+<span class="sd">        in strike (to a few decimal places) and close in dip.</span>
+<span class="sd">        Sometimes, dips are greater by as much as 45 degrees,</span>
+<span class="sd">        reflecting inclusion of errors in x-y plane.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">strike</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">N</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">n</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span><span class="o">-</span><span class="mi">90</span>
+        <span class="n">dip</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">N</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">n</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">/</span><span class="n">r</span><span class="p">))</span>
+
+        <span class="c1"># Since PCA errors are not pinned to the XYZ plane,</span>
+        <span class="c1"># we need to make sure our results are in the</span>
+        <span class="c1"># right quadrant.</span>
+        <span class="k">if</span> <span class="n">dip</span> <span class="o">&gt;</span> <span class="mi">90</span><span class="p">:</span>
+            <span class="n">dip</span> <span class="o">=</span> <span class="mi">180</span> <span class="o">-</span> <span class="n">dip</span>
+            <span class="n">strike</span> <span class="o">+=</span> <span class="mi">180</span>
+
+        <span class="c1"># Proper azimuth notation</span>
+        <span class="k">if</span> <span class="n">strike</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">strike</span> <span class="o">+=</span> <span class="mi">360</span>
+
+        <span class="k">return</span> <span class="n">strike</span><span class="p">,</span> <span class="n">dip</span></div>
+
+    <span class="k">def</span> <span class="nf">_rake</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Rake of maximum angular error relative to strike of plane</span>
+<span class="sd">        (this is functionally equivalent to rake of minimum error</span>
+<span class="sd">        from dip direction)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">vector_angle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dip_dr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+<div class="viewcode-block" id="PCAOrientation.rake"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.pca.PCAOrientation.rake">[docs]</a>    <span class="k">def</span> <span class="nf">rake</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">N</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rake</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="PCAOrientation.strike_dip_rake"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.pca.PCAOrientation.strike_dip_rake">[docs]</a>    <span class="k">def</span> <span class="nf">strike_dip_rake</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">strike_dip</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">_</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">_</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">rake</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="PCAOrientation.as_conic"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.pca.PCAOrientation.as_conic">[docs]</a>    <span class="k">def</span> <span class="nf">as_conic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="n">vector</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">axes</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="n">cov</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">covariance_matrix</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">diag_indices</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">ell</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+        <span class="n">ell</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">cov</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">*</span><span class="n">level</span><span class="o">**</span><span class="mi">2</span> <span class="c1">#cov*level**2#</span>
+        <span class="n">ell</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">ell</span> <span class="o">=</span> <span class="n">conic</span><span class="p">(</span><span class="n">ell</span><span class="p">)</span>
+
+        <span class="c1"># Translate ellipse along 3rd major axis</span>
+        <span class="n">ell</span> <span class="o">=</span> <span class="n">ell</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">offset</span><span class="p">)</span>
+
+        <span class="c1"># Rotate ellipse matrix into cartesian</span>
+        <span class="c1"># plane</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="n">augment</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ell</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">R</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PCAOrientation.as_hyperbola"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.pca.PCAOrientation.as_hyperbola">[docs]</a>    <span class="k">def</span> <span class="nf">as_hyperbola</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rotated</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Hyperbolic error area</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">diag_indices</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">covariance_matrix</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_</span><span class="p">)</span>
+        <span class="n">d</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span><span class="o">*-</span><span class="mi">1</span>
+        <span class="n">arr</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span>
+        <span class="n">hyp</span> <span class="o">=</span> <span class="n">conic</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">rotated</span><span class="p">:</span>
+            <span class="n">R</span> <span class="o">=</span> <span class="n">augment</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">)</span>
+            <span class="n">hyp</span> <span class="o">=</span> <span class="n">hyp</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">R</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">hyp</span></div>
+
+    <span class="k">def</span> <span class="nf">_ellipse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+
+        <span class="n">ell</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">as_conic</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">)</span>
+
+        <span class="n">con</span><span class="p">,</span> <span class="n">matrix</span><span class="p">,</span> <span class="n">center</span> <span class="o">=</span> <span class="n">ell</span><span class="o">.</span><span class="n">projection</span><span class="p">()</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">major_axes</span><span class="p">()</span>
+
+        <span class="c1"># Rotate major axes into 3d space</span>
+        <span class="n">axs_</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span><span class="n">N</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">)),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">axs</span> <span class="o">=</span> <span class="n">dot</span><span class="p">(</span><span class="n">axs_</span><span class="p">,</span><span class="n">matrix</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">1000</span><span class="p">)</span>
+
+        <span class="c1"># Get a bundle of vectors defining cone</span>
+        <span class="c1"># which circumscribes ellipsoid</span>
+        <span class="n">angles</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">N</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">u</span><span class="p">),</span><span class="n">N</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">u</span><span class="p">)])</span><span class="o">.</span><span class="n">T</span>
+        <span class="c1"># Turn into vectors</span>
+        <span class="k">return</span> <span class="n">dot</span><span class="p">(</span><span class="n">angles</span><span class="p">,</span><span class="n">axs</span><span class="p">),</span><span class="n">center</span>
+
+<div class="viewcode-block" id="PCAOrientation.plane_errors"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.pca.PCAOrientation.plane_errors">[docs]</a>    <span class="k">def</span> <span class="nf">plane_errors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">plane_errors</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">covariance_matrix</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PCAOrientation.error_coords"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.pca.PCAOrientation.error_coords">[docs]</a>    <span class="k">def</span> <span class="nf">error_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">error_coords</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">covariance_matrix</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">slope</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coefficients</span>
+        <span class="n">mag</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">_</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">N</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">_</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">/</span><span class="n">mag</span><span class="p">)</span>
+
+<div class="viewcode-block" id="PCAOrientation.error_ellipse"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.pca.PCAOrientation.error_ellipse">[docs]</a>    <span class="k">def</span> <span class="nf">error_ellipse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spherical</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">vector</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">data</span><span class="p">,</span><span class="n">center</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ellipse</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">+=</span> <span class="n">center</span>
+
+        <span class="n">r</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">plunge</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">data</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span><span class="o">/</span><span class="n">r</span><span class="p">)</span>
+        <span class="n">trend</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">data</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span><span class="n">data</span><span class="p">[:,</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">trend</span><span class="p">,</span><span class="n">plunge</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PCAOrientation.to_mapping"><a class="viewcode-back" href="../../../python-api/attitude.orientation.html#attitude.orientation.pca.PCAOrientation.to_mapping">[docs]</a>    <span class="k">def</span> <span class="nf">to_mapping</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">**</span><span class="n">values</span><span class="p">):</span>
+        <span class="n">values</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;centered_array&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">centered_array</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+        <span class="n">values</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;center&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">center</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">member_of</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">values</span><span class="p">[</span><span class="s1">&#39;member_of&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">member_of</span><span class="o">.</span><span class="n">hash</span>
+
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">to_mapping</span><span class="p">(</span><span class="o">**</span><span class="n">values</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">sdr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">strike_dip_rake</span><span class="p">()</span>
+        <span class="n">ae</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">angular_errors</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s2">&quot;Orientation:: strike: </span><span class="si">{0:.2f}</span><span class="s2"> dip: </span><span class="si">{1:.2f}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;      error:: min: </span><span class="si">{3:.2f}</span><span class="s2"> max: </span><span class="si">{4:.2f}</span><span class="s2"> rake: </span><span class="si">{2:.2f}</span><span class="s2">&quot;</span>
+                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sdr</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">sdr</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">sdr</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">ae</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">ae</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span></div>
+
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">Attitude</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../statistical-motivation.html">Statistical motivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../python-api.html">Python API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example-notebooks.html">Example notebooks</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Daven Quinn.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,211 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>attitude.geom.test_offset_ellipse &#8212; Attitude 0.1.2 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/main.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for attitude.geom.test_offset_ellipse</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This test module is designed to show the exact relationship between the PCA error lengths</span>
+<span class="sd">defined from covariance matrices and the hyperbolic and ellipsoidal error bounds</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">N</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="k">import</span> <span class="n">vector</span><span class="p">,</span> <span class="n">dot</span>
+<span class="kn">from</span> <span class="nn">..error.axes</span> <span class="k">import</span> <span class="n">sampling_axes</span><span class="p">,</span> <span class="n">noise_axes</span>
+<span class="kn">from</span> <span class="nn">.conics</span> <span class="k">import</span> <span class="n">Conic</span><span class="p">,</span> <span class="n">conic</span>
+<span class="kn">import</span> <span class="nn">pytest</span>
+
+<span class="n">origin</span> <span class="o">=</span> <span class="n">vector</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+
+<div class="viewcode-block" id="test_angular_shadow"><a class="viewcode-back" href="../../../python-api/attitude.geom.html#attitude.geom.test_offset_ellipse.test_angular_shadow">[docs]</a><span class="k">def</span> <span class="nf">test_angular_shadow</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Make sure we can successfully recover an angular shadow</span>
+<span class="sd">    from an ellipse offset from the origin, a simple two</span>
+<span class="sd">    dimensional case of the more general 3d solution.</span>
+
+<span class="sd">    BASIS: an ellipse with semiaxes [1,1] centered at</span>
+<span class="sd">    [0,2] will have a half angular shadow of 30º</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Create an mean-centered conic with the requisite</span>
+    <span class="c1"># semiaxial lengths</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">_</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">ell0</span> <span class="o">=</span> <span class="n">conic</span><span class="p">(</span><span class="n">_</span><span class="p">)</span>
+
+    <span class="c1"># Translate conic to new center</span>
+    <span class="n">ell</span> <span class="o">=</span> <span class="n">ell0</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">vector</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+
+    <span class="c1"># Get the polar plane to the origin (plane intersecting</span>
+    <span class="c1"># the conic at all points of tangency to the origin)</span>
+    <span class="n">plane</span> <span class="o">=</span> <span class="n">ell</span><span class="o">.</span><span class="n">polar_plane</span><span class="p">(</span><span class="n">vector</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="n">N</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">plane</span><span class="o">.</span><span class="n">offset</span><span class="p">())</span> <span class="o">==</span> <span class="mf">1.5</span>
+
+    <span class="c1"># Get degenerate conic with d-1 dimensionality</span>
+    <span class="c1"># (in this case, a line) and distance from projection</span>
+    <span class="c1"># point of tangent</span>
+    <span class="n">con</span><span class="p">,</span> <span class="n">transform</span><span class="p">,</span> <span class="n">offset</span> <span class="o">=</span> <span class="n">ell</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="n">plane</span><span class="p">)</span>
+    <span class="c1"># this will be the half-length of the cut of the ellipse</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">major_axes</span><span class="p">())</span>
+    <span class="n">dist</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">N</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">N</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">N</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">l</span><span class="p">,</span><span class="n">dist</span><span class="p">)),</span> <span class="mi">30</span><span class="p">)</span>
+
+    <span class="c1"># Same with generalized function</span>
+    <span class="k">assert</span> <span class="n">N</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">N</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">ell</span><span class="o">.</span><span class="n">angle_subtended</span><span class="p">()),</span> <span class="mi">30</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="test_ellipse_offset"><a class="viewcode-back" href="../../../python-api/attitude.geom.html#attitude.geom.test_offset_ellipse.test_ellipse_offset">[docs]</a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">xfail</span><span class="p">(</span><span class="n">reason</span><span class="o">=</span><span class="s2">&quot;Mathematical basis seems to be incorrect&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_ellipse_offset</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An error ellipse should be offset a set amount off axis</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">a</span><span class="p">,</span><span class="n">b</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span><span class="mi">5</span>
+    <span class="n">axial_lengths</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">])</span>
+
+    <span class="n">c</span> <span class="o">=</span> <span class="n">Conic</span><span class="o">.</span><span class="n">from_axes</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">axial_lengths</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># angular error for hyperbolic representation of this conic</span>
+    <span class="n">th</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="n">a</span><span class="p">)</span>
+
+    <span class="c1"># This is always true for ellipse offset to the proper position</span>
+    <span class="n">gamma</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">4</span>
+
+    <span class="c1"># This is the distance we shift the ellipse</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">b</span><span class="o">*</span><span class="p">(</span><span class="n">a</span><span class="o">**</span><span class="mi">4</span><span class="o">+</span><span class="n">b</span><span class="o">**</span><span class="mi">4</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">l</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="k">assert</span> <span class="n">l</span> <span class="o">&gt;</span> <span class="n">b</span>
+
+    <span class="n">center</span> <span class="o">=</span> <span class="n">vector</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">l</span><span class="p">)</span>
+    <span class="n">c0</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">center</span><span class="p">)</span>
+    <span class="c1"># Check that we have the right center</span>
+    <span class="k">assert</span> <span class="n">N</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">c0</span><span class="o">.</span><span class="n">center</span><span class="p">(),</span> <span class="n">center</span><span class="p">)</span>
+
+    <span class="n">origin</span> <span class="o">=</span> <span class="n">vector</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1"># Plane of tangency</span>
+    <span class="n">plane</span> <span class="o">=</span> <span class="n">c0</span><span class="o">.</span><span class="n">polar_plane</span><span class="p">(</span><span class="n">origin</span><span class="p">)</span>
+    <span class="c1"># find offset from origin,</span>
+    <span class="c1"># it should be within the bottom half of the ellipse</span>
+    <span class="n">offs</span> <span class="o">=</span> <span class="n">plane</span><span class="o">.</span><span class="n">hessian_normal</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># Check with offset computed algebraically</span>
+    <span class="k">assert</span> <span class="n">N</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">l</span><span class="o">-</span><span class="n">b</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="n">l</span><span class="p">,</span> <span class="n">offs</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">l</span><span class="o">-</span><span class="n">b</span> <span class="o">&lt;</span> <span class="n">offs</span> <span class="o">&lt;</span> <span class="n">l</span>
+
+    <span class="c1"># Check geometrically</span>
+    <span class="c1">#offs2 = a**2*N.cos(gamma)/b</span>
+    <span class="c1">#assert N.allclose(offs2, offs)</span>
+
+    <span class="c1"># Check that the projection of the ellipse from the</span>
+    <span class="c1"># origin spans the same angle as the hyperbolic angular error</span>
+
+
+    <span class="n">xv</span> <span class="o">=</span> <span class="n">a</span><span class="o">*</span><span class="n">N</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">b</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="n">l</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">angular_shadow</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">xv</span><span class="p">,</span><span class="n">offs</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">th</span> <span class="o">==</span> <span class="n">angular_shadow</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">Attitude</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../statistical-motivation.html">Statistical motivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../python-api.html">Python API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example-notebooks.html">Example notebooks</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  <li><a href="../geom.html">attitude.geom</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Daven Quinn.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
