@@ -1,4 +1,6 @@
 #!/usr/bin/env zsh
+# Script to build documentation and serve on
+# localhost:8000
 
 build_dir=_build/html
 style_dir=$build_dir/_static
