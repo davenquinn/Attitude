@@ -10,3 +10,4 @@ Attitude.egg-info/
 docs/_static/
 .ipynb_checkpoints
 docs/_build
+build

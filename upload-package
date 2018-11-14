@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# https://packaging.python.org/tutorials/packaging-projects/
+pip install --upgrade setuptools wheel twine
+python setup.py sdist bdist_wheel
+
+twine upload dist/*
+
