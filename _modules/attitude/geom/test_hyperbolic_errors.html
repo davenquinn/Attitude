@@ -1,0 +1,289 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>attitude.geom.test_hyperbolic_errors &#8212; Attitude 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/main.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for attitude.geom.test_hyperbolic_errors</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Test module to make sure that simple representations of</span>
+<span class="sd">hyperbolic errors are equivalent to more generalized</span>
+<span class="sd">expressions.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">N</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="k">import</span> <span class="n">chi2</span>
+
+<span class="kn">from</span> <span class="nn">..display.plot.cov_types.regressions</span> <span class="k">import</span> <span class="n">hyperbola</span>
+<span class="kn">from</span> <span class="nn">..orientation.test_pca</span> <span class="k">import</span> <span class="n">random_pca</span>
+<span class="kn">from</span> <span class="nn">..orientation.pca</span> <span class="k">import</span> <span class="n">augment</span> <span class="k">as</span> <span class="n">augment_matrix</span>
+<span class="kn">from</span> <span class="nn">.conics</span> <span class="k">import</span> <span class="n">Conic</span><span class="p">,</span> <span class="n">conic</span>
+<span class="kn">from</span> <span class="nn">..display.hyperbola</span> <span class="k">import</span> <span class="n">hyperbolic_errors</span>
+<span class="kn">from</span> <span class="nn">..error.axes</span> <span class="k">import</span> <span class="n">sampling_axes</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="k">import</span> <span class="n">vector</span><span class="p">,</span> <span class="n">plane</span><span class="p">,</span> <span class="n">dot</span>
+
+<div class="viewcode-block" id="simple_hyperbola"><a class="viewcode-back" href="../../../python-api/attitude.geom.html#attitude.geom.test_hyperbolic_errors.simple_hyperbola">[docs]</a><span class="k">def</span> <span class="nf">simple_hyperbola</span><span class="p">(</span><span class="n">cov</span><span class="p">,</span> <span class="n">xvals</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Simple hyperbolic error bounds for 2d errors</span>
+<span class="sd">    using quadratic formulation.</span>
+
+<span class="sd">    Returns tuple of</span>
+<span class="sd">        ( distance from center of distribution,</span>
+<span class="sd">          width of error bar)</span>
+<span class="sd">    in unrotated coordinate space</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">cov</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">cov</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c1"># Plot hyperbola</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">cov</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">y</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">level</span><span class="o">*</span><span class="n">b</span><span class="o">*</span><span class="n">N</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="p">(</span><span class="n">a</span><span class="o">*</span><span class="n">n</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="o">/</span><span class="n">n</span><span class="p">)</span>
+
+    <span class="c1"># Top values of error bar only</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">xvals</span><span class="p">,</span><span class="n">y</span><span class="p">(</span><span class="n">xvals</span><span class="p">)])</span>
+    <span class="k">return</span> <span class="n">t</span></div>
+
+<span class="c1"># Create a basic fit to test against</span>
+<span class="c1"># (we could probably speed this up)</span>
+<span class="n">fit</span> <span class="o">=</span> <span class="n">random_pca</span><span class="p">()</span>
+
+<span class="n">sv</span> <span class="o">=</span> <span class="n">fit</span><span class="o">.</span><span class="n">singular_values</span>
+<span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fit</span><span class="o">.</span><span class="n">arr</span><span class="p">)</span>
+
+<span class="n">covariance</span> <span class="o">=</span> <span class="n">sv</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">xvals</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">level</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">chi2</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">0.95</span><span class="p">,</span><span class="n">n</span><span class="o">-</span><span class="mi">3</span><span class="p">))</span>
+
+<span class="k">def</span> <span class="nf">test_sampling_covariance</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Test the creation of hyperbolic errors</span>
+<span class="sd">    along direction of maximum angular variability</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># use only direction of maximum angular</span>
+    <span class="c1"># variation</span>
+    <span class="n">cov</span> <span class="o">=</span> <span class="n">covariance</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+    <span class="n">res1</span> <span class="o">=</span> <span class="n">simple_hyperbola</span><span class="p">(</span><span class="n">cov</span><span class="p">,</span><span class="n">xvals</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+    <span class="n">res2</span> <span class="o">=</span> <span class="n">hyperbola</span><span class="p">(</span>
+        <span class="n">cov</span><span class="p">,</span>
+        <span class="n">N</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="c1"># rotation</span>
+        <span class="n">N</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]),</span> <span class="c1"># mean</span>
+        <span class="n">xvals</span><span class="p">,</span>
+        <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span>
+        <span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">)</span>
+
+    <span class="c1"># In axis-aligned frame, magnitude of top and bottom</span>
+    <span class="c1"># of error bars should be the same</span>
+    <span class="k">assert</span> <span class="n">N</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span>
+        <span class="n">N</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">res2</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+        <span class="n">res2</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="c1"># Get only top values (bottom will be the same</span>
+    <span class="c1"># implicitly)</span>
+    <span class="n">res2</span> <span class="o">=</span> <span class="p">(</span><span class="n">res2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">res2</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">a</span><span class="p">,</span><span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">res1</span><span class="p">,</span><span class="n">res2</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">N</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)</span>
+
+<div class="viewcode-block" id="test_hyperbolic_simple"><a class="viewcode-back" href="../../../python-api/attitude.geom.html#attitude.geom.test_hyperbolic_errors.test_hyperbolic_simple">[docs]</a><span class="k">def</span> <span class="nf">test_hyperbolic_simple</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert to hyperbolic axes before projection into</span>
+<span class="sd">    plane of maximum angular variability</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Integrate error level at first</span>
+    <span class="n">hyp_axes</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">covariance</span><span class="p">)</span>
+    <span class="n">hyp_axes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">*=</span><span class="n">level</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="n">n</span>
+    <span class="n">hyp_axes</span> <span class="o">=</span> <span class="n">hyp_axes</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="n">cov</span> <span class="o">=</span> <span class="n">covariance</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+    <span class="n">res1</span> <span class="o">=</span> <span class="n">simple_hyperbola</span><span class="p">(</span><span class="n">cov</span><span class="p">,</span><span class="n">xvals</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+    <span class="n">res2</span> <span class="o">=</span> <span class="n">simple_hyperbola</span><span class="p">(</span><span class="n">hyp_axes</span><span class="p">,</span><span class="n">xvals</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">a</span><span class="p">,</span><span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">res1</span><span class="p">,</span><span class="n">res2</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">N</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_hyperbolic_projection"><a class="viewcode-back" href="../../../python-api/attitude.geom.html#attitude.geom.test_hyperbolic_errors.test_hyperbolic_projection">[docs]</a><span class="k">def</span> <span class="nf">test_hyperbolic_projection</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fully projective mechanism to get hyperbolic error</span>
+<span class="sd">    bounds in a generalized way along any axes associated with</span>
+<span class="sd">    the plane.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Convert covariance into hyperbolic axes</span>
+    <span class="c1"># using assumptions of normal vectorization</span>
+    <span class="n">hyp_axes</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">covariance</span><span class="p">)</span>
+    <span class="n">hyp_axes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">*=</span><span class="n">level</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="n">n</span>
+
+    <span class="n">d</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">hyp_axes</span>
+    <span class="c1">#d[-1] *= -1</span>
+    <span class="n">ndim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="n">ndim</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*-</span><span class="mi">1</span>
+
+    <span class="n">arr</span><span class="p">[</span><span class="n">N</span><span class="o">.</span><span class="n">diag_indices</span><span class="p">(</span><span class="n">ndim</span><span class="p">)]</span> <span class="o">=</span> <span class="n">d</span>
+    <span class="n">hyp</span> <span class="o">=</span> <span class="n">conic</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+
+    <span class="c1"># Check if we can get to this from</span>
+    <span class="c1"># conic axes</span>
+    <span class="n">c1</span> <span class="o">=</span> <span class="n">Conic</span><span class="o">.</span><span class="n">from_axes</span><span class="p">(</span><span class="n">hyp_axes</span><span class="p">)</span>
+    <span class="n">cd</span> <span class="o">=</span> <span class="n">c1</span><span class="o">.</span><span class="n">dual</span><span class="p">()</span>
+    <span class="c1">#assert cd.is_hyperbolic()</span>
+    <span class="k">assert</span> <span class="n">N</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">hyp</span><span class="p">,</span> <span class="n">cd</span><span class="p">)</span>
+    <span class="c1">#assert hyp.is_hyperbolic()</span>
+
+    <span class="c1"># Get hyperbolic slice on yz plane</span>
+    <span class="c1"># (corresponding to maximum angle of variation)</span>
+    <span class="n">normal</span> <span class="o">=</span> <span class="n">vector</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># normal to plane (view direction)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">plane</span><span class="p">(</span><span class="n">normal</span><span class="p">)</span> <span class="c1"># no offset (goes through origin)</span>
+
+    <span class="n">h1</span> <span class="o">=</span> <span class="n">cd</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="n">p</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c1">#assert h1.is_hyperbolic()</span>
+
+    <span class="c1"># Not sure why we need to reverse array</span>
+    <span class="c1"># but it seems to work</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">N</span><span class="o">.</span><span class="n">diagonal</span><span class="p">(</span><span class="n">h1</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">axes</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">d</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">N</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">axes</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span><span class="n">hyp_axes</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+
+    <span class="n">u</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">N</span><span class="o">.</span><span class="n">arcsinh</span><span class="p">(</span><span class="n">x</span><span class="o">/</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">N</span><span class="o">.</span><span class="n">cosh</span><span class="p">(</span><span class="n">u</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+    <span class="c1"># Test that this is the same as our simple conception</span>
+    <span class="n">y0</span> <span class="o">=</span> <span class="n">y</span><span class="p">(</span><span class="n">xvals</span><span class="p">)</span>
+    <span class="n">y1</span> <span class="o">=</span> <span class="n">simple_hyperbola</span><span class="p">(</span><span class="n">hyp_axes</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span><span class="n">xvals</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">axes</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="n">y2</span> <span class="o">=</span> <span class="n">hyperbolic_errors</span><span class="p">(</span><span class="n">hyp_axes</span><span class="p">,</span><span class="n">xvals</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="n">axes</span><span class="p">)[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">N</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">y0</span><span class="p">,</span><span class="n">y1</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">N</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">y0</span><span class="p">,</span><span class="n">y2</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_sampling_covariance"><a class="viewcode-back" href="../../../python-api/attitude.geom.html#attitude.geom.test_hyperbolic_errors.test_sampling_covariance">[docs]</a><span class="k">def</span> <span class="nf">test_sampling_covariance</span><span class="p">():</span>
+    <span class="n">hyp_axes</span> <span class="o">=</span> <span class="n">covariance</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">hyp_axes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">*=</span><span class="n">level</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="n">n</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">sampling_axes</span><span class="p">(</span><span class="n">fit</span><span class="p">)</span>
+    <span class="n">N</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">hyp_axes</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="test_minimum_variation"><a class="viewcode-back" href="../../../python-api/attitude.geom.html#attitude.geom.test_hyperbolic_errors.test_minimum_variation">[docs]</a><span class="k">def</span> <span class="nf">test_minimum_variation</span><span class="p">():</span>
+    <span class="n">hyp_axes</span> <span class="o">=</span> <span class="n">sampling_axes</span><span class="p">(</span><span class="n">fit</span><span class="p">)</span>
+    <span class="n">hax2</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">hyp_axes</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">res1</span> <span class="o">=</span> <span class="n">simple_hyperbola</span><span class="p">(</span><span class="n">hax2</span><span class="p">,</span><span class="n">xvals</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">axes</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="n">res2</span> <span class="o">=</span> <span class="n">hyperbolic_errors</span><span class="p">(</span><span class="n">hyp_axes</span><span class="p">,</span><span class="n">xvals</span><span class="p">,</span><span class="n">axes</span><span class="o">=</span><span class="n">axes</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">a</span><span class="p">,</span><span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">res1</span><span class="p">,</span><span class="n">res2</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="k">assert</span> <span class="n">N</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_error_projection"><a class="viewcode-back" href="../../../python-api/attitude.geom.html#attitude.geom.test_hyperbolic_errors.test_error_projection">[docs]</a><span class="k">def</span> <span class="nf">test_error_projection</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Test projection of errors into error ellipsoid and</span>
+<span class="sd">    hyperboloid, and recovery of angular errors</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">axial_lengths</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">500</span><span class="p">,</span><span class="mi">200</span><span class="p">,</span><span class="mi">10</span><span class="p">])</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">30</span><span class="p">,</span><span class="mi">15</span><span class="p">,</span><span class="mi">10</span><span class="p">])</span>
+
+    <span class="n">axes</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">*</span><span class="n">axial_lengths</span>
+    <span class="n">normal</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">c</span> <span class="o">=</span> <span class="n">Conic</span><span class="o">.</span><span class="n">from_axes</span><span class="p">(</span><span class="n">axial_lengths</span><span class="p">)</span>
+    <span class="k">pass</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">Attitude</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../statistical-motivation.html">Statistical motivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../python-api.html">Python API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example-notebooks.html">Example notebooks</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  <li><a href="../geom.html">attitude.geom</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Daven Quinn.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

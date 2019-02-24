@@ -1,0 +1,364 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>attitude.stereonet &#8212; Attitude 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/main.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for attitude.stereonet</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">N</span>
+<span class="kn">from</span> <span class="nn">mplstereonet</span> <span class="k">import</span> <span class="n">stereonet_math</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="k">import</span> <span class="n">chi2</span>
+
+<span class="kn">from</span> <span class="nn">.geom.util</span> <span class="k">import</span> <span class="n">vector</span><span class="p">,</span> <span class="n">unit_vector</span><span class="p">,</span> <span class="n">dot</span>
+
+<div class="viewcode-block" id="quaternion"><a class="viewcode-back" href="../../python-api/attitude.html#attitude.stereonet.quaternion">[docs]</a><span class="k">def</span> <span class="nf">quaternion</span><span class="p">(</span><span class="n">vector</span><span class="p">,</span> <span class="n">angle</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Unit quaternion for a vector and an angle</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">N</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angle</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">+</span><span class="n">vector</span><span class="o">*</span><span class="n">N</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angle</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ellipse"><a class="viewcode-back" href="../../python-api/attitude.html#attitude.stereonet.ellipse">[docs]</a><span class="k">def</span> <span class="nf">ellipse</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">adaptive</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get a parameterized set of vectors defining</span>
+<span class="sd">    ellipse for a major and minor axis length.</span>
+<span class="sd">    Resulting vector bundle has major axes</span>
+<span class="sd">    along axes given.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="n">n</span><span class="p">)</span>
+    <span class="c1"># Get a bundle of vectors defining</span>
+    <span class="c1"># a full rotation around the unit circle</span>
+    <span class="k">return</span> <span class="n">N</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">N</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">u</span><span class="p">),</span><span class="n">N</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">u</span><span class="p">)])</span><span class="o">.</span><span class="n">T</span></div>
+
+<div class="viewcode-block" id="sph2cart"><a class="viewcode-back" href="../../python-api/attitude.html#attitude.stereonet.sph2cart">[docs]</a><span class="k">def</span> <span class="nf">sph2cart</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span><span class="n">lon</span><span class="p">):</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="n">stereonet_math</span><span class="o">.</span><span class="n">sph2cart</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span><span class="n">lon</span><span class="p">)</span>
+    <span class="c1">#val = N.array(_).flatten()</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">_</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">val</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="k">return</span> <span class="n">val</span></div>
+
+
+<div class="viewcode-block" id="scale_errors"><a class="viewcode-back" href="../../python-api/attitude.html#attitude.stereonet.scale_errors">[docs]</a><span class="k">def</span> <span class="nf">scale_errors</span><span class="p">(</span><span class="n">cov_axes</span><span class="p">,</span> <span class="n">confidence_level</span><span class="o">=</span><span class="mf">0.95</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns major axes of error ellipse or</span>
+<span class="sd">    hyperbola, rescaled using chi2 test statistic</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dof</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cov_axes</span><span class="p">)</span>
+    <span class="n">x2t</span> <span class="o">=</span> <span class="n">chi2</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">confidence_level</span><span class="p">,</span><span class="n">dof</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">N</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x2t</span><span class="o">*</span><span class="n">cov_axes</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="normal_errors"><a class="viewcode-back" href="../../python-api/attitude.html#attitude.stereonet.normal_errors">[docs]</a><span class="k">def</span> <span class="nf">normal_errors</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">covariance_matrix</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Currently assumes upper hemisphere of stereonet</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">level</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;level&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">traditional_layout</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;traditional_layout&#39;</span><span class="p">,</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">diagonal</span><span class="p">(</span><span class="n">covariance_matrix</span><span class="p">)</span>
+    <span class="n">ell</span> <span class="o">=</span> <span class="n">ellipse</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">axes</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="c1"># Not sure where this factor comes from but it</span>
+    <span class="c1"># seems to make things work better</span>
+    <span class="n">c1</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">axis_lengths</span> <span class="o">=</span> <span class="n">d</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span>
+        <span class="n">ell</span><span class="o">*</span><span class="n">axis_lengths</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">e0</span> <span class="o">=</span> <span class="o">-</span><span class="n">ell</span><span class="o">.</span><span class="n">T</span><span class="o">*</span><span class="n">d</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">c1</span>
+    <span class="n">e</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">e0</span><span class="p">,</span><span class="n">f</span><span class="p">))</span>
+
+    <span class="n">_</span> <span class="o">=</span> <span class="n">dot</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">T</span><span class="p">,</span><span class="n">axes</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="k">if</span> <span class="n">traditional_layout</span><span class="p">:</span>
+        <span class="n">lon</span><span class="p">,</span><span class="n">lat</span> <span class="o">=</span> <span class="n">stereonet_math</span><span class="o">.</span><span class="n">cart2sph</span><span class="p">(</span><span class="n">_</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="n">_</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="o">-</span><span class="n">_</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">lon</span><span class="p">,</span><span class="n">lat</span> <span class="o">=</span> <span class="n">stereonet_math</span><span class="o">.</span><span class="n">cart2sph</span><span class="p">(</span><span class="o">-</span><span class="n">_</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">_</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">_</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span><span class="n">lat</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="iterative_normal_errors"><a class="viewcode-back" href="../../python-api/attitude.html#attitude.stereonet.iterative_normal_errors">[docs]</a><span class="k">def</span> <span class="nf">iterative_normal_errors</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">covariance_matrix</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">level</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;level&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;n&#39;</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
+    <span class="n">traditional_layout</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;traditional_layout&#39;</span><span class="p">,</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">covariance_matrix</span><span class="p">)</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">diagonal</span><span class="p">(</span><span class="n">_</span><span class="p">)</span>
+
+    <span class="n">c1</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">cov</span> <span class="o">=</span> <span class="n">v</span>
+
+    <span class="n">u</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">axes</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">sdot</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">i</span><span class="o">*</span><span class="n">j</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">j</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)])</span>
+
+    <span class="k">def</span> <span class="nf">step_func</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">N</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">a</span><span class="p">)</span><span class="o">*</span><span class="n">cov</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">N</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">a</span><span class="p">)</span><span class="o">*</span><span class="n">cov</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="o">-</span><span class="n">c1</span><span class="o">*</span><span class="n">cov</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">N</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">a</span><span class="p">),</span>
+            <span class="o">-</span><span class="n">c1</span><span class="o">*</span><span class="n">cov</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">N</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">a</span><span class="p">),</span>
+            <span class="n">N</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">f</span><span class="p">)]</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="p">[</span><span class="n">sdot</span><span class="p">(</span><span class="n">e</span><span class="p">,</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">axes</span><span class="o">.</span><span class="n">T</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">traditional_layout</span><span class="p">:</span>
+            <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span> <span class="o">=</span> <span class="o">-</span><span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">d</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">y</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">z</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">lon</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+        <span class="n">lat</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">z</span><span class="o">/</span><span class="n">r</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">lon</span><span class="p">,</span><span class="n">lat</span>
+
+    <span class="c1"># Get a bundle of vectors defining</span>
+    <span class="c1"># a full rotation around the unit circle</span>
+    <span class="n">vals</span> <span class="o">=</span> <span class="p">[</span><span class="n">step_func</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">u</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">vals</span></div>
+
+<div class="viewcode-block" id="plane_errors"><a class="viewcode-back" href="../../python-api/attitude.html#attitude.stereonet.plane_errors">[docs]</a><span class="k">def</span> <span class="nf">plane_errors</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">covariance_matrix</span><span class="p">,</span> <span class="n">sheet</span><span class="o">=</span><span class="s1">&#39;upper&#39;</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    kwargs:</span>
+<span class="sd">    traditional_layout  boolean [True]</span>
+<span class="sd">        Lay the stereonet out traditionally, with north at the pole of</span>
+<span class="sd">        the diagram. The default is a more natural and intuitive visualization</span>
+<span class="sd">        with vertical at the pole and the compass points of strike around the equator.</span>
+<span class="sd">        Thus, longitude at the equator represents strike and latitude represents</span>
+<span class="sd">        apparent dip at that azimuth.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">level</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;level&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">traditional_layout</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;traditional_layout&#39;</span><span class="p">,</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">d</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">covariance_matrix</span><span class="p">)</span>
+
+    <span class="n">ell</span> <span class="o">=</span> <span class="n">ellipse</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">bundle</span> <span class="o">=</span> <span class="n">dot</span><span class="p">(</span><span class="n">ell</span><span class="p">,</span> <span class="n">d</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">level</span>
+
+    <span class="c1"># Switch hemispheres if PCA is upside-down</span>
+    <span class="c1"># Normal vector is always correctly fit</span>
+    <span class="c1">#if traditional_layout:</span>
+    <span class="c1">#if axes[2,2] &gt; 0:</span>
+
+    <span class="k">if</span> <span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">res</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">sheet</span> <span class="o">==</span> <span class="s1">&#39;upper&#39;</span><span class="p">:</span>
+        <span class="n">bundle</span> <span class="o">+=</span> <span class="n">res</span>
+    <span class="k">elif</span> <span class="n">sheet</span> <span class="o">==</span> <span class="s1">&#39;lower&#39;</span><span class="p">:</span>
+        <span class="n">bundle</span> <span class="o">-=</span> <span class="n">res</span>
+
+    <span class="n">_</span> <span class="o">=</span> <span class="n">dot</span><span class="p">(</span><span class="n">bundle</span><span class="p">,</span><span class="n">axes</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="k">if</span> <span class="n">traditional_layout</span><span class="p">:</span>
+        <span class="n">lon</span><span class="p">,</span><span class="n">lat</span> <span class="o">=</span> <span class="n">stereonet_math</span><span class="o">.</span><span class="n">cart2sph</span><span class="p">(</span><span class="n">_</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="n">_</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">_</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">lon</span><span class="p">,</span><span class="n">lat</span> <span class="o">=</span> <span class="n">stereonet_math</span><span class="o">.</span><span class="n">cart2sph</span><span class="p">(</span><span class="o">-</span><span class="n">_</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">_</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">_</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span><span class="n">lat</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="iterative_plane_errors"><a class="viewcode-back" href="../../python-api/attitude.html#attitude.stereonet.iterative_plane_errors">[docs]</a><span class="k">def</span> <span class="nf">iterative_plane_errors</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span><span class="n">covariance_matrix</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An iterative version of `pca.plane_errors`,</span>
+<span class="sd">    which computes an error surface for a plane.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sheet</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;sheet&#39;</span><span class="p">,</span><span class="s1">&#39;upper&#39;</span><span class="p">)</span>
+    <span class="n">level</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;level&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;n&#39;</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
+
+    <span class="n">cov</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">N</span><span class="o">.</span><span class="n">diagonal</span><span class="p">(</span><span class="n">covariance_matrix</span><span class="p">))</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+
+    <span class="n">scales</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">upper</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">lower</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span><span class="n">nominal</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">c1</span> <span class="o">=</span> <span class="n">scales</span><span class="p">[</span><span class="n">sheet</span><span class="p">]</span>
+    <span class="n">c1</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span> <span class="c1"># We assume upper hemisphere</span>
+    <span class="k">if</span> <span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">c1</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">sdot</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">i</span><span class="o">*</span><span class="n">j</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">j</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)])</span>
+
+    <span class="k">def</span> <span class="nf">step_func</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">N</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">a</span><span class="p">)</span><span class="o">*</span><span class="n">cov</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">N</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">a</span><span class="p">)</span><span class="o">*</span><span class="n">cov</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">c1</span><span class="o">*</span><span class="n">cov</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="p">[</span><span class="n">sdot</span><span class="p">(</span><span class="n">e</span><span class="p">,</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">axes</span><span class="o">.</span><span class="n">T</span><span class="p">]</span>
+        <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">y</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">z</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">lat</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">z</span><span class="o">/</span><span class="n">r</span><span class="p">)</span>
+        <span class="n">lon</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">lon</span><span class="p">,</span><span class="n">lat</span>
+
+    <span class="c1"># Get a bundle of vectors defining</span>
+    <span class="c1"># a full rotation around the unit circle</span>
+    <span class="k">return</span> <span class="n">N</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">step_func</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">u</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="error_ellipse"><a class="viewcode-back" href="../../python-api/attitude.html#attitude.stereonet.error_ellipse">[docs]</a><span class="k">def</span> <span class="nf">error_ellipse</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">covariance_matrix</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">level</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;level&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">traditional_layout</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;traditional_layout&#39;</span><span class="p">,</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">d</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">covariance_matrix</span><span class="p">)</span>
+
+    <span class="n">ell</span> <span class="o">=</span> <span class="n">ellipse</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="c1"># Bundle of vectors surrounding nominal values</span>
+    <span class="n">bundle</span> <span class="o">=</span> <span class="n">dot</span><span class="p">(</span><span class="n">ell</span><span class="p">,</span> <span class="n">d</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">level</span>
+
+    <span class="c1"># Switch hemispheres if PCA is upside-down</span>
+    <span class="c1"># Normal vector is always correctly fit</span>
+    <span class="k">if</span> <span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">res</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="n">normal</span> <span class="o">=</span> <span class="n">vector</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">_</span> <span class="o">=</span> <span class="n">normal</span> <span class="o">+</span> <span class="n">bundle</span>
+
+    <span class="k">if</span> <span class="n">traditional_layout</span><span class="p">:</span>
+        <span class="n">lon</span><span class="p">,</span><span class="n">lat</span> <span class="o">=</span> <span class="n">stereonet_math</span><span class="o">.</span><span class="n">cart2sph</span><span class="p">(</span><span class="n">_</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="n">_</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">_</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">lon</span><span class="p">,</span><span class="n">lat</span> <span class="o">=</span> <span class="n">stereonet_math</span><span class="o">.</span><span class="n">cart2sph</span><span class="p">(</span><span class="o">-</span><span class="n">_</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">_</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">_</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span><span class="n">lat</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="error_coords"><a class="viewcode-back" href="../../python-api/attitude.html#attitude.stereonet.error_coords">[docs]</a><span class="k">def</span> <span class="nf">error_coords</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">covariance_matrix</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+    <span class="c1"># Support for multiple levels of errors</span>
+    <span class="c1"># (not sure if this directly corresponds</span>
+    <span class="c1"># to sigma).</span>
+    <span class="n">levels</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;levels&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">do_ellipse</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;ellipse&#39;</span><span class="p">,</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">u</span> <span class="o">=</span> <span class="s1">&#39;upper&#39;</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="s1">&#39;lower&#39;</span>
+
+    <span class="k">def</span> <span class="nf">_</span><span class="p">(</span><span class="n">half</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">lonlat</span> <span class="o">=</span> <span class="n">plane_errors</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">covariance_matrix</span><span class="p">,</span>
+                <span class="n">half</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">N</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">lonlat</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__</span><span class="p">(</span><span class="n">level</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">upper</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">level</span><span class="p">),</span>
+            <span class="n">lower</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">level</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">do_ellipse</span><span class="p">:</span>
+            <span class="n">ell</span> <span class="o">=</span> <span class="n">error_ellipse</span><span class="p">(</span>
+                <span class="n">axes</span><span class="p">,</span> <span class="n">covariance_matrix</span><span class="p">,</span>
+                <span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;ellipse&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">ell</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="n">out</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nominal</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;nominal&#39;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">levels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">__</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="p">{</span><span class="n">l</span><span class="p">:</span><span class="n">__</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">levels</span><span class="p">}</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">Attitude</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../statistical-motivation.html">Statistical motivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../python-api.html">Python API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../example-notebooks.html">Example notebooks</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Daven Quinn.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

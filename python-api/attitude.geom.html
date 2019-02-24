@@ -1,0 +1,560 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>attitude.geom package &#8212; Attitude 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/main.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="attitude-geom-package">
+<h1>attitude.geom package<a class="headerlink" href="#attitude-geom-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-attitude.geom.conics">
+<span id="attitude-geom-conics-module"></span><h2>attitude.geom.conics module<a class="headerlink" href="#module-attitude.geom.conics" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="attitude.geom.conics.Conic">
+<em class="property">class </em><code class="descclassname">attitude.geom.conics.</code><code class="descname">Conic</code><a class="reference internal" href="../_modules/attitude/geom/conics.html#Conic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.conics.Conic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></p>
+<dl class="method">
+<dt id="attitude.geom.conics.Conic.angle_subtended">
+<code class="descname">angle_subtended</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#attitude.geom.conics.Conic.angle_subtended" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the half angle subtended (or min and max angles)
+for an offset elliptical conic
+from the origin or an arbitrary viewpoint.</p>
+<dl class="docutils">
+<dt>kwargs:</dt>
+<dd>tangent  Return tangent instead of angle (default false)
+viewpoint   Defaults to origin</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="attitude.geom.conics.Conic.center">
+<code class="descname">center</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/conics.html#Conic.center"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.conics.Conic.center" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="attitude.geom.conics.Conic.contains">
+<code class="descname">contains</code><span class="sig-paren">(</span><em>p</em>, <em>shell_only=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/conics.html#Conic.contains"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.conics.Conic.contains" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check to see whether point is inside
+conic.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>exact</strong> – Only solutions exactly on conic
+are considered (default: False).</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="attitude.geom.conics.Conic.dual">
+<code class="descname">dual</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/conics.html#Conic.dual"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.conics.Conic.dual" title="Permalink to this definition">¶</a></dt>
+<dd><p>The inverse conic that represents the bundle
+of lines tangent to this conic.</p>
+<p>Conics and their duals, p 159</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="attitude.geom.conics.Conic.from_axes">
+<em class="property">classmethod </em><code class="descname">from_axes</code><span class="sig-paren">(</span><em>axes</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/conics.html#Conic.from_axes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.conics.Conic.from_axes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get axis-aligned elliptical conic from axis lenths
+This can be converted into a hyperbola by getting the dual conic</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="attitude.geom.conics.Conic.from_semiaxes">
+<em class="property">classmethod </em><code class="descname">from_semiaxes</code><span class="sig-paren">(</span><em>axes</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/conics.html#Conic.from_semiaxes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.conics.Conic.from_semiaxes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get axis-aligned elliptical conic from axis lenths
+This can be converted into a hyperbola by getting the dual conic</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="attitude.geom.conics.Conic.is_elliptical">
+<code class="descname">is_elliptical</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/conics.html#Conic.is_elliptical"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.conics.Conic.is_elliptical" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check that geometry is an ellipse,
+ellipsoid, or n-dimensional equivalent.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="attitude.geom.conics.Conic.is_hyperbolic">
+<code class="descname">is_hyperbolic</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/conics.html#Conic.is_hyperbolic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.conics.Conic.is_hyperbolic" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="attitude.geom.conics.Conic.is_parabolic">
+<code class="descname">is_parabolic</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/conics.html#Conic.is_parabolic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.conics.Conic.is_parabolic" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="attitude.geom.conics.Conic.major_axes">
+<code class="descname">major_axes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/conics.html#Conic.major_axes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.conics.Conic.major_axes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets major axes of ellipsoids</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="attitude.geom.conics.Conic.polar_plane">
+<code class="descname">polar_plane</code><span class="sig-paren">(</span><em>vector</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/conics.html#Conic.polar_plane"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.conics.Conic.polar_plane" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the polar plane to a vector (a ‘pole’)
+for a given conic section. For poles
+outside the conic, the polar plane
+contains all vectors of tangency to the pole.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="attitude.geom.conics.Conic.pole">
+<code class="descname">pole</code><span class="sig-paren">(</span><em>plane</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/conics.html#Conic.pole"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.conics.Conic.pole" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the pole of a polar plane for
+a given conic section.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="attitude.geom.conics.Conic.projection">
+<code class="descname">projection</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/conics.html#Conic.projection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.conics.Conic.projection" title="Permalink to this definition">¶</a></dt>
+<dd><p>The elliptical cut of an ellipsoidal
+conic describing all points of tangency
+to the conic as viewed from the origin.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="attitude.geom.conics.Conic.semiaxes">
+<code class="descname">semiaxes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/conics.html#Conic.semiaxes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.conics.Conic.semiaxes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Semiaxial lengths for ellipsoid and hyperboloid
+(need to be aligned with coordinate system for
+now, could integrate with major_axes method below
+for added clarity.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="attitude.geom.conics.Conic.slice">
+<code class="descname">slice</code><span class="sig-paren">(</span><em>plane</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/conics.html#Conic.slice"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.conics.Conic.slice" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="attitude.geom.conics.Conic.solve">
+<code class="descname">solve</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/conics.html#Conic.solve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.conics.Conic.solve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solves a conic for a particular vector.
+Similar to <cite>Conic.transform</cite>, but returns
+a regular array</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="attitude.geom.conics.Conic.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>T</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/conics.html#Conic.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.conics.Conic.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transforms a conic or quadric by a transformation
+matrix.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="attitude.geom.conics.Conic.translate">
+<code class="descname">translate</code><span class="sig-paren">(</span><em>vector</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/conics.html#Conic.translate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.conics.Conic.translate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Translates a conic by a vector</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.geom.conics.angle_subtended">
+<code class="descclassname">attitude.geom.conics.</code><code class="descname">angle_subtended</code><span class="sig-paren">(</span><em>ell</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/conics.html#angle_subtended"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.conics.angle_subtended" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the half angle subtended (or min and max angles)
+for an offset elliptical conic
+from the origin or an arbitrary viewpoint.</p>
+<dl class="docutils">
+<dt>kwargs:</dt>
+<dd>tangent  Return tangent instead of angle (default false)
+viewpoint   Defaults to origin</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.geom.conics.conic">
+<code class="descclassname">attitude.geom.conics.</code><code class="descname">conic</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/conics.html#conic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.conics.conic" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="attitude-geom-symbolic-math-module">
+<h2>attitude.geom.symbolic_math module<a class="headerlink" href="#attitude-geom-symbolic-math-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-attitude.geom.test_conics">
+<span id="attitude-geom-test-conics-module"></span><h2>attitude.geom.test_conics module<a class="headerlink" href="#module-attitude.geom.test_conics" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="attitude.geom.test_conics.get_offset_center">
+<code class="descclassname">attitude.geom.test_conics.</code><code class="descname">get_offset_center</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/test_conics.html#get_offset_center"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.test_conics.get_offset_center" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the center of an offset ellipse corresponding
+to the lengths of the hyperbolic axes</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.geom.test_conics.skew_symmetric">
+<code class="descclassname">attitude.geom.test_conics.</code><code class="descname">skew_symmetric</code><span class="sig-paren">(</span><em>arr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/test_conics.html#skew_symmetric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.test_conics.skew_symmetric" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="attitude.geom.test_conics.symmetric">
+<code class="descclassname">attitude.geom.test_conics.</code><code class="descname">symmetric</code><span class="sig-paren">(</span><em>arr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/test_conics.html#symmetric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.test_conics.symmetric" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="attitude.geom.test_conics.test_angular_shadow">
+<code class="descclassname">attitude.geom.test_conics.</code><code class="descname">test_angular_shadow</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/test_conics.html#test_angular_shadow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.test_conics.test_angular_shadow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check that we can compute the angular shadow of an
+offset error ellipse.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.geom.test_conics.test_center_recovery">
+<code class="descclassname">attitude.geom.test_conics.</code><code class="descname">test_center_recovery</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/test_conics.html#test_center_recovery"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.test_conics.test_center_recovery" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check that we can recover the same center for ellipses
+for all axes.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.geom.test_conics.test_conic">
+<code class="descclassname">attitude.geom.test_conics.</code><code class="descname">test_conic</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/test_conics.html#test_conic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.test_conics.test_conic" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="attitude.geom.test_conics.test_conic_axes">
+<code class="descclassname">attitude.geom.test_conics.</code><code class="descname">test_conic_axes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/test_conics.html#test_conic_axes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.test_conics.test_conic_axes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-attitude.geom.test_errors">
+<span id="attitude-geom-test-errors-module"></span><h2>attitude.geom.test_errors module<a class="headerlink" href="#module-attitude.geom.test_errors" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="attitude.geom.test_errors.test_conic_errors">
+<code class="descclassname">attitude.geom.test_errors.</code><code class="descname">test_conic_errors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/test_errors.html#test_conic_errors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.test_errors.test_conic_errors" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-attitude.geom.test_geom">
+<span id="attitude-geom-test-geom-module"></span><h2>attitude.geom.test_geom module<a class="headerlink" href="#module-attitude.geom.test_geom" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="attitude.geom.test_geom.test_right_hand_rule">
+<code class="descclassname">attitude.geom.test_geom.</code><code class="descname">test_right_hand_rule</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/test_geom.html#test_right_hand_rule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.test_geom.test_right_hand_rule" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-attitude.geom.test_hyperbolic_errors">
+<span id="attitude-geom-test-hyperbolic-errors-module"></span><h2>attitude.geom.test_hyperbolic_errors module<a class="headerlink" href="#module-attitude.geom.test_hyperbolic_errors" title="Permalink to this headline">¶</a></h2>
+<p>Test module to make sure that simple representations of
+hyperbolic errors are equivalent to more generalized
+expressions.</p>
+<dl class="function">
+<dt id="attitude.geom.test_hyperbolic_errors.simple_hyperbola">
+<code class="descclassname">attitude.geom.test_hyperbolic_errors.</code><code class="descname">simple_hyperbola</code><span class="sig-paren">(</span><em>cov</em>, <em>xvals</em>, <em>n=1</em>, <em>level=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/test_hyperbolic_errors.html#simple_hyperbola"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.test_hyperbolic_errors.simple_hyperbola" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple hyperbolic error bounds for 2d errors
+using quadratic formulation.</p>
+<dl class="docutils">
+<dt>Returns tuple of</dt>
+<dd><dl class="first last docutils">
+<dt>( distance from center of distribution,</dt>
+<dd>width of error bar)</dd>
+</dl>
+</dd>
+</dl>
+<p>in unrotated coordinate space</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.geom.test_hyperbolic_errors.test_error_projection">
+<code class="descclassname">attitude.geom.test_hyperbolic_errors.</code><code class="descname">test_error_projection</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/test_hyperbolic_errors.html#test_error_projection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.test_hyperbolic_errors.test_error_projection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test projection of errors into error ellipsoid and
+hyperboloid, and recovery of angular errors</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.geom.test_hyperbolic_errors.test_hyperbolic_projection">
+<code class="descclassname">attitude.geom.test_hyperbolic_errors.</code><code class="descname">test_hyperbolic_projection</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/test_hyperbolic_errors.html#test_hyperbolic_projection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.test_hyperbolic_errors.test_hyperbolic_projection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fully projective mechanism to get hyperbolic error
+bounds in a generalized way along any axes associated with
+the plane.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.geom.test_hyperbolic_errors.test_hyperbolic_simple">
+<code class="descclassname">attitude.geom.test_hyperbolic_errors.</code><code class="descname">test_hyperbolic_simple</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/test_hyperbolic_errors.html#test_hyperbolic_simple"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.test_hyperbolic_errors.test_hyperbolic_simple" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert to hyperbolic axes before projection into
+plane of maximum angular variability</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.geom.test_hyperbolic_errors.test_minimum_variation">
+<code class="descclassname">attitude.geom.test_hyperbolic_errors.</code><code class="descname">test_minimum_variation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/test_hyperbolic_errors.html#test_minimum_variation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.test_hyperbolic_errors.test_minimum_variation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="attitude.geom.test_hyperbolic_errors.test_sampling_covariance">
+<code class="descclassname">attitude.geom.test_hyperbolic_errors.</code><code class="descname">test_sampling_covariance</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/test_hyperbolic_errors.html#test_sampling_covariance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.test_hyperbolic_errors.test_sampling_covariance" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-attitude.geom.test_offset_ellipse">
+<span id="attitude-geom-test-offset-ellipse-module"></span><h2>attitude.geom.test_offset_ellipse module<a class="headerlink" href="#module-attitude.geom.test_offset_ellipse" title="Permalink to this headline">¶</a></h2>
+<p>This test module is designed to show the exact relationship between the PCA error lengths
+defined from covariance matrices and the hyperbolic and ellipsoidal error bounds</p>
+<dl class="function">
+<dt id="attitude.geom.test_offset_ellipse.test_angular_shadow">
+<code class="descclassname">attitude.geom.test_offset_ellipse.</code><code class="descname">test_angular_shadow</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/test_offset_ellipse.html#test_angular_shadow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.test_offset_ellipse.test_angular_shadow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make sure we can successfully recover an angular shadow
+from an ellipse offset from the origin, a simple two
+dimensional case of the more general 3d solution.</p>
+<p>BASIS: an ellipse with semiaxes [1,1] centered at
+[0,2] will have a half angular shadow of 30º</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.geom.test_offset_ellipse.test_ellipse_offset">
+<code class="descclassname">attitude.geom.test_offset_ellipse.</code><code class="descname">test_ellipse_offset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/test_offset_ellipse.html#test_ellipse_offset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.test_offset_ellipse.test_ellipse_offset" title="Permalink to this definition">¶</a></dt>
+<dd><p>An error ellipse should be offset a set amount off axis</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-attitude.geom.transform">
+<span id="attitude-geom-transform-module"></span><h2>attitude.geom.transform module<a class="headerlink" href="#module-attitude.geom.transform" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="attitude.geom.transform.rotate_2D">
+<code class="descclassname">attitude.geom.transform.</code><code class="descname">rotate_2D</code><span class="sig-paren">(</span><em>angle</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/transform.html#rotate_2D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.transform.rotate_2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a 2x2 transformation matrix to rotate
+by an angle in two dimensions</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-attitude.geom.util">
+<span id="attitude-geom-util-module"></span><h2>attitude.geom.util module<a class="headerlink" href="#module-attitude.geom.util" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="attitude.geom.util.Plane">
+<em class="property">class </em><code class="descclassname">attitude.geom.util.</code><code class="descname">Plane</code><a class="reference internal" href="../_modules/attitude/geom/util.html#Plane"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.util.Plane" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></p>
+<dl class="method">
+<dt id="attitude.geom.util.Plane.hessian_normal">
+<code class="descname">hessian_normal</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/util.html#Plane.hessian_normal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.util.Plane.hessian_normal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the Hessian Normal form of a plane
+(ax + by + cz + d = 0) where [a,b,c] forms
+the unit normal vector and d is the distance
+to the origin.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="attitude.geom.util.Plane.normal">
+<code class="descname">normal</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/util.html#Plane.normal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.util.Plane.normal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="attitude.geom.util.Plane.offset">
+<code class="descname">offset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/util.html#Plane.offset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.util.Plane.offset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the offset of the plane from the
+origin or an arbitrary point.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.geom.util.angle">
+<code class="descclassname">attitude.geom.util.</code><code class="descname">angle</code><span class="sig-paren">(</span><em>v1</em>, <em>v2</em>, <em>cos=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/util.html#angle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.util.angle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the angle between two vectors.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cos</strong> – If True, the cosine of the</td>
+</tr>
+</tbody>
+</table>
+<p>angle will be returned. False by default.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.geom.util.augment">
+<code class="descclassname">attitude.geom.util.</code><code class="descname">augment</code><span class="sig-paren">(</span><em>vec</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/util.html#augment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.util.augment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Augment a vector in any orthonormal basis
+with a trailing 1 to form a homogeneous
+coordinate vector in that coordinate system.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.geom.util.augment_tensor">
+<code class="descclassname">attitude.geom.util.</code><code class="descname">augment_tensor</code><span class="sig-paren">(</span><em>matrix</em>, <em>ndim=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/util.html#augment_tensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.util.augment_tensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Increase the dimensionality of a tensor,
+splicing it into an identity matrix of a higher
+dimension. Useful for generalizing
+transformation matrices.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.geom.util.column">
+<code class="descclassname">attitude.geom.util.</code><code class="descname">column</code><span class="sig-paren">(</span><em>vec</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/util.html#column"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.util.column" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a vector with a new trailing axis
+(of singular dimension) added.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.geom.util.dot">
+<code class="descclassname">attitude.geom.util.</code><code class="descname">dot</code><span class="sig-paren">(</span><em>*matrices</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/util.html#dot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.util.dot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="attitude.geom.util.perpendicular_vector">
+<code class="descclassname">attitude.geom.util.</code><code class="descname">perpendicular_vector</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/util.html#perpendicular_vector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.util.perpendicular_vector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a random vector perpendicular
+to the given vector</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.geom.util.plane">
+<code class="descclassname">attitude.geom.util.</code><code class="descname">plane</code><span class="sig-paren">(</span><em>normal</em>, <em>offset=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/util.html#plane"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.util.plane" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="attitude.geom.util.unit_vector">
+<code class="descclassname">attitude.geom.util.</code><code class="descname">unit_vector</code><span class="sig-paren">(</span><em>vec</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/util.html#unit_vector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.util.unit_vector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a normalized version of the vector</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.geom.util.vector">
+<code class="descclassname">attitude.geom.util.</code><code class="descname">vector</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom/util.html#vector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.util.vector" title="Permalink to this definition">¶</a></dt>
+<dd><p>A single vector in any coordinate basis,
+as a numpy array.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-attitude.geom">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-attitude.geom" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="attitude.geom.aligned_covariance">
+<code class="descclassname">attitude.geom.</code><code class="descname">aligned_covariance</code><span class="sig-paren">(</span><em>fit</em>, <em>type='noise'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom.html#aligned_covariance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.aligned_covariance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Covariance rescaled so that eigenvectors sum to 1
+and rotated into data coordinates from PCA space</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.geom.axis_aligned_transforms">
+<code class="descclassname">attitude.geom.</code><code class="descname">axis_aligned_transforms</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom.html#axis_aligned_transforms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.axis_aligned_transforms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates three transformation matrices
+to map three-dimensional data down
+to slices on the xy, xz and yz planes, respectively.
+The typical use case for this is to iterate over the results
+of this method to provide arguments to e.g. the <cite>HyperbolicErrors</cite>
+function.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.geom.fit_angle">
+<code class="descclassname">attitude.geom.</code><code class="descname">fit_angle</code><span class="sig-paren">(</span><em>fit1</em>, <em>fit2</em>, <em>degrees=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom.html#fit_angle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.fit_angle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the angle between the nominal vectors</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="attitude.geom.fit_similarity">
+<code class="descclassname">attitude.geom.</code><code class="descname">fit_similarity</code><span class="sig-paren">(</span><em>fit1</em>, <em>fit2</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/attitude/geom.html#fit_similarity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#attitude.geom.fit_similarity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Distance apart for vectors, given in
+standard deviations</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Attitude</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../statistical-motivation.html">Statistical motivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../python-api.html">Python API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../example-notebooks.html">Example notebooks</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Daven Quinn.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/python-api/attitude.geom.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
