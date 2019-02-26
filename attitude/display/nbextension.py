@@ -5,7 +5,7 @@ from collections import Sequence
 from IPython import display
 
 __here__ = path.dirname(__file__)
-lib = path.join(__here__,'../../js-frontend/lib')
+lib = path.join(__here__,'lib')
 
 def get_library(fn):
     dn = path.join(lib,fn)
