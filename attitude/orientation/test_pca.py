@@ -101,6 +101,27 @@ def test_recovery_from_axes():
                 pca.U[:,2]*sv,
                 atol=1e-10)
 
+def test_variance_equivalence():
+    """
+    Simple mathematical test that eigenvector magnitudes
+    are equivalent to variance (with $n-1$ degrees of freedom).
+    """
+    pca = random_pca()
+    v = pca.rotated().var(axis=0, ddof=1)
+    eig = pca.eigenvalues
+    assert N.allclose(v, eig)
+
+def test_data_matrix_multiplication():
+    """
+    Mathematical test of relationship between eigenvalues and
+    the cross-product data matrix
+    """
+    pca = random_pca()
+    M_bar = pca.rotated() # Rotated data matrix
+    n = len(M_bar)
+    MTM = dot(M_bar.transpose(),M_bar)/(n-1)
+    assert N.allclose(MTM, N.diag(pca.eigenvalues))
+
 def test_hyperbola_axes():
     """
     Test that the hyperbolic axes are the same as the

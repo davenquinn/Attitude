@@ -9,7 +9,9 @@ install_requires = [
     'mplstereonet',
     'jinja2',
     'colour',
-    'pytest'
+    'pytest',
+    'gnureadline',
+    'IPython'
     ]
 
 setup(

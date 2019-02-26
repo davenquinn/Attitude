@@ -10,29 +10,22 @@ from scipy.stats import chi2, f, norm
 from ..orientation.linear import Regression
 from ..geom import dot
 
-def mean_estimator(data_variance, n):
+def mean_estimator(data_variance, n, ddof=1):
     """
-    Get the variance of the mean from a data variance term
-    (e.g. an eigenvalue) and return an estimator of the precision of the mean
-    """
-    return data_variance/n**2
+    Get the variance of the mean from a data variance term (e.g. an eigenvalue)
+    and return an estimator of the precision of the mean (e.g. the variance of
+    the mean itself.)
 
-# We aren't going to apply this for now, which means that we
-# are using the estimator for variance on all axes.
-mean_on_error_axis = False
+    Note: this is not used in the actual calculation of PCA planar
+    fitting errors; it is present for testing purposes.
+    """
+    return data_variance/(n-ddof)
 
 def sampling_covariance(fit, **kw):
     # This is asserted in both Faber and Jolliffe, although the
     # former expression is ambiguous due to a weirdly-typeset radical
     ev = fit.eigenvalues
     cov = 2/(fit.n-1)*ev**2
-    ### Don't know if the below is a good idea ###
-    if mean_on_error_axis:# and not kw.get('variance_on_all_axes',False):
-        # Try applying estimator of mean to the sample distribution
-        # This is the variance of the mean, not the variance of axial lengths
-        # Not sure if this is the right framework
-        # Moving from a second-order to first-order estimator
-        cov[-1] += mean_estimator(ev[-1],fit.n)
     return cov
 
 def noise_covariance(fit, dof=2, **kw):
@@ -44,44 +37,18 @@ def noise_covariance(fit, dof=2, **kw):
     ev = fit.eigenvalues
 
     measurement_noise = ev[-1]/(fit.n-dof)
-    cov = 4*ev*measurement_noise
-    if mean_on_error_axis and not kw.get('variance_on_all_axes',False):
-        # Try applying estimator of mean to the sample distribution
-        # This is the variance of the mean, not the variance of axial lengths
-        # Not sure if this is the right framework
-        # Moving from a second-order to first-order estimator
-        cov[-1] = mean_estimator(ev[-1],fit.n)
-    return cov
+    return 4*ev*measurement_noise
 
-def apply_error_level(cov, level):
-    """
-    Adds sigma level to covariance matrix
-    """
-    cov[-1]*=level
-    return cov
-
-def apply_error_scaling_old(nominal,errors, **kw):
-    """
-    This method does not account for errors on the
-    in-plane axes
-    """
-    try:
-        nominal[-1] = errors[-1]
-    except IndexError:
-        # We're dealing with a scalar
-        nominal[-1] = errors
-    return nominal
-
-def apply_error_scaling(nominal,errors, variance_on_all_axes=True):
-    if variance_on_all_axes:
-        # We apply variance to error axis as well, making a more
+def apply_error_scaling(nominal,errors, n, variance_on_all_axes=True):
+    if not variance_on_all_axes:
+        # We do not apply variance to error axis as well, making a more
         # explicit dependence on the scale of the errors to the
         # plane. This reduces the effects of statistical scaling,
         # sometimes to the point of irrelevance.
-        nominal[-1] *= -1
-        #pass
-    else:
-        nominal[-1] = 0
+        nominal[-1] /= (n-1)
+
+    # Apply errors inwards on xy plane and outwards on z axis
+    nominal[-1] *= -1
     nominal -= errors
     return N.abs(nominal)
 
@@ -162,7 +129,7 @@ def statistical_axes(fit, **kw):
     elif method == 'noise':
         cov = noise_covariance(fit,**kw)
 
-    if kw.pop('chisq',False):
+    if kw.pop('chisq', False):
         # Model the incorrect behaviour of using the
         # Chi2 distribution instead of the Fisher
         # distribution (which is a measure of the
@@ -192,7 +159,7 @@ def statistical_axes(fit, **kw):
     # it is as if we are applying N.sqrt(2*F) to the entire
     # distribution, aligning us with (Francq, 2014)
     err = z*N.sqrt(cov)
-    return apply_error_scaling(nominal, err, **kw)
+    return apply_error_scaling(nominal, err, n=fit.n, **kw)
 
 
 
@@ -218,7 +185,7 @@ def francq_axes(fit, confidence_level=0.95, **kw):
     factor = 2*F/(n-2)
     # Not sure if we should take sqrt of Fisher distribution
     h = e*N.sqrt(factor)
-    return apply_error_scaling(e,h, **kw)
+    return apply_error_scaling(e,h, n=n, **kw)
 
 def babamoradi_axes(fit, confidence_level=0.95, **kw):
     e = fit.eigenvalues
@@ -241,7 +208,7 @@ def weingarten_axes(fit, confidence_level=0.95):
     c = c[-1]/c*e[-1]
     c = c/c[-1]*e[-1]
     # rise over run
-    return apply_error_scaling(e,c)
+    return apply_error_scaling(e,c, n=fit.n)
 
 def regression_axes(fit, confidence_level=0.95, **kw):
     # For now we are ignoring slight rotation from PCA errors

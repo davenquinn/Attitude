@@ -1,2 +1,2 @@
 #!/bin/sh
-python -m pytest --pyargs attitude "$@"
+python -m pytest --pdbcls=IPython.terminal.debugger:Pdb --pyargs attitude "$@"
