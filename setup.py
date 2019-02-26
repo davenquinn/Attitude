@@ -14,7 +14,7 @@ install_requires = [
 
 setup(
     name='Attitude',
-    version="0.2.0",
+    version="0.3.0",
     description="Attitude computes the orientations of planes from point data.",
     license='MIT',
     keywords='gis data computation fitting statistics vector science geology',
