@@ -1,3 +1,2 @@
-include attitude/display/assets/*
 include attitude/display/lib/*
 

@@ -12,6 +12,8 @@ def get_library(fn):
     with open(dn) as f:
         return f.read()
 
+__ATTITUDE_INITIALIZED = False
+
 def init_notebook_mode():
     """
     Initialize attitude.js in the browser.
@@ -23,22 +25,19 @@ def init_notebook_mode():
     https://github.com/paulgb/nbgraph/blob/master/nbgraph/client/prepare_notebook.html
     """
     global __ATTITUDE_INITIALIZED
-
-    with open(path.join(__here__,'assets','nbextension-inject.html')) as f:
-        script = f.read()
-
-    script = script.replace("<<<attitudeUI>>>",
-                            get_library("attitude-ui.js"))
-    display_bundle = {
-        'text/html': script
-    }
+    if __ATTITUDE_INITIALIZED: return
     display(Javascript(get_library('attitude-ui.js')))
     __ATTITUDE_INITIALIZED = True
 
-def plot_interactive(attitudes):
-    with open(path.join(__here__,'assets', 'nbextension-view.html')) as f:
-        script = f.read()
+__TEMPLATE__ = """
+<div id='a__<<<hash>>>'></div>
+<script type='text/javascript'>
+  var data=JSON.parse('<<<data>>>');
+  attitudeUI(document.querySelector('#a__<<<hash>>>'),data);
+</script>
+"""
 
+def plot_interactive(attitudes):
     if not isinstance(attitudes, Sequence):
         attitudes = [attitudes]
     attitudes = [a.to_mapping()
@@ -46,14 +45,9 @@ def plot_interactive(attitudes):
                  for a in attitudes]
 
     data = dumps(attitudes)
-    script = script.replace("<<<data>>>",data)
+    script = __TEMPLATE__.replace("<<<data>>>",data)
 
     classname = "A"+str(uuid4())
     script = script.replace("<<<hash>>>",classname)
-    display_bundle = {
-        'text/html': script
-    }
-    #with open(path.join(__here__,'view-filled.html'), 'w') as f:
-    #    print(script,file=f)
     display(HTML(script))
 
