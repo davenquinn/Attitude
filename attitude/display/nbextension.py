@@ -2,7 +2,7 @@ from os import path
 from uuid import uuid4
 from json import dumps
 from collections import Sequence
-from IPython import display
+from IPython.display import display, Javascript, HTML
 
 __here__ = path.dirname(__file__)
 lib = path.join(__here__,'lib')
@@ -32,7 +32,7 @@ def init_notebook_mode():
     display_bundle = {
         'text/html': script
     }
-    display.display(display_bundle, raw=True)
+    display(Javascript(get_library('attitude-ui.js')))
     __ATTITUDE_INITIALIZED = True
 
 def plot_interactive(attitudes):
@@ -55,5 +55,5 @@ def plot_interactive(attitudes):
     }
     #with open(path.join(__here__,'view-filled.html'), 'w') as f:
     #    print(script,file=f)
-    display.display(display_bundle, raw=True)
+    display(HTML(script))
 
