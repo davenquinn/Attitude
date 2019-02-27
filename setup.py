@@ -10,20 +10,19 @@ install_requires = [
     'jinja2',
     'colour',
     'pytest',
-    'gnureadline',
     'IPython'
     ]
 
 setup(
     name='Attitude',
-    version="0.3.3",
+    version="0.4.0",
     description="Attitude computes the orientations of planes from point data.",
     license='MIT',
     keywords='gis data computation fitting statistics vector science geology',
     author='Daven Quinn',
-    author_email='dev@davenquinn.com',
+    author_email='code@davenquinn.com',
     maintainer='Daven Quinn',
-    maintainer_email='dev@davenquinn.com',
+    maintainer_email='code@davenquinn.com',
     url='http://github.com/davenquinn/Attitude',
     install_requires=install_requires,
     tests_require=['nose','pytest'],
