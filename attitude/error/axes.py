@@ -77,7 +77,6 @@ def angular_errors(hyp_axes):
     return tuple(N.arctan2(ax[-1],ax[:-1]))
 
 ### Sampling axes from Jolliffe, 1980 v2 pp50-52
-
 def jolliffe_axes(fit, confidence_level=0.95, dof=2,**kw):
     n = fit.n
     e = fit.eigenvalues
@@ -108,7 +107,8 @@ def fisher_statistic(n, confidence_level, dof=2):
 
 def statistical_axes(fit, **kw):
     """
-    Hyperbolic error using a statistical process (either sampling or noise errors)
+    Hyperbolic error using a statistical process (either sampling
+    or noise errors)
 
     Integrates covariance with error level
     and degrees of freedom for plotting
@@ -138,22 +138,6 @@ def statistical_axes(fit, **kw):
     else:
         z = fisher_statistic(fit.n,confidence_level,dof=dof)
 
-    if kw.pop('error_scaling_inside',False):
-        # If we want to model (likely incorrect) behavior of
-        # applying scaling by data variance **before**
-        # the application of a statistical distribution
-        err = z*N.sqrt(cov)
-        if kw.pop('variance_on_all_axes', True):
-            # Scale covariance by the data variance in the
-            # out-of-plane direction.
-            # The variance **itself** is the standard error
-            # on the population "true value"
-            err[-1] += chi2.ppf(confidence_level, dof)*N.sqrt(fit.eigenvalues[-1])
-        err[:-1] *= -1
-        nominal[-1] = 0
-        nominal += err
-        return N.abs(nominal)
-
     # Apply two fisher F parameters (one along each axis)
     # Since we apply to each axis without division,
     # it is as if we are applying N.sqrt(2*F) to the entire
@@ -161,16 +145,23 @@ def statistical_axes(fit, **kw):
     err = z*N.sqrt(cov)
     return apply_error_scaling(nominal, err, n=fit.n, **kw)
 
-
-
 def sampling_axes(fit, **kw):
     """
     Hyperbolic axis lengths based on sample-size
-    normal statistics
+    normal statistics.
+
+    Note: legacy method that simply wraps the
+    `statistical_axes` function.
     """
     return statistical_axes(fit, method='sampling', **kw)
 
 def noise_axes(fit, **kw):
+    """
+    Hyperbolic axis lengths based on noise statistics.
+
+    Note: legacy method that simply wraps the
+    `statistical_axes` function.
+    """
     return statistical_axes(fit, method='noise', **kw)
 
 def francq_axes(fit, confidence_level=0.95, **kw):
@@ -183,7 +174,7 @@ def francq_axes(fit, confidence_level=0.95, **kw):
 
     # This factor is common between Francq and Babamoradi
     factor = 2*F/(n-2)
-    # Not sure if we should take sqrt of Fisher distribution
+
     h = e*N.sqrt(factor)
     return apply_error_scaling(e,h, n=n, **kw)
 
@@ -193,22 +184,8 @@ def babamoradi_axes(fit, confidence_level=0.95, **kw):
     F = fisher_statistic(n, confidence_level)
     val = 2*F/(n-2)
     H = N.sqrt(e*val*(n**2-1)/n)
-    #H[-1] -= e[-1]
-    # Not sure why this done have worked but it do
-    return H**2# apply_error_scaling(e,H, **kw)
-
-def weingarten_axes(fit, confidence_level=0.95):
-    """
-    This is basically meaningless in its current form
-    """
-    e = fit.eigenvalues
-    reg = Regression(fit.rotated())
-
-    c = N.abs(reg.coefficients)
-    c = c[-1]/c*e[-1]
-    c = c/c[-1]*e[-1]
-    # rise over run
-    return apply_error_scaling(e,c, n=fit.n)
+    # Not sure why this worked
+    return H**2
 
 def regression_axes(fit, confidence_level=0.95, **kw):
     # For now we are ignoring slight rotation from PCA errors
