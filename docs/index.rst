@@ -16,19 +16,19 @@ This software is the reference implementation of the
 statistical method described in `this working paper <https://eartharxiv.org/4enzu/>`_,
 currently in review at *Earth and Space Sciences*.
 
-.. image:: _static/images/cross-section.png
-   :width: 600px
+.. image:: _static/_images/schematic-plane.png
+   :width: 300px
 
-.. image:: _static/images/normal-vectors.png
+.. image:: _static/_images/schematic-spherical.png
    :width: 500px
 
 
 The error-analysis and visualization process developed here is
-crucial to creating accurate and consistent studies of geological
+crucial to creating accurate and consistent representations of geological
 orientations from remote-sensing data.
 The methodology was developed primarily to support the analysis of
 geological orientations from Mars imagery and photogrammetric elevation models,
-but it can be applied to any remote-sensing dataset that can capture the
+but it can be applied to any remote-sensing dataset that captures the
 three-dimensional linear trace of a planar feature. The method's flexibility
 and independence from input view geometry make it particularly suited to
 unmanned aerial vehicle (UAV) and ad-hoc structure-from-motion (SfM) datasets.
