@@ -16,6 +16,7 @@ import sys
 import os
 #import guzzle_sphinx_theme
 import attitude
+from recommonmark.parser import CommonMarkParser
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -108,13 +109,17 @@ pygments_style = 'sphinx'
 
 # If true, keep warnings as "system message" paragraphs in the built documents.
 #keep_warnings = False
+source_parsers = {
+    '.md': CommonMarkParser,
+}
 
+source_suffix = ['.rst', '.md']
 
 # -- Options for HTML output ----------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-#html_theme_path = guzzle_sphinx_theme.html_theme_path()
+html_theme_path = 'theme'
 #html_theme = 'guzzle_sphinx_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
@@ -274,5 +279,3 @@ texinfo_documents = [
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
 
-def setup(app):
-    app.add_stylesheet('main.css')  # may also be an URL
