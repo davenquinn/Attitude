@@ -1,2 +1,8 @@
 #!/bin/sh
+
+if [ "$1" = "--visual" ]; then
+  shift
+  python attitude/test/visual-tests.py
+fi
+
 python -m pytest --pdbcls=IPython.terminal.debugger:Pdb --pyargs attitude "$@"
