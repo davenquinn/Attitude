@@ -161,11 +161,11 @@ def iterative_plane_errors(axes,covariance_matrix, **kwargs):
     level = kwargs.pop('level',1)
     n = kwargs.pop('n',100)
 
-    cov = N.sqrt(N.diagonal(covariance_matrix))
+    cov = N.diagonal(covariance_matrix)
     u = N.linspace(0, 2*N.pi, n)
 
     scales = dict(upper=1,lower=-1,nominal=0)
-    c1 = scales[sheet]
+    c1 = scales[sheet]*2 # We double the scale of errors since they are symmetrical
     c1 *= -1 # We assume upper hemisphere
     if axes[2,2] < 0:
         c1 *= -1

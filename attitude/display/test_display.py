@@ -19,6 +19,7 @@ sheets = ('upper','lower','nominal')
 
 cases = lambda: product(range(10),sheets)
 
+#@pytest.mark.xfail(reason="Not sure why this is happening")
 def test_simple_plane():
     for i,sheet in cases():
         obj = random_pca()
@@ -41,4 +42,3 @@ def __simple_ellipse(**kwargs):
 def test_simple_ellipse():
     __simple_ellipse(n=n, traditional_layout=True, adaptive=False)
     __simple_ellipse(n=n, traditional_layout=False, adaptive=False)
-
