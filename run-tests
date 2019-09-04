@@ -1,2 +1,17 @@
-#!/bin/sh
-python -m pytest --pdbcls=IPython.terminal.debugger:Pdb --pyargs attitude "$@"
+#!/bin/bash
+
+args=(--pdbcls=IPython.terminal.debugger:Pdb)
+args+=(--pyargs)
+args+=(attitude)
+
+image_baseline=attitude/test/baselines
+if [ "$1" = "--generate" ]; then
+  shift
+  args+=(--mpl-generate-path="$image_baseline")
+else
+  args+=(--mpl --mpl-baseline-path="$image_baseline")
+fi
+
+args+=("$@")
+
+python -m pytest "${args[@]}"

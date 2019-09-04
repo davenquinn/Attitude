@@ -44,13 +44,21 @@ def pole_error(ax, fit, **kwargs):
     axis object.
     """
     ell = normal_errors(fit.axes, fit.covariance_matrix)
-    lonlat = -N.array(ell)
+    lonlat = N.array(ell)
+    lonlat[:,0] *= -1
     n = len(lonlat)
     codes = [Path.MOVETO]
     codes += [Path.LINETO]*(n-1)
     vertices = list(lonlat)
-
     plot_patch(ax, vertices, codes, **kwargs)
+
+def uncertain_pole(ax, *args, **kwargs):
+    """
+    Min and max angular errors are symmetrical and
+    thus should be doubled.
+    """
+    fit = ReconstructedPlane(*args)
+    return pole_error(ax, fit, **kwargs)
 
 def uncertain_plane(ax, *args, **kwargs):
     fit = ReconstructedPlane(*args)

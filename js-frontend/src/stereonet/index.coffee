@@ -178,6 +178,7 @@ Stereonet = ->
       .attrs
         d: path
         id: neatlineId.slice(1)
+        fill: 'transparent'
 
   f = (_el, opts={})->
     # This should be integrated into a reusable

@@ -77,8 +77,8 @@ class AttitudeUI extends React.Component
           h Tabs.Expander
         ]
       ]
-      h SideViewComponent, {data, azimuth, hovered,
-                            onHover, updateSelection}
+      #h SideViewComponent, {data, azimuth, hovered,
+      #                      onHover, updateSelection}
     ]
 
   getData: =>
