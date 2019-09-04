@@ -5,6 +5,7 @@ import rasterio
 import rasterio.env
 from rasterio.features import rasterize, geometry_mask
 from affine import Affine
+from subdivide import subdivide
 
 from shapely.geometry import shape, mapping, asShape
 from shapely.ops import transform
@@ -67,9 +68,10 @@ def extract_line(geom, dem, **kwargs):
     f = lambda *x: ~dem.transform * x
     px = transform(f,geom)
 
-    # Subdivide geometry segments
-    # at 1-pixel intervals
-    #px = subdivide(px, interval=1)
+    # Subdivide geometry segments if option is given
+    interval = kwargs.pop('subdivide', 1)
+    if interval is not None:
+        px = subdivide(px, interval=interval)
 
     # Transform pixels back to geometry
     # to capture subdivisions
@@ -92,7 +94,8 @@ def extract_line(geom, dem, **kwargs):
     f = lambda *x: aff * x
     px_to_extract = transform(f,px)
 
-    band = dem.read(1, window=window, **kwargs)
+    band_n = kwargs.pop("band", 1)
+    band = dem.read(band_n, window=window, **kwargs)
     extracted = bilinear(band, px_to_extract)
     coords = coords_array(extracted)
 
@@ -117,7 +120,8 @@ def extract_area(geom, dem, **kwargs):
     # Currently just for a single band
     # We could generalize to multiple
     # bands if desired
-    z = dem.read(1,
+    band = kwargs.pop("band", 1)
+    z = dem.read(band,
         window=window,
         masked=True)
 
@@ -145,14 +149,11 @@ def extract_area(geom, dem, **kwargs):
     coords[2] = z
     return coords.transpose()
 
-def extract_shape(geom, dem):
+def extract_shape(geom, dem, **kwargs):
     if geom.area == 0:
-        coords = extract_line(geom,dem)
+        coords = extract_line(geom,dem, **kwargs)
     else:
-        coords = extract_area(geom,dem)
+        coords = extract_area(geom,dem, **kwargs)
 
     coords = clean_coordinates(coords, silent=True)
-    assert len(coords) > 0
     return coords
-
-

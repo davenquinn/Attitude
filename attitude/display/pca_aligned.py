@@ -3,11 +3,10 @@ from __future__ import division
 from mplstereonet.stereonet_math import line, pole
 import logging
 import numpy as N
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.patches import Polygon
 from matplotlib.gridspec import GridSpec
 from matplotlib.ticker import FuncFormatter
+from matplotlib.pyplot import subplots
 
 from ..display.hyperbola import HyperbolicErrors
 from ..error.axes import sampling_axes, noise_axes
@@ -46,21 +45,11 @@ def plot_aligned(pca, sparse=True, **kwargs):
     if r > 5:
         r = 5
 
-    fig = Figure(figsize=(w,h))
-    fig.canvas = FigureCanvas(fig)
+    gridspec_kw = dict(height_ratios=[r, 1, 1])
 
-    def setup_axes():
-        gs = GridSpec(3,1, height_ratios=[r,1,1])
-        kwargs = dict()
-        axes = []
-        for g in gs:
-            ax = fig.add_subplot(g,**kwargs)
-            kwargs['sharex'] = ax
-            yield ax
+    fig, axes = subplots(3, 1,figsize=(w,h), sharex=True, sharey=True)
 
-    axes = list(setup_axes())
-
-    fig.subplots_adjust(hspace=0, wspace=0.1)
+    fig.subplots_adjust(hspace=0.05, wspace=0.1)
 
     #lengths = attitude.pca.singular_values[::-1]
 
@@ -79,16 +68,17 @@ def plot_aligned(pca, sparse=True, **kwargs):
     hyp = sampling_axes(pca)
     vertical = vector(0,0,1)
 
-    for title,ax,(a,b),ylabel in zip(titles,axes,
-            [(0,1),(0,2),(1,2)],ylabels):
+    for i, (title,ax,(a,b),ylabel) in enumerate(
+            zip(titles,axes, [(0,1),(0,2),(1,2)],ylabels)):
 
         kw = dict(linewidth=2, alpha=0.5)
         bounds = minmax[a]
+
         if b != 2:
             ax.plot(bounds,(0,0), c=colors[a], **kw)
             ax.plot((0,0),minmax[b], c=colors[b], **kw)
         else:
-            ax.plot(bounds,(-10,-10), c=colors[a], **kw)
+            ax.plot(bounds, (0,0), c=colors[a], **kw)
             v0 = N.zeros(3)
             v0[a] = 1
             axes = N.array([v0,vertical])
@@ -99,7 +89,7 @@ def plot_aligned(pca, sparse=True, **kwargs):
             l2 = N.linalg.norm(ax_[-1])
             ang_error = 2*N.degrees(N.arctan2(l2,l1))
 
-            title += ": {:.0f} m long, angular error (95% CI): {:.2f}º".format(lengths[a], ang_error)
+            title += ": {:2f} m, angular error (95% CI): {:.2f}º".format(lengths[a], ang_error)
 
             bounds = minmax[0]
             x_ = N.linspace(bounds[0]*1.2,bounds[1]*1.2,100)
@@ -107,33 +97,34 @@ def plot_aligned(pca, sparse=True, **kwargs):
             err = HyperbolicErrors(hyp,x_,axes=axes)
             err.plot(ax, fc='#cccccc', alpha=0.3)
 
+        #ax.set_ylim(N.array(minmax[b])*3)
+
         x,y = A[:,a], A[:,b]
         kw = dict(alpha=0.5, zorder=5)
 
         if colormap is None:
             ax.plot(x,y,c="#555555", linestyle='None', marker='.',**kw)
         else:
+            kw['rasterized'] = len(x) > 500
             ax.scatter(x,y,c=A[:,-1], cmap=colormap, **kw)
 
-        #ax.set_aspect("equal")
+        ax.set_aspect("equal")
 
         ax.text(0.01,.99,title,
-            verticalalignment='top',
+            verticalalignment='bottom',
             transform=ax.transAxes)
         #ax.autoscale(tight=True)
         ax.yaxis.set_ticks([])
         ax.xaxis.set_ticks_position('bottom')
-        if a != 1:
-            pass
-            #ax.xaxis.set_ticks([])
+        if i != 2:
+            ax.xaxis.set_visible(False)
             #ax.spines['bottom'].set_color('none')
         for spine in ax.spines.values():
             spine.set_visible(False)
 
 
-    ax.text(0.99,0.99,"Max residual: {:.1f} m".format(lengths[2]),
+    fig.text(0.05,0.01,"Max residual: {:2f} m".format(lengths[2]),
         verticalalignment='bottom',
-        ha='right',
         transform=ax.transAxes)
 
 
