@@ -29,7 +29,6 @@ def sph2cart(lat,lon):
     val[:-1] *= -1
     return val
 
-
 def scale_errors(cov_axes, confidence_level=0.95):
     """
     Returns major axes of error ellipse or
@@ -67,6 +66,48 @@ def normal_errors(axes, covariance_matrix, **kwargs):
         lon,lat = stereonet_math.cart2sph(_[2],_[0],-_[1])
     else:
         lon,lat = stereonet_math.cart2sph(-_[1],_[0],_[2])
+    return list(zip(lon,lat))
+
+def plane_errors(axes, covariance_matrix, sheet='upper',**kwargs):
+    """
+    kwargs:
+    traditional_layout  boolean [True]
+        Lay the stereonet out traditionally, with north at the pole of
+        the diagram. The default is a more natural and intuitive visualization
+        with vertical at the pole and the compass points of strike around the equator.
+        Thus, longitude at the equator represents strike and latitude represents
+        apparent dip at that azimuth.
+    """
+
+    level = kwargs.pop('level',1)
+    traditional_layout = kwargs.pop('traditional_layout',True)
+
+    d = covariance_matrix
+
+    ell = ellipse(**kwargs)
+    bundle = dot(ell, d[:2])
+    res = d[2]*level*2
+
+    # Switch hemispheres if PCA is upside-down
+    # Normal vector is always correctly fit
+    #if traditional_layout:
+    #if axes[2,2] > 0:
+
+    if axes[2,2] > 0:
+        res *= -1
+
+    if sheet == 'upper':
+        bundle += res
+    elif sheet == 'lower':
+        bundle -= res
+
+    _ = dot(bundle,axes).T
+
+    if traditional_layout:
+        lon,lat = stereonet_math.cart2sph(_[2],_[0],_[1])
+    else:
+        lon,lat = stereonet_math.cart2sph(-_[1],_[0],_[2])
+
     return list(zip(lon,lat))
 
 def iterative_normal_errors(axes, covariance_matrix, **kwargs):
@@ -110,48 +151,6 @@ def iterative_normal_errors(axes, covariance_matrix, **kwargs):
     # a full rotation around the unit circle
     vals = [step_func(i) for i in u]
     return vals
-
-def plane_errors(axes, covariance_matrix, sheet='upper',**kwargs):
-    """
-    kwargs:
-    traditional_layout  boolean [True]
-        Lay the stereonet out traditionally, with north at the pole of
-        the diagram. The default is a more natural and intuitive visualization
-        with vertical at the pole and the compass points of strike around the equator.
-        Thus, longitude at the equator represents strike and latitude represents
-        apparent dip at that azimuth.
-    """
-
-    level = kwargs.pop('level',1)
-    traditional_layout = kwargs.pop('traditional_layout',True)
-
-    d = N.sqrt(covariance_matrix)
-
-    ell = ellipse(**kwargs)
-    bundle = dot(ell, d[:2])
-    res = d[2]*level
-
-    # Switch hemispheres if PCA is upside-down
-    # Normal vector is always correctly fit
-    #if traditional_layout:
-    #if axes[2,2] > 0:
-
-    if axes[2,2] > 0:
-        res *= -1
-
-    if sheet == 'upper':
-        bundle += res
-    elif sheet == 'lower':
-        bundle -= res
-
-    _ = dot(bundle,axes).T
-
-    if traditional_layout:
-        lon,lat = stereonet_math.cart2sph(_[2],_[0],_[1])
-    else:
-        lon,lat = stereonet_math.cart2sph(-_[1],_[0],_[2])
-
-    return list(zip(lon,lat))
 
 def iterative_plane_errors(axes,covariance_matrix, **kwargs):
     """
@@ -253,4 +252,3 @@ def error_coords(axes, covariance_matrix, **kwargs):
         i = {l:__(l) for l in levels}
     out.update(i)
     return out
-
