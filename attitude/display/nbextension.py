@@ -1,7 +1,7 @@
 from os import path
 from uuid import uuid4
 from json import dumps
-from collections import Sequence
+from collections.abc import Sequence
 from IPython.display import display, Javascript, HTML
 
 __here__ = path.dirname(__file__)
@@ -50,4 +50,3 @@ def plot_interactive(attitudes):
     classname = "A"+str(uuid4())
     script = script.replace("<<<hash>>>",classname)
     display(HTML(script))
-
