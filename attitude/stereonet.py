@@ -1,6 +1,7 @@
 import numpy as N
 from mplstereonet import stereonet_math
 from scipy.stats import chi2
+from numpy.testing import assert_array_almost_equal
 
 from .geom.util import vector, unit_vector, dot
 
@@ -68,6 +69,12 @@ def normal_errors(axes, covariance_matrix, **kwargs):
         lon,lat = stereonet_math.cart2sph(-_[1],_[0],_[2])
     return list(zip(lon,lat))
 
+def test_ellipse():
+    ell = ellipse(n=1000)
+    u = N.linspace(0, 2*N.pi, n)
+    arr = N.hstack([N.cos(u), N.sin(u)])
+    assert_array_almost_equal(ell, arr)
+
 def plane_errors(axes, covariance_matrix, sheet='upper',**kwargs):
     """
     kwargs:
@@ -111,37 +118,38 @@ def plane_errors(axes, covariance_matrix, sheet='upper',**kwargs):
     return list(zip(lon,lat))
 
 def iterative_normal_errors(axes, covariance_matrix, **kwargs):
+    """
+    Currently assumes upper hemisphere of stereonet
+    """
     level = kwargs.pop('level',1)
-    n = kwargs.pop('n',100)
     traditional_layout = kwargs.pop('traditional_layout',True)
-    _ = N.sqrt(covariance_matrix)
-    v = N.diagonal(_)
+    n = kwargs.get('n', 100)
 
-    c1 = -1
-    cov = v
-
+    d = N.diagonal(covariance_matrix)
     u = N.linspace(0, 2*N.pi, n)
 
     if axes[2,2] < 0:
         axes *= -1
 
+    # Not sure where this factor comes from but it
+    # seems to make things work better
+    c1 = 2
+
     def sdot(a,b):
         return sum([i*j for i,j in zip(a,b)])
 
     def step_func(a):
-        f = [
-            N.cos(a)*cov[0],
-            N.sin(a)*cov[1]]
         e = [
-            -c1*cov[2]*N.cos(a),
-            -c1*cov[2]*N.sin(a),
-            N.linalg.norm(f)]
-        d = [sdot(e,i)
+            -c1*d[2]*N.cos(a),
+            -c1*d[2]*N.sin(a),
+            N.linalg.norm([N.cos(a)*d[0],N.sin(a)*d[1]])
+        ]
+        r = [sdot(e,i)
             for i in axes.T]
         if traditional_layout:
-            x,y,z = d[2],d[0],d[1]
+            x,y,z = r[2],r[0],-r[1]
         else:
-            x,y,z = -d[1],d[0],d[2]
+            x,y,z = -r[1],r[0],r[2]
         r = N.sqrt(x**2 + y**2 + z**2)
         lon = N.arctan2(y, x)
         lat = N.arcsin(z/r)

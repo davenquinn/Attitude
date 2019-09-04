@@ -6,16 +6,17 @@ polar axes.
 
 import numpy as N
 from matplotlib.path import Path
-from matplotlib.patches import PathPatch
 import mplstereonet.stereonet_math as M
 
 from ..orientation.reconstructed import ReconstructedPlane
-from ..stereonet import plane_errors, ellipse, dot, error_ellipse, normal_errors
-from ..error.axes import sampling_axes
-from ..geom.transform import rotate_2D
+from ..stereonet import ellipse, dot
 from .stereonet import plot_patch
 
 def pole_error(ax, fit, *args, **kwargs):
+    """
+    Plot a pole error on a matplotlib polar plot, to show dip directions
+    with error in an intuitive way.
+    """
     axes = fit.axes
 
     d = N.diagonal(fit.covariance_matrix)
@@ -36,7 +37,6 @@ def pole_error(ax, fit, *args, **kwargs):
 
     _ = dot(e.T,axes).T
 
-    lon,lat = M.cart2sph(-_[1],_[0],_[2])
     lon,lat = M.cart2sph(-_[0],_[1],_[2])
     # This converts us into an upper-hemisphere
     # representation
