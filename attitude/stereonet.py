@@ -1,6 +1,7 @@
 import numpy as N
 from mplstereonet import stereonet_math
 from scipy.stats import chi2
+from numpy.testing import assert_array_almost_equal
 
 from .geom.util import vector, unit_vector, dot
 
@@ -28,7 +29,6 @@ def sph2cart(lat,lon):
     val = N.roll(_,-1)
     val[:-1] *= -1
     return val
-
 
 def scale_errors(cov_axes, confidence_level=0.95):
     """
@@ -69,47 +69,11 @@ def normal_errors(axes, covariance_matrix, **kwargs):
         lon,lat = stereonet_math.cart2sph(-_[1],_[0],_[2])
     return list(zip(lon,lat))
 
-def iterative_normal_errors(axes, covariance_matrix, **kwargs):
-    level = kwargs.pop('level',1)
-    n = kwargs.pop('n',100)
-    traditional_layout = kwargs.pop('traditional_layout',True)
-    _ = N.sqrt(covariance_matrix)
-    v = N.diagonal(_)
-
-    c1 = -1
-    cov = v
-
+def test_ellipse():
+    ell = ellipse(n=1000)
     u = N.linspace(0, 2*N.pi, n)
-
-    if axes[2,2] < 0:
-        axes *= -1
-
-    def sdot(a,b):
-        return sum([i*j for i,j in zip(a,b)])
-
-    def step_func(a):
-        f = [
-            N.cos(a)*cov[0],
-            N.sin(a)*cov[1]]
-        e = [
-            -c1*cov[2]*N.cos(a),
-            -c1*cov[2]*N.sin(a),
-            N.linalg.norm(f)]
-        d = [sdot(e,i)
-            for i in axes.T]
-        if traditional_layout:
-            x,y,z = d[2],d[0],d[1]
-        else:
-            x,y,z = -d[1],d[0],d[2]
-        r = N.sqrt(x**2 + y**2 + z**2)
-        lon = N.arctan2(y, x)
-        lat = N.arcsin(z/r)
-        return lon,lat
-
-    # Get a bundle of vectors defining
-    # a full rotation around the unit circle
-    vals = [step_func(i) for i in u]
-    return vals
+    arr = N.hstack([N.cos(u), N.sin(u)])
+    assert_array_almost_equal(ell, arr)
 
 def plane_errors(axes, covariance_matrix, sheet='upper',**kwargs):
     """
@@ -125,11 +89,11 @@ def plane_errors(axes, covariance_matrix, sheet='upper',**kwargs):
     level = kwargs.pop('level',1)
     traditional_layout = kwargs.pop('traditional_layout',True)
 
-    d = N.sqrt(covariance_matrix)
+    d = covariance_matrix
 
     ell = ellipse(**kwargs)
     bundle = dot(ell, d[:2])
-    res = d[2]*level
+    res = d[2]*level*2
 
     # Switch hemispheres if PCA is upside-down
     # Normal vector is always correctly fit
@@ -153,6 +117,49 @@ def plane_errors(axes, covariance_matrix, sheet='upper',**kwargs):
 
     return list(zip(lon,lat))
 
+def iterative_normal_errors(axes, covariance_matrix, **kwargs):
+    """
+    Currently assumes upper hemisphere of stereonet
+    """
+    level = kwargs.pop('level',1)
+    traditional_layout = kwargs.pop('traditional_layout',True)
+    n = kwargs.get('n', 100)
+
+    d = N.diagonal(covariance_matrix)
+    u = N.linspace(0, 2*N.pi, n)
+
+    if axes[2,2] < 0:
+        axes *= -1
+
+    # Not sure where this factor comes from but it
+    # seems to make things work better
+    c1 = 2
+
+    def sdot(a,b):
+        return sum([i*j for i,j in zip(a,b)])
+
+    def step_func(a):
+        e = [
+            -c1*d[2]*N.cos(a),
+            -c1*d[2]*N.sin(a),
+            N.linalg.norm([N.cos(a)*d[0],N.sin(a)*d[1]])
+        ]
+        r = [sdot(e,i)
+            for i in axes.T]
+        if traditional_layout:
+            x,y,z = r[2],r[0],-r[1]
+        else:
+            x,y,z = -r[1],r[0],r[2]
+        r = N.sqrt(x**2 + y**2 + z**2)
+        lon = N.arctan2(y, x)
+        lat = N.arcsin(z/r)
+        return lon,lat
+
+    # Get a bundle of vectors defining
+    # a full rotation around the unit circle
+    vals = [step_func(i) for i in u]
+    return vals
+
 def iterative_plane_errors(axes,covariance_matrix, **kwargs):
     """
     An iterative version of `pca.plane_errors`,
@@ -162,11 +169,11 @@ def iterative_plane_errors(axes,covariance_matrix, **kwargs):
     level = kwargs.pop('level',1)
     n = kwargs.pop('n',100)
 
-    cov = N.sqrt(N.diagonal(covariance_matrix))
+    cov = N.diagonal(covariance_matrix)
     u = N.linspace(0, 2*N.pi, n)
 
     scales = dict(upper=1,lower=-1,nominal=0)
-    c1 = scales[sheet]
+    c1 = scales[sheet]*2 # We double the scale of errors since they are symmetrical
     c1 *= -1 # We assume upper hemisphere
     if axes[2,2] < 0:
         c1 *= -1
@@ -253,4 +260,3 @@ def error_coords(axes, covariance_matrix, **kwargs):
         i = {l:__(l) for l in levels}
     out.update(i)
     return out
-

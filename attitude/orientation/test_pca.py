@@ -140,7 +140,7 @@ def test_hyperbola_axes():
 
 def test_pca_regression_variable():
     """
-    The $\hat\beta$ regression variable is considered the canonical
+    The $\\hat\\beta$ regression variable is considered the canonical
     representation of the regressor for OLS. This is also defined for
     TLS/unweighted PCA regression.
     """

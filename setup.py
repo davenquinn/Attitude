@@ -10,6 +10,7 @@ install_requires = [
     'jinja2',
     'colour',
     'pytest',
+    'pytest-mpl',
     'IPython',
     'subdivide @ git+ssh://git@github.com/davenquinn/subdivide.git'
     ]

@@ -15,8 +15,9 @@ from ..geom.util import vector,plane
 log = logging.getLogger(__name__)
 
 def plot_aligned(pca, sparse=True, **kwargs):
-    """ Plots the residuals of a principal component
-        analysis of attiude data.
+    """
+    Plots the residuals of a principal component
+    analysis of attiude data.
     """
     colormap = kwargs.pop('colormap',None)
 
@@ -130,4 +131,3 @@ def plot_aligned(pca, sparse=True, **kwargs):
 
     ax.set_xlabel("Meters")
     return fig
-
