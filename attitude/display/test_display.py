@@ -19,7 +19,6 @@ sheets = ('upper','lower','nominal')
 
 cases = lambda: product(range(10),sheets)
 
-#@pytest.mark.xfail(reason="Not sure why this is happening")
 def test_simple_plane():
     for i,sheet in cases():
         obj = random_pca()
