@@ -1,3 +1,9 @@
+"""
+Functions to support polar plotting in a "dip, dip direction"
+framework. Necessary to support matplotlib's standard set of
+polar axes.
+"""
+
 import numpy as N
 from matplotlib.path import Path
 from matplotlib.patches import PathPatch
@@ -12,8 +18,6 @@ from .stereonet import plot_patch
 def pole_error(ax, fit, *args, **kwargs):
     axes = fit.axes
 
-    #level = kwargs.pop('level',1)
-    traditional_layout = kwargs.pop('traditional_layout',True)
     d = N.diagonal(fit.covariance_matrix)
     ell = ellipse()
 
@@ -32,25 +36,20 @@ def pole_error(ax, fit, *args, **kwargs):
 
     _ = dot(e.T,axes).T
 
-    #if traditional_layout:
-    #lon,lat = M.cart2sph(_[2],_[0],-_[1])
-    #else:
     lon,lat = M.cart2sph(-_[1],_[0],_[2])
     lon,lat = M.cart2sph(-_[0],_[1],_[2])
+    # This converts us into an upper-hemisphere
+    # representation
     lon -= N.pi
 
     ell = list(zip(lon,lat))
 
     lonlat = N.array(ell)
     lonlat[:,1] = 90-N.degrees(lonlat[:,1])
-    #lonlat[:,0] *= -1
-    #lonlat[:,1] = N.degrees(lonlat[:,1])
-    #import IPython; IPython.embed(); raise
+
     n = len(lonlat)
     codes = [Path.MOVETO]
     codes += [Path.LINETO]*(n-1)
-
-    #import IPython; IPython.embed(); raise
 
     vertices = list(lonlat)
     plot_patch(ax, vertices, codes, **kwargs)
