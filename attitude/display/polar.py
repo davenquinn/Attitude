@@ -2,6 +2,10 @@
 Functions to support polar plotting in a "dip, dip direction"
 framework. Necessary to support matplotlib's standard set of
 polar axes.
+
+    Note: the development version of `mplstereonet` supports
+    a more robust version of polar axes, but this isn't yet
+    released. See https://github.com/joferkington/mplstereonet/issues/16
 """
 
 import numpy as N
@@ -40,7 +44,7 @@ def pole_error(ax, fit, *args, **kwargs):
     lon,lat = M.cart2sph(-_[0],_[1],_[2])
     # This converts us into an upper-hemisphere
     # representation
-    lon -= N.pi
+    lon -= N.pi/2
 
     ell = list(zip(lon,lat))
 
@@ -57,3 +61,7 @@ def pole_error(ax, fit, *args, **kwargs):
 def uncertain_pole(ax, *args, **kwargs):
     fit = ReconstructedPlane(*args)
     return pole_error(ax, fit, **kwargs)
+
+def pole(ax, strike, dip, *args, **kwargs):
+    dip_direction = strike+90
+    ax.plot(N.radians(dip_direction), dip, *args, **kwargs)

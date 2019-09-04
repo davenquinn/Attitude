@@ -29,7 +29,7 @@ def test_polar_plotting():
     """
     Test plotting on vanilla `matplotlib` polar axes.
     """
-    from .polar import uncertain_pole
+    from .polar import pole, uncertain_pole
 
     fig = plt.figure()
 
@@ -40,17 +40,16 @@ def test_polar_plotting():
     ax.set_rticks([4,8,12,16,20])
     ax.grid()
 
-
-    strike, dip = 45, 3
+    strike, dip = -45, 3
     rake = 0
     args=(ax, strike, dip, rake, 1, 5)
 
     uncertain_pole(*args, alpha=0.5)
-    ax.plot(N.radians(strike), dip, 'ko', markersize=3)
+    pole(ax, strike, dip, 'ko', markersize=3)
 
-    strike = 80
+    strike = -10
     dip = 6
-    ax.plot(N.radians(strike), dip, 'ko', markersize=3)
+    pole(ax, strike, dip, 'ko', markersize=3)
     uncertain_pole(ax, strike, dip, -30, 0.5, 10, alpha=0.5)
     ax.grid(True)
 
