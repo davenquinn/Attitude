@@ -18,8 +18,6 @@ def confluent_hypergeometric_function(k1, k2, n=10):
         val += top/btm
     return val
 
-
-
 def bingham_pdf(fit):
     """
     From the *Encyclopedia of Paleomagnetism*
@@ -76,5 +74,3 @@ def regular_grid(**kwargs):
     xmin, xmax, ymin, ymax = -bound, bound, -bound, bound
     lon, lat = N.mgrid[xmin : xmax : ncols * 1j, ymin : ymax : nrows * 1j]
     return lon,lat
-
-

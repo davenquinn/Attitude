@@ -45,7 +45,6 @@ def __simple_ellipse(**kwargs):
         v2 = iterative_normal_errors(*args, **kwargs)
         assert_array_almost_equal(v1,v2)
 
-#@pytest.mark.xfail(reason="Not sure why, but it isn't good.")
 def test_simple_ellipse():
-    #__simple_ellipse(n=n, traditional_layout=True, adaptive=False)
+    __simple_ellipse(n=n, traditional_layout=True, adaptive=False)
     __simple_ellipse(n=n, traditional_layout=False, adaptive=False)
