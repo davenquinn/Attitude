@@ -3,6 +3,7 @@ from .reconstructed import ReconstructedPlane
 from .pca import random_pca
 from ..geom.util import angle
 import pytest
+from numpy.testing import assert_array_almost_equal
 
 def test_rake_angle():
     """
@@ -13,7 +14,6 @@ def test_rake_angle():
     ang2 = angle(fit.axes[0], fit.dip_dr)
     assert N.allclose(ang, ang2)
 
-@pytest.mark.xfail(reason="Not working yet")
 def test_reconstructed_plane():
     """
     Test the reconstruction of a fitted plane from orientation
@@ -28,12 +28,16 @@ def test_reconstructed_plane():
     # Test that the nominal recovered orientation is the same
     assert N.allclose(fit.normal, reconstructed.normal)
 
+    assert N.allclose(fit.angular_errors(), reconstructed.angular_errors())
+
+    assert_array_almost_equal(fit.strike_dip_rake(), reconstructed.strike_dip_rake())
+
     fax = fit.axes
     rax = reconstructed.axes
     if fax[-1,-1] < 0:
        fax *= -1
     # Tolerance should be zero
-    assert N.allclose(fax, rax, atol=0.02)
+    assert_array_almost_equal(fax, rax)
 
     cov = N.diag(fit.covariance_matrix / fit.covariance_matrix[-1,-1])
     rcov = N.diag(reconstructed.covariance_matrix)
