@@ -12,12 +12,12 @@ install_requires = [
     'pytest',
     'pytest-mpl',
     'IPython',
-    'subdivide @ git+ssh://git@github.com/davenquinn/subdivide.git'
+    'subdivide>=1'
     ]
 
 setup(
     name='Attitude',
-    version="0.4.0",
+    version="0.5.0",
     description="Attitude computes the orientations of planes from point data.",
     license='MIT',
     keywords='gis data computation fitting statistics vector science geology',
