@@ -1,10 +1,25 @@
-FROM attitude-dev:latest
+FROM python:3.8-slim
 
-RUN apt-get update -y \
- && apt-get install curl gnupg -y \
+WORKDIR /source/docs
+
+COPY requirements.pip /source
+COPY docs/requirements.pip /source/docs
+
+RUN apt-get update \
+ && apt-get -y upgrade \
+ && apt-get -y install make pandoc \
+ && pip install --no-cache-dir -r /source/requirements.pip \
+ && pip install --no-cache-dir -r /source/docs/requirements.pip
+
+# Install extra dependencies for watching
+
+RUN apt-get install curl gnupg -y \
  && curl -sL https://deb.nodesource.com/setup_12.x | bash \
- && apt-get install nodejs -y
+ && apt-get -y install nodejs
 
 RUN pip install sphinx-autobuild && npm install -g stylus
 
 EXPOSE 8000
+
+COPY . /source
+RUN pip install --no-cache-dir -e /source
