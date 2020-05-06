@@ -1,9 +1,12 @@
 #!/usr/bin/env zsh
 
-cd docs
-mkdir -p _static
+# Create a virtualenv to work in
+python -m venv .venv && .venv/bin/activate
+# Install requirements
+pip install --requirement requirements.pip
 
-pip install guzzle_sphinx_theme nbsphinx sphinx-autobuild
 python scripts/generate-json.py _static/planes.json
 
 make html
+
+ls

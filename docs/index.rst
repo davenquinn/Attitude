@@ -11,10 +11,10 @@ Introduction
 ========
 
 **Attitude** is a Python module for fitting the orientation of planes in
-three-dimensional space *with meaningful error distributions*.
-This software is the reference implementation of the
-statistical method described in `this working paper <https://eartharxiv.org/4enzu/>`_,
-currently in review at *Earth and Space Sciences*.
+*three-dimensional space *with meaningful error distributions*. This software is
+*the reference implementation of the statistical technique and visualization
+*methods described in `this working paper <https://eartharxiv.org/4enzu/>`_,
+*currently in review at *Earth and Space Sciences*.
 
 .. image:: _static/_images/schematic-plane.png
    :width: 300px
@@ -23,15 +23,15 @@ currently in review at *Earth and Space Sciences*.
    :width: 500px
 
 
-The error-analysis and visualization process developed here is
-crucial to creating accurate and consistent representations of geological
-orientations from remote-sensing data.
-The methodology was developed primarily to support the analysis of
-geological orientations from Mars imagery and photogrammetric elevation models,
-but it can be applied to any remote-sensing dataset that captures the
-three-dimensional linear trace of a planar feature. The method's flexibility
-and independence from input view geometry make it particularly suited to
-unmanned aerial vehicle (UAV) and ad-hoc structure-from-motion (SfM) datasets.
+The error-analysis and visualization process developed here is crucial to
+creating accurate and consistent representations of geological orientations from
+remote-sensing data. The methodology was primarily developed to support the
+analysis of geological orientations from Mars imagery and photogrammetric
+elevation models, but it can be applied to any remote-sensing dataset that
+exposes the three-dimensional linear trace of a planar feature. The method's
+flexibility and independence from input view geometry make it particularly
+suited to unmanned aerial vehicle (UAV) and ad-hoc structure-from-motion (SfM)
+datasets.
 
 By default, the method uses principal-component analysis (PCA)
 to perform an orientation-independent regression. The Python module also contains
@@ -87,4 +87,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

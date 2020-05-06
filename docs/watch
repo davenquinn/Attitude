@@ -6,5 +6,9 @@ style_dir=theme/static
 
 mkdir -p $style_dir
 
-#stylus -w -o $style_dir theme/main.styl & \
-SPHINXBUILD=sphinx-autobuild make html
+npm install -g stylus
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.pip
+
+stylus -w -o $style_dir theme/main.styl & SPHINXBUILD=sphinx-autobuild make html
