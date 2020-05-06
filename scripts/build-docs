@@ -2,10 +2,15 @@
 
 base=$(git rev-parse --show-toplevel)
 hash=$(git rev-parse --short HEAD)
-tag=attitude-docs:$hash
 
-echo $base $tag
+tag=attitude-dev
+tag1=attitude-watch
 
-docker build -t $tag $base
-# Run, mounting entire source directory
-docker run -it -v $base:/source $tag /source/docs/build
+docker build -t $tag:latest $base
+# Run
+if [ "$1" == "--watch" ]; then
+  docker build -f Dockerfile.watch -t $tag1:latest $base
+  docker run -it -p 8000:8000 -v "$base:/source" $tag1:latest /source/docs/scripts/watch
+else
+  docker run -it $tag:latest /source/docs/scripts/build
+fi

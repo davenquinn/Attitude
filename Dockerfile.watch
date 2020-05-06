@@ -1,0 +1,10 @@
+FROM attitude-dev:latest
+
+RUN apt-get update -y \
+ && apt-get install curl gnupg -y \
+ && curl -sL https://deb.nodesource.com/setup_12.x | bash \
+ && apt-get install nodejs -y
+
+RUN pip install sphinx-autobuild && npm install -g stylus
+
+EXPOSE 8000

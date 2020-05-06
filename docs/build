@@ -1,8 +1,0 @@
-#!/bin/bash
-
-# Install the attitude module
-pip install -e .. > /dev/null
-
-python scripts/generate-json.py _static/planes.json
-
-make html

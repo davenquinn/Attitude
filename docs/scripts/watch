@@ -1,14 +1,8 @@
-#!/usr/bin/env zsh
+#!/bin/bash
 # Script to build documentation and serve on
 # localhost:8000
 
 style_dir=theme/static
-
 mkdir -p $style_dir
-
-npm install -g stylus
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.pip
 
 stylus -w -o $style_dir theme/main.styl & SPHINXBUILD=sphinx-autobuild make html

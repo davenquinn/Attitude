@@ -1,11 +1,15 @@
-FROM python:3.8-slim
+FROM python:3.8-slim AS attitude-dev
 
 WORKDIR /source/docs
 
-COPY docs/requirements.pip .
+COPY requirements.pip /source
+COPY docs/requirements.pip /source/docs
 
-RUN apt-get update && apt-get -y upgrade && apt-get -y install make pandoc \
- && pip install --no-cache-dir --requirement requirements.pip
+RUN apt-get update \
+ && apt-get -y upgrade \
+ && apt-get -y install make pandoc \
+ && pip install --no-cache-dir -r /source/requirements.pip \
+ && pip install --no-cache-dir -r /source/docs/requirements.pip
 
 COPY . /source
 

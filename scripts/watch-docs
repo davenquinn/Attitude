@@ -1,7 +1,3 @@
 #!/bin/bash
 
-hash=$(git rev-parse --short HEAD)
-tag=attitude-docs-$hash
-
-docker build -t $tag $(pwd)/docs
-docker run -it -v "$(pwd)/docs:/docs" $tag
+scripts/build-docs --watch
