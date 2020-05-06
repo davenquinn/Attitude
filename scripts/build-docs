@@ -1,0 +1,11 @@
+#!/bin/bash
+
+base=$(git rev-parse --show-toplevel)
+hash=$(git rev-parse --short HEAD)
+tag=attitude-docs:$hash
+
+echo $base $tag
+
+docker build -t $tag $base
+# Run, mounting entire source directory
+docker run -it -v $base:/source $tag /source/docs/build

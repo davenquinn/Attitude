@@ -36,7 +36,8 @@ extensions = [
     'sphinx.ext.todo',
     'nbsphinx',
     'sphinx.ext.mathjax',
-    'sphinx.ext.viewcode'
+    'sphinx.ext.viewcode',
+    'matplotlib.sphinxext.plot_directive'
     #"guzzle_sphinx_theme"
 ]
 
@@ -267,6 +268,8 @@ texinfo_documents = [
    'Miscellaneous'),
 ]
 
+nbsphinx_kernel_name = 'python3'
+
 # Documents to append as an appendix to all manuals.
 #texinfo_appendices = []
 
@@ -278,4 +281,3 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
-

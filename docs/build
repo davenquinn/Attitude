@@ -1,11 +1,7 @@
-#!/usr/bin/env zsh
+#!/bin/bash
 
-# Create a virtualenv to work in
-python -m venv .venv
-source .venv/bin/activate
-# Install requirements
-pip install --requirement requirements.pip
-pip install -e ..
+# Install the attitude module
+pip install -e .. > /dev/null
 
 python scripts/generate-json.py _static/planes.json
 
