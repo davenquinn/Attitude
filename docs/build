@@ -1,12 +1,12 @@
 #!/usr/bin/env zsh
 
 # Create a virtualenv to work in
-python -m venv .venv && .venv/bin/activate
+python -m venv .venv
+source .venv/bin/activate
 # Install requirements
 pip install --requirement requirements.pip
+pip install -e ..
 
 python scripts/generate-json.py _static/planes.json
 
 make html
-
-ls
