@@ -9,7 +9,7 @@ tag1=attitude-watch
 # Run
 if [ "$1" == "--watch" ]; then
   docker build -f Dockerfile.watch -t $tag1:latest $base
-  docker run -it -p 8000:8000/tcp -v "$base:/source" $tag1:latest /source/docs/scripts/watch
+  docker run -it -p 8000:8000 -v "$base:/source" $tag1:latest /source/docs/scripts/watch
 else
   docker build -t $tag:latest $base
   docker run -it $tag:latest /source/docs/scripts/build

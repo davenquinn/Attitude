@@ -5,4 +5,5 @@
 style_dir=theme/static
 mkdir -p $style_dir
 
-stylus -w -o $style_dir theme/main.styl & SPHINXBUILD=sphinx-autobuild make html
+scripts/generate-json _static/planes.json
+stylus -w -o $style_dir theme/main.styl & make livehtml
