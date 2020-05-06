@@ -2,19 +2,14 @@
 Attitude
 ********
 
-.. Attitude documentation master file, created by
-   sphinx-quickstart on Fri Jun  9 03:29:47 2017.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Introduction
-========
+============
 
 **Attitude** is a Python module for fitting the orientation of planes in
-*three-dimensional space *with meaningful error distributions*. This software is
-*the reference implementation of the statistical technique and visualization
-*methods described in `this working paper <https://eartharxiv.org/4enzu/>`_,
-*currently in review at *Earth and Space Sciences*.
+three-dimensional space *with meaningful error distributions*. This software is
+the reference implementation of the statistical technique and visualization
+methods described in `this working paper <https://eartharxiv.org/4enzu/>`_,
+currently in review at *Earth and Space Sciences*.
 
 .. image:: _static/_images/schematic-plane.png
    :width: 300px

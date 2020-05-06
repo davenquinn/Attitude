@@ -3,14 +3,12 @@
 base=$(git rev-parse --show-toplevel)
 hash=$(git rev-parse --short HEAD)
 
-tag=attitude-dev
-tag1=attitude-watch
+tag=attitude-dev:latest
 
 # Run
+docker build -t $tag $base
 if [ "$1" == "--watch" ]; then
-  docker build -f Dockerfile.watch -t $tag1:latest $base
-  docker run -it -p 8000:8000 -v "$base:/source" $tag1:latest /source/docs/scripts/watch
+  docker run -it -p 8000:8000 -v "$base:/source" $tag /source/docs/scripts/watch
 else
-  docker build -t $tag:latest $base
-  docker run -it $tag:latest /source/docs/scripts/build
+  docker run -it $tag /source/docs/scripts/build
 fi
