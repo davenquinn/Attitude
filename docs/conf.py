@@ -25,6 +25,8 @@ extensions = [
     'nbsphinx',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
+    'sphinxcontrib.bibtex',
+    'sphinx_gitstamp'
     #'sphinx_last_updated_by_git'
     #"guzzle_sphinx_theme"
 ]
@@ -111,6 +113,13 @@ source_suffix = ['.rst', '.md']
 html_theme_path = 'theme'
 #html_theme = 'guzzle_sphinx_theme'
 
+html_theme_options = {
+    'logo': '_images/logo.png',
+    'logo_name': True,
+    'github_user': 'davenquinn',
+    'github_repo': 'Attitude',
+}
+
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
@@ -189,14 +198,6 @@ html_static_path = ['_static']
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'Attitudedoc'
 
-# Grouping the document tree into LaTeX files. List of tuples
-# (source start file, target name, title,
-#  author, documentclass [howto, manual, or own class]).
-latex_documents = [
-  ('index', 'Attitude.tex', u'Attitude Documentation',
-   u'Daven Quinn', 'manual'),
-]
-
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
 #latex_logo = None
@@ -217,41 +218,9 @@ latex_documents = [
 # If false, no module index is generated.
 #latex_domain_indices = True
 
-
-# -- Options for manual page output ---------------------------------------
-
-# One entry per manual page. List of tuples
-# (source start file, name, description, authors, manual section).
-man_pages = [
-    ('index', 'attitude', u'Attitude Documentation',
-     [u'Daven Quinn'], 1)
-]
-
-# If true, show URL addresses after external links.
-#man_show_urls = False
-
-
-# -- Options for Texinfo output -------------------------------------------
-
-# Grouping the document tree into Texinfo files. List of tuples
-# (source start file, target name, title, author,
-#  dir menu entry, description, category)
-texinfo_documents = [
-  ('index', 'Attitude', u'Attitude Documentation',
-   u'Daven Quinn', 'Attitude', 'One line description of project.',
-   'Miscellaneous'),
-]
-
 nbsphinx_kernel_name = 'python3'
 
-# Documents to append as an appendix to all manuals.
-#texinfo_appendices = []
-
-# If false, no module index is generated.
-#texinfo_domain_indices = True
-
-# How to display URL addresses: 'footnote', 'no', or 'inline'.
-#texinfo_show_urls = 'footnote'
-
-# If true, do not generate a @detailmenu in the "Top" node's menu.
-#texinfo_no_detailmenu = False
+nbsphinx_execute_arguments = [
+    "--InlineBackend.figure_formats={'svg'}",
+    "--InlineBackend.rc={'figure.dpi': 96}",
+]

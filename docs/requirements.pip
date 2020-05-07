@@ -1,9 +1,10 @@
-sphinx==pre
+sphinx==3.0.3
 nbsphinx==0.6.1
 recommonmark==0.6.0
 jupyter_client
 matplotlib
 IPython
 ipykernel
-sphinx-last-updated-by-git
+sphinx-gitstamp
+sphinxcontrib-bibtex
 sphinx-autobuild==0.7.1

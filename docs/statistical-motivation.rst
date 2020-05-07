@@ -7,7 +7,7 @@ Statistical motivation
 - Lack of visualization tools makes it difficult to assess relative quality
   of measurements
 
-.. figure:: _static/images/schematic-plane.png
+.. figure:: _static/_images/schematic-plane.png
    :width: 400px
 
    Schematic plane
@@ -16,11 +16,10 @@ Statistical motivation
    (B) A generalization of possible nominal planes to a hyperbolic error space in
        two dimensions.
 
-.. figure:: _static/images/schematic-spherical.png
+.. figure:: _static/_images/schematic-spherical.png
 
    Schematic representation of spherical error space
 
    (A) The rotated coordinate basis that underlies PCA.
    (B) A generalization of possible nominal planes to a hyperbolic error space in
        two dimensions.
-
