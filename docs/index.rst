@@ -1,4 +1,4 @@
-Tools for error analysis for remotely-sensed planar orientations
+Attitude: error analysis for remotely-sensed planar orientations
 ================================================================
 
 Surface orientation measurements are critical geological data, serving as
@@ -9,7 +9,7 @@ and tectonic processes.
 Remote-sensing tools (e.g. photogrammetric digital surface models derived from
 aerial and satellite data) allow orientation measurements in new contexts, such
 as Mars science. However, remote-sensing datasets entail new and complex
-dataset- and scene-dependent errors. Some examples include:
+dataset- and scene-dependent errors, including:
 
 - Sensor-geometry errors (e.g. stereo separation, LiDAR point density)
 - The geometry of the hillslope over which a plane can be traced
