@@ -31,12 +31,14 @@ extensions = [
     #"guzzle_sphinx_theme"
 ]
 
+bibtex_bibfiles = ['refs/refs.bib']
 
+html_theme = "pydata_sphinx_theme"
 # Guzzle theme options (see theme.conf for more information)
-html_theme_options = {
-    # Set the name of the project to appear in the sidebar
-    "project_nav_name": "Attitude",
-}
+# html_theme_options = {
+#     # Set the name of the project to appear in the sidebar
+#     "project_nav_name": "Attitude",
+# }
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -52,7 +54,9 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Attitude'
-copyright = u'2017, Daven Quinn'
+copyright = u'2017–2021, Daven Quinn'
+
+#html_sidebars = { '**': ['globaltoc.html', 'localtoc.html', 'relations.html', 'sourcelink.html', 'searchbox.html'] }
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -93,7 +97,7 @@ exclude_patterns = ['_build']
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+#pygments_style = 'sphinx'
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
@@ -110,14 +114,21 @@ source_suffix = ['.rst', '.md']
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme_path = 'theme'
+# html_theme_path = 'theme'
 #html_theme = 'guzzle_sphinx_theme'
+#html_logo = '_static/_images/logo.png'
+
+html_context = {
+    "github_user": "davenquinn",
+    "github_repo": "Attitude",
+    "github_version": "master",
+    "doc_path": "docs",
+}
 
 html_theme_options = {
-    'logo': '_images/logo.png',
-    'logo_name': True,
-    'github_user': 'davenquinn',
-    'github_repo': 'Attitude',
+    "use_edit_page_button": True,
+    "show_toc_level": 2,
+    "github_url": "https://github.com/davenquinn/Attitude",
 }
 
 # Theme options are theme-specific and customize the look and feel of a theme

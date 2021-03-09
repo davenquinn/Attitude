@@ -8,3 +8,4 @@ ipykernel
 sphinx-gitstamp
 sphinxcontrib-bibtex
 sphinx-autobuild==0.7.1
+pydata-sphinx-theme

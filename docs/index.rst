@@ -1,6 +1,9 @@
 Attitude: error analysis for remotely-sensed planar orientations
 ================================================================
 
+.. figure:: _static/_images/logo.png
+   :width: 300px
+
 Surface orientation measurements are critical geological data, serving as
 the foundational descriptors of bedding, faults, folds, and rock deformational
 fabrics. This information, in turn, drives models of depositional, alteration,
