@@ -1,0 +1,9 @@
+#!/bin/bash
+# Script to build documentation and serve on
+# localhost:8000
+
+style_dir=theme/static
+mkdir -p $style_dir
+
+scripts/generate-json _static/planes.json
+stylus -w -o $style_dir theme/main.styl & make livehtml

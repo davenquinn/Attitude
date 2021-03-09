@@ -1,0 +1,14 @@
+#!/bin/bash
+
+base=$(git rev-parse --show-toplevel)
+hash=$(git rev-parse --short HEAD)
+
+tag=attitude-dev:latest
+
+# Run
+docker build -t $tag $base
+if [ "$1" == "--watch" ]; then
+  docker run -it -p 8000:8000 -v "$base:/source" $tag /source/docs/scripts/watch
+else
+  docker run -it $tag /source/docs/scripts/build
+fi

@@ -1,9 +1,0 @@
-#!/usr/bin/env zsh
-
-cd docs
-mkdir -p _static
-
-pip install guzzle_sphinx_theme nbsphinx sphinx-autobuild
-python scripts/generate-json.py _static/planes.json
-
-make html

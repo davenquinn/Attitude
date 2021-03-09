@@ -29,8 +29,10 @@ planes = []
 for name in ['poorly_defined', 'well_defined']:
     array = load_test_plane(name)
     pca = Orientation(array)
-    planes.append(serialize(pca, name=name))
+    res = pca.to_mapping()
+    res["name"] = name
+    planes.append(res)
 
 with open(argv[1], 'w') as f:
-    dump(planes, f)
+    dump(planes, f, indent=4)
 

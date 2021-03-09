@@ -1,0 +1,10 @@
+numpy
+scipy
+matplotlib
+mplstereonet
+jinja2
+colour
+pytest
+pytest-mpl
+IPython
+subdivide >= 1

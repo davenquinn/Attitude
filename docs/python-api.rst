@@ -1,5 +1,5 @@
-Python API
-==========
+Python module
+=============
 
 The core **Orientation** module
 -------------------------------
