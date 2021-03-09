@@ -1,26 +1,3 @@
 #!/bin/bash
-# Publish documentation to Github Pages
-
-root=$(git rev-parse --show-toplevel)
-docs=$root/docs
-build=$docs/_build/html
-hash=$(git rev-parse --short HEAD)
-branch=$(git rev-parse --abbrev-ref HEAD)
-origin=$(git remote get-url origin)
-gh_pages=$docs/gh-pages
-# build the docs
-(cd $docs && make html)
-
-# Clone github pages branch into the same repository
-git clone --single-branch -b gh-pages "$origin" "$gh_pages"
-rm -rf "$gh_pages/*"
-
-cp -r ./docs/_build/html/* "$gh_pages"
-touch "$gh_pages/.nojekyll"
-pushd "$gh_pages"
-git rm -rf *
-git add -A
-git commit -m "Publishing docs for $hash on $branch"
-git push origin gh-pages
-popd
-rm -rf "$gh_pages"
+# Publish documentation
+rclone sync --s3-acl=public-read -L _build/html davenquinn-spaces:davenquinn-sites/projects/Attitude

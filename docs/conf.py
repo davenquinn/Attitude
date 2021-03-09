@@ -56,6 +56,8 @@ master_doc = 'index'
 project = u'Attitude'
 copyright = u'2017–2021, Daven Quinn'
 
+html_baseurl = "/projects/attitude"
+
 #html_sidebars = { '**': ['globaltoc.html', 'localtoc.html', 'relations.html', 'sourcelink.html', 'searchbox.html'] }
 
 # The version info for the project you're documenting, acts as replacement for
