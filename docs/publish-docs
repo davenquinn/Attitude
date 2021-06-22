@@ -1,3 +1,3 @@
 #!/bin/bash
 # Publish documentation
-rclone sync --s3-acl=public-read -L _build/html davenquinn-spaces:davenquinn-sites/projects/Attitude
+rclone sync --s3-acl=public-read -L _build/html davenquinn-spaces:davenquinn-sites/projects/attitude
