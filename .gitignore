@@ -6,7 +6,6 @@ etc/
 dist/
 attitude/display/templates/build/*
 Attitude.egg-info/
-docs/_static/
 docs/theme/static
 .ipynb_checkpoints
 docs/_build
