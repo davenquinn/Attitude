@@ -1,4 +1,5 @@
 import * as d3 from 'd3'
+import {select} from '../selection'
 
 ## Stereonet Dragging
 export default (stereonet)->
@@ -36,6 +37,6 @@ export default (stereonet)->
       m0 = null
 
   el.on('mousedown', mousedown)
-  d3.select(window)
+  select(window)
     .on("mousemove", mousemove)
     .on("mouseup", mouseup)

@@ -1,7 +1,6 @@
 import * as d3 from 'd3'
 import chroma from 'chroma-js'
-import {selection, select} from 'd3-selection'
-import 'd3-selection-multi'
+import {select} from '../selection'
 import * as functions from '../functions.coffee'
 import * as math from '../math.coffee'
 import style from './module.styl'
@@ -90,7 +89,7 @@ Stereonet = ->
                 color = o.color(d)
               else
                 color = o.color
-              e = d3.select @
+              e = select @
               e.selectAll 'path.error'
                 .attrs fill: color
               e.selectAll 'path.nominal'
@@ -113,7 +112,7 @@ Stereonet = ->
     fn = functions.errorEllipse o1
 
     createEllipse = (d)->
-      d3.select @
+      select @
         .append 'path'
         .attr 'class', 'error'
         .datum fn(d)
@@ -130,7 +129,7 @@ Stereonet = ->
         color = o.color(d)
       else
         color = o.color
-      e = d3.select @
+      e = select @
         .selectAll 'path.error'
         .attrs fill: color
     __redraw()
@@ -160,7 +159,8 @@ Stereonet = ->
     path = d3.geoPath().projection proj
 
     if el?
-      el.attrs height: scale, width: scale
+      el.attr("height", scale)
+      el.attr("width", scale)
 
   __setScaleOnly = (n)->
     proj.scale n
@@ -175,10 +175,9 @@ Stereonet = ->
   __createNeatline = (sel, neatlineId)->
     sel.append "path"
       .datum({type: "Sphere"})
-      .attrs
-        d: path
-        id: neatlineId.slice(1)
-        fill: 'transparent'
+      .attr("d", path)
+      .attr("id", neatlineId.slice(1))
+      .attr("fill", "transparent")
 
   f = (_el, opts={})->
     # This should be integrated into a reusable
@@ -200,37 +199,33 @@ Stereonet = ->
       .attr "xlink:href", sphereId
 
     el.append "use"
-      .attrs
-        class: 'background'
-        'xlink:href': sphereId
-        fill: 'white'
-        stroke: '#aaaaaa'
+      .attr 'class', 'background'
+      .attr 'xlink:href', sphereId
+      .attr 'fill', 'white'
+      .attr 'stroke', '#aaaaaa'
 
 
     int = el.append 'g'
-      .attrs
-        class: 'interior'
+      .attr 'class', 'interior'
 
     int.append 'path'
       .datum graticule
-      .attrs
-        class: 'graticule'
-        d: path
+      .attr 'class', 'graticule'
+      .attr 'd', path
 
     dataArea = int.append 'g'
-      .attrs class: 'data'
+      .attr 'class', 'data'
 
     # This is a bit of a hack
     if shouldClip or __overrideNeatlineClip
       el.append "use"
-        .attrs
-          class: 'neatline'
-          "xlink:href": sphereId
+        .attr 'class', 'neatline'
+        .attr "xlink:href", sphereId
 
       int.attr 'clip-path', "url(#{neatlineId})"
 
     overlay = el.append "g"
-      .attrs class: "overlay"
+      .attr 'class', "overlay"
 
     for item in callStack
       item()
@@ -287,13 +282,15 @@ Stereonet = ->
       x ?= margin
       y ?= margin
       sel.append 'rect'
-        .attrs {
+
+      for k,v of {
           id: id.slice(1)
           width
           height
           x
           y
         }
+        sel.attr(k,v)
       proj.clipAngle(90)
         .translate [width/2+margin, height/2+margin]
       __overrideNeatlineClip = true

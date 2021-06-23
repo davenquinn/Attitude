@@ -3,14 +3,13 @@ import Q from 'quaternion'
 import {mean} from 'd3-array'
 import {line} from 'd3-shape'
 import * as d3 from 'd3'
-import 'd3-selection-multi'
 import 'd3-jetpack'
+import {select} from "./selection"
 import chroma from 'chroma-js'
 import * as math from './math.coffee'
 import {opacityByCertainty} from './stereonet'
 import uuid from 'uuid'
 
-select = d3.select
 
 ## Matrix to map down to 2 dimensions
 T = M.matrix [[1,0],[0,0],[0,1]]
