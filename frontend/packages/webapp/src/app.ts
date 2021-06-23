@@ -36,6 +36,13 @@ function transformData(data: Orientation): GridElement[] {
 
 type SheetContent = GridElement[][];
 
+function addIndexColumn(data) {
+  return data.map((d, i) => {
+    const start = i > 0 ? { value: i, readOnly: true } : { readOnly: true };
+    return [start, ...d];
+  });
+}
+
 function fillEmptyRows(
   data: SheetContent,
   requiredLength: number = 10
@@ -45,11 +52,37 @@ function fillEmptyRows(
   let emptyData = orientationFields.map((d) => {
     return { value: null };
   });
+
+  const headerRow = orientationFields.map((d) => {
+    return { readOnly: true, value: d };
+  });
+
   const addedRows = Array(requiredLength).fill(emptyData);
 
-  console.log(addedRows);
+  return addIndexColumn([headerRow, ...data, ...addedRows]);
+}
 
-  return [...data, ...addedRows];
+function DataArea({ data, updateData }) {
+  const nHeaderRows = 1;
+  return h("div.data-area", [
+    h(ReactDataSheet, {
+      data: fillEmptyRows(data.map(transformData)),
+      valueRenderer: (cell) => cell.value,
+      onCellsChanged: (changes) => {
+        let newData = [...data];
+        changes.forEach(({ cell, row, col, value }) => {
+          const ix = row - nHeaderRows;
+          const field = orientationFields[col - 1];
+          let val = value;
+          if (val == "") val = null;
+          newData[ix] = { ...newData[ix], [field]: value };
+        });
+        console.log(newData);
+        updateData(newData);
+      },
+    }),
+    h(Button, { size: "small" }, "Add more rows"),
+  ]);
 }
 
 export function App() {
@@ -57,11 +90,9 @@ export function App() {
 
   return h("div.app", [
     h("h1", "Uncertain orientations plotter"),
-    h(AttitudeUI),
-    h(ReactDataSheet, {
-      data: fillEmptyRows(state.map(transformData)),
-      valueRenderer: (cell) => cell.value,
-    }),
-    h(Button, { size: "small" }, "Add more rows"),
+    h("div.main", [
+      h(DataArea, { data: state, updateData: setState }),
+      h("div.plot-area", null, h(AttitudeUI)),
+    ]),
   ]);
 }
