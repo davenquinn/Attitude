@@ -1,5 +1,5 @@
 import * as d3 from 'd3'
-import {select} from '../selection'
+import {select, event} from '../selection'
 
 ## Stereonet Dragging
 export default (stereonet)->
@@ -11,17 +11,17 @@ export default (stereonet)->
 
   mousedown = ->
     m0 = [
-      d3.event.pageX
-      d3.event.pageY
+      event.pageX
+      event.pageY
     ]
     o0 = stereonet.rotate()
-    d3.event.preventDefault()
+    event.preventDefault()
 
   mousemove = ->
     if m0
       m1 = [
-        d3.event.pageX
-        d3.event.pageY
+        event.pageX
+        event.pageY
       ]
       o1 = [
         o0[0] + (m1[0] - (m0[0])) / 3

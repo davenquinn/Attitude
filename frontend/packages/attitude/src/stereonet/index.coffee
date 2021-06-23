@@ -182,7 +182,7 @@ Stereonet = ->
   f = (_el, opts={})->
     # This should be integrated into a reusable
     # component
-    el = _el
+    el = select(_el.node())
 
     __setScale() # Scale the stereonet
 
@@ -402,7 +402,7 @@ opacityByCertainty = (colorFunc, accessor=null)->
     fill = color.alpha(al).css()
     stroke = color.alpha(al+darkenStroke).css()
 
-    e = d3.select @
+    e = select @
     if accessor?
       e = e.selectAll 'path.error'
     e.attr 'fill', fill
