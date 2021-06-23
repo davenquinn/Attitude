@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import h from 'react-hyperscript'
 import * as d3 from 'd3'
-import {Stereonet, opacityByCertainty, globalLabels,chroma} from "../../src"
+import {Stereonet, opacityByCertainty, globalLabels,chroma} from "attitude/src"
 import {Switch, Button} from "@blueprintjs/core"
 
 setHoveredFill = (d) ->

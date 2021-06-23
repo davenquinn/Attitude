@@ -1,6 +1,7 @@
-import {Stereonet, opacityByCertainty, globalLabels,chroma} from "../src"
-import {hyperbolicErrors, apparentDip, digitizedLine, PlaneData, fixAngle} from "../src"
+import {Stereonet, opacityByCertainty, globalLabels,chroma} from "attitude/src"
+import {hyperbolicErrors, apparentDip, digitizedLine, PlaneData, fixAngle} from "attitude/src"
 import style from './ui-styles.styl'
+import '@blueprintjs/core/lib/css/blueprint.css'
 import {InteractiveStereonetComponent} from './components/stereonet'
 import {SideViewComponent} from './components/side-view'
 import {DataPanelComponent} from './components/data-panel'

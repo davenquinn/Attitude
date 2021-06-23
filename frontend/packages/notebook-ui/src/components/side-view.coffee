@@ -4,9 +4,9 @@ import h from 'react-hyperscript'
 import * as M from 'mathjs'
 
 import * as d3 from 'd3'
-import {opacityByCertainty,chroma} from "../../src"
-import {hyperbolicErrors, apparentDip, digitizedLine, PlaneData, fixAngle} from "../../src"
-import {computeCentroidExtrema} from '../../src/util'
+import {opacityByCertainty,chroma} from "attitude/src"
+import {hyperbolicErrors, apparentDip, digitizedLine, PlaneData, fixAngle} from "attitude/src"
+import {computeCentroidExtrema} from 'attitude/src/util'
 
 darkenColor = (c)->
   chroma(c).darken(2).css()

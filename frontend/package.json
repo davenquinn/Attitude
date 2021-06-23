@@ -5,13 +5,17 @@
   "description": "[Rollup](https://github.com/rollup/rollup/wiki/pkg.module) is used to build this into a functional module for Node.js and the browser.",
   "main": "index.js",
   "devDependencies": {
-    "lerna": "^4.0.0"
+    "lerna": "^4.0.0",
+    "@parcel/transformer-coffeescript": "2.0.0-beta.3.1",
+    "@parcel/transformer-stylus": "2.0.0-beta.3.1",
+    "parcel": "2.0.0-beta.3.1"
   },
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
-    "postinstall": "lerna bootstrap --hoist"
+    "postinstall": "lerna bootstrap --hoist",
+    "dev": "parcel serve packages/webapp/index.html"
   },
   "author": "Daven Quinn",
   "license": "ISC",
