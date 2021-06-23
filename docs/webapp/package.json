@@ -6,11 +6,13 @@
   "scripts": {
     "dev": "parcel serve ./index.html",
     "build": "parcel build ./index.html"
-   },
+  },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "parcel": "^2.0.0-beta.3.1"
+    "@parcel/transformer-coffeescript": "2.0.0-beta.3.1",
+    "@parcel/transformer-stylus": "2.0.0-beta.3.1",
+    "parcel": "2.0.0-beta.3.1"
   },
   "dependencies": {
     "@macrostrat/hyper": "^1.2.13",

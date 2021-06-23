@@ -1,4 +1,5 @@
 import h from "@macrostrat/hyper"
 import { render } from "react-dom";
+import {AttitudeUI} from "../../js-frontend/ui-src/index.coffee"
 
-render(h("h1", "Hello World"), document.getElementById("root"));
+render(h(AttitudeUI), document.getElementById("root"));

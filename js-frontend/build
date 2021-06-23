@@ -1,8 +1,0 @@
-#!/bin/zsh
-
-rollup -c rollup.node.js
-rollup -c rollup.config.js
-
-if [ "$1" != '--rollup-only' ]; then
-  $(npm bin)/webpack --config webpack.ui.js
-fi

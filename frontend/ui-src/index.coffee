@@ -131,7 +131,7 @@ createUI = (node,data) ->
   el = h AttitudeUI, {attitudes: data}
   ReactDOM.render(el, node)
 
-global.attitudeUI = createUI
-global.d3 = d3
+# global.attitudeUI = createUI
+# global.d3 = d3
 
-export {createUI}
+export {createUI, AttitudeUI}
