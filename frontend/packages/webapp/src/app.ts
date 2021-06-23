@@ -1,5 +1,5 @@
 import h from "@macrostrat/hyper";
-import { AttitudeUI } from "attitude-notebook-ui/src/index.coffee";
+import { AttitudeUI, Stereonet } from "attitude-notebook-ui/src/index.coffee";
 import ReactDataSheet from "react-datasheet";
 import { Button } from "evergreen-ui";
 import "react-datasheet/lib/react-datasheet.css";
@@ -77,7 +77,6 @@ function DataArea({ data, updateData }) {
           if (val == "") val = null;
           newData[ix] = { ...newData[ix], [field]: value };
         });
-        console.log(newData);
         updateData(newData);
       },
     }),
@@ -92,7 +91,7 @@ export function App() {
     h("h1", "Uncertain orientations plotter"),
     h("div.main", [
       h(DataArea, { data: state, updateData: setState }),
-      h("div.plot-area", null, h(AttitudeUI)),
+      h("div.plot-area", null, h(Stereonet, { data: [] })),
     ]),
   ]);
 }

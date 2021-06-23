@@ -135,4 +135,4 @@ createUI = (node,data) ->
 # global.attitudeUI = createUI
 # global.d3 = d3
 
-export {createUI, AttitudeUI}
+export {createUI, AttitudeUI, InteractiveStereonetComponent as Stereonet}
