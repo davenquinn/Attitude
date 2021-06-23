@@ -15,7 +15,7 @@
   ],
   "scripts": {
     "postinstall": "lerna bootstrap --hoist",
-    "dev": "parcel serve packages/webapp/index.html"
+    "dev": "parcel serve index.html"
   },
   "author": "Daven Quinn",
   "license": "ISC",

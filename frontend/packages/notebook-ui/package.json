@@ -2,7 +2,8 @@
   "name": "attitude-notebook-ui",
   "version": "1.0.0",
   "description": "",
-  "main": "rollup.ui.js",
+  "main": "dist/index.coffee",
+  "source": "src/index.coffee",
   "directories": {
     "test": "test"
   },

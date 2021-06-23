@@ -1,17 +1,8 @@
 {
-  "emitDeclarationOnly": true,
-  "allowJS": true,
-  "checkJS": true,
   "compilerOptions": {
     "baseUrl": ".",
-    "moduleResolution": "node",
-    "declaration": true,
-    "sourceMap": true,
-    "declarationDir": "dist/types",
     "lib": ["esnext", "dom"],
-    "jsx": "react",
     "esModuleInterop": true,
-    "typeRoots": ["node_modules/@types"],
     "paths": {
       "~/*": ["src/*"]
     }
