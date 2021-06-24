@@ -19,6 +19,7 @@
     "@macrostrat/hyper": "^1.2.13",
     "attitude-notebook-ui": "*",
     "evergreen-ui": "^6.0.1",
+    "immutability-helper": "^3.1.1",
     "react": "^17.0.2",
     "react-datasheet": "^1.4.9",
     "react-dom": "^17.0.2"

@@ -3,6 +3,7 @@ import { AttitudeUI, Stereonet } from "attitude-notebook-ui/src/index.coffee";
 import ReactDataSheet from "react-datasheet";
 import { Button } from "evergreen-ui";
 import "react-datasheet/lib/react-datasheet.css";
+import update, { Spec } from "immutability-helper";
 import { useState } from "react";
 interface GridElement extends ReactDataSheet.Cell<GridElement, number> {
   value: number | null;
@@ -22,15 +23,31 @@ interface Orientation {
   minError: number;
 }
 
+interface OrientationRow {
+  strike: number | null;
+  dip: number | null;
+  rake: number | null;
+  maxError: number | null;
+  minError: number | null;
+  color: string | null;
+}
+
 const defaultOrientations: Orientation[] = [
   { strike: 10, dip: 5, rake: 2, maxError: 4, minError: 2 },
 ];
 
-const orientationFields = ["strike", "dip", "rake", "maxError", "minError"];
+const orientationFields = [
+  { name: "Strike", key: "strike" },
+  { name: "Dip", key: "dip" },
+  { name: "Rake", key: "rake" },
+  { name: "Max.", key: "maxError", category: "Errors" },
+  { name: "Min.", key: "minError", category: "Errors" },
+  { name: "Color", key: "color" },
+];
 
 function transformData(data: Orientation): GridElement[] {
   return orientationFields.map((d) => {
-    return { value: data[d] };
+    return { value: data[d.key] ?? null };
   });
 }
 
@@ -43,55 +60,88 @@ function addIndexColumn(data) {
   });
 }
 
-function fillEmptyRows(
-  data: SheetContent,
-  requiredLength: number = 10
-): SheetContent {
-  const nToAdd = requiredLength - data.length;
+function addEmptyRows(data: SheetContent, modulus: number = 10): SheetContent {
+  const nToAdd = Math.ceil(data.length / modulus) * modulus - data.length;
   if (nToAdd <= 0) return data;
-  let emptyData = orientationFields.map((d) => {
-    return { value: null };
-  });
+  const emptyData = Array(orientationFields.length).fill({ value: null });
+  const addedRows = Array(nToAdd).fill(emptyData);
+  return [...data, ...addedRows];
+}
 
-  const headerRow = orientationFields.map((d) => {
-    return { readOnly: true, value: d };
-  });
+function Columns() {
+  return h("colgroup", [
+    h("col.index-column", { key: "index" }),
+    orientationFields.map(({ key }) => {
+      return h("col", {
+        className: key,
+        key,
+      });
+    }),
+  ]);
+}
 
-  const addedRows = Array(requiredLength).fill(emptyData);
+function Row(props) {
+  const { children, row } = props;
+  return h("tr", [h("td.index-cell.cell.read-only.index", row), children]);
+}
 
-  return addIndexColumn([headerRow, ...data, ...addedRows]);
+function Header() {
+  return h("thead", [
+    h("tr.header", [
+      h("td.index-column.cell.read-only", ""),
+      orientationFields.map((col, index) => {
+        return h(
+          "td.cell.header.read-only.header-cell",
+          {
+            key: col.key,
+            index,
+          },
+          col.name
+        );
+      }),
+    ]),
+  ]);
+}
+
+function Sheet({ className, children }) {
+  return h("table", { className }, [
+    h(Columns),
+    h(Header),
+    h("tbody", children),
+  ]);
 }
 
 function DataArea({ data, updateData }) {
-  const nHeaderRows = 1;
+  console.log(data);
   return h("div.data-area", [
     h(ReactDataSheet, {
-      data: fillEmptyRows(data.map(transformData)),
+      data,
       valueRenderer: (cell) => cell.value,
+      rowRenderer: Row,
+      sheetRenderer: Sheet,
       onCellsChanged: (changes) => {
-        let newData = [...data];
+        let spec: Spec<SheetContent> = {};
         changes.forEach(({ cell, row, col, value }) => {
-          const ix = row - nHeaderRows;
-          const field = orientationFields[col - 1];
-          let val = value;
-          if (val == "") val = null;
-          newData[ix] = { ...newData[ix], [field]: value };
+          spec[row] ??= {};
+          spec[row][col] = { $set: value };
         });
-        updateData(newData);
+        updateData(update(data, spec));
       },
     }),
     h(Button, { size: "small" }, "Add more rows"),
   ]);
 }
 
+const defaultData = addEmptyRows(defaultOrientations.map(transformData), 10);
+
 export function App() {
-  const [state, setState] = useState<Orientation[]>(defaultOrientations);
+  const [data, setState] = useState<SheetContent>(defaultData);
 
   return h("div.app", [
     h("h1", "Uncertain orientations plotter"),
     h("div.main", [
-      h(DataArea, { data: state, updateData: setState }),
-      h("div.plot-area", null, h(Stereonet, { data: [] })),
+      h(DataArea, { data, updateData: setState }),
+      h("div.plot-area", null, h(Stereonet, { data: [], margin: 50 })),
     ]),
   ]);
 }

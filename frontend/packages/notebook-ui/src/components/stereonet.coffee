@@ -27,16 +27,17 @@ class StereonetComponent extends React.Component
     hovered: []
     precision: 0.2
     center: [0,0]
+    margin: 25
   }
   constructor: (props)->
     super props
     @state = {center: @props.center}
 
   componentDidMount: ->
-    {data, center, precision} = @props
+    {data, center, precision, margin} = @props
     @stereonet = Stereonet()
       .size(400)
-      .margin(25)
+      .margin(margin)
 
     @stereonet.projection()
       .precision(precision)
