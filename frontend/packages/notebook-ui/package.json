@@ -11,7 +11,8 @@
     "attitude": "*"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --config webpack.ui.js"
   },
   "author": "",
   "license": "ISC"

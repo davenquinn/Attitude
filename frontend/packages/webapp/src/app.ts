@@ -1,5 +1,5 @@
 import h from "@macrostrat/hyper";
-import { AttitudeUI, Stereonet } from "attitude-notebook-ui/src/index.coffee";
+import { Stereonet } from "attitude-notebook-ui/src/index.coffee";
 import ReactDataSheet from "react-datasheet";
 import { Button } from "evergreen-ui";
 import "react-datasheet/lib/react-datasheet.css";
@@ -10,10 +10,7 @@ interface GridElement extends ReactDataSheet.Cell<GridElement, number> {
 }
 
 class OrientationDataSheet extends ReactDataSheet<GridElement, number> {}
-
-interface AppState {
-  grid: GridElement[][];
-}
+type SheetContent = GridElement[][];
 
 interface Orientation {
   strike: number;
@@ -48,15 +45,6 @@ const orientationFields = [
 function transformData(data: Orientation): GridElement[] {
   return orientationFields.map((d) => {
     return { value: data[d.key] ?? null };
-  });
-}
-
-type SheetContent = GridElement[][];
-
-function addIndexColumn(data) {
-  return data.map((d, i) => {
-    const start = i > 0 ? { value: i, readOnly: true } : { readOnly: true };
-    return [start, ...d];
   });
 }
 
@@ -123,7 +111,7 @@ function DataArea({ data, updateData }) {
         let spec: Spec<SheetContent> = {};
         changes.forEach(({ cell, row, col, value }) => {
           spec[row] ??= {};
-          spec[row][col] = { $set: value };
+          spec[row][col] = { $set: { value } };
         });
         updateData(update(data, spec));
       },

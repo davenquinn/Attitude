@@ -61,7 +61,7 @@
   },
   "scripts": {
     "test": "./run-tests",
-    "build": "./build"
+    "build": "rollup -c rollup.node.js"
   },
   "repository": {
     "type": "git",
