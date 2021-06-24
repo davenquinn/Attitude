@@ -1,5 +1,5 @@
 import h from "@macrostrat/hyper";
-import { Stereonet } from "attitude-notebook-ui/src/index.coffee";
+import { Stereonet } from "attitude-notebook-ui/src";
 import ReactDataSheet from "react-datasheet";
 import { Button } from "evergreen-ui";
 import "react-datasheet/lib/react-datasheet.css";

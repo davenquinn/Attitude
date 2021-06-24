@@ -15,4 +15,4 @@ transition.prototype.styles = transition_styles;
 
 selection.prototype.selectAppend = selectAppend;
 
-export {selection, transition, select, selectAll, event}
+export {selection, transition, select, selectAll, event};
