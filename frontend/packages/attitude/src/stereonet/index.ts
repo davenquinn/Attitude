@@ -10,7 +10,7 @@ import chroma from "chroma-js";
 import { select } from "../selection";
 import * as functions from "../functions";
 import * as math from "../math";
-import style from "./module.styl";
+import "./style.styl";
 import horizontal from "./horizontal";
 import vertical from "./vertical";
 import interaction from "./interaction";

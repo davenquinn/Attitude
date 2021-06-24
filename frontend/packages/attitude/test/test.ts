@@ -5,10 +5,10 @@
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 const { assert } = require("chai");
-const Promise = require("bluebird");
+const Bluebird = require("bluebird");
 const d3 = require("d3");
 const { exec } = require("child_process");
-const runCommand = Promise.promisify(exec);
+const runCommand = Bluebird.promisify(exec);
 const M = require("mathjs");
 
 const randomPCA = async function () {
@@ -20,20 +20,20 @@ const randomPCA = async function () {
 describe("math module", function () {
   it("should be importable", function () {
     const { math } = require("..");
-    return assert(math != null);
+    assert(math != null);
   });
 
   return describe("`Attitude` python module", function () {
     it("should be importable", async function () {
       const [stdout, stderr] = await runCommand('python -c "import attitude"');
-      return assert(stderr == null);
+      assert(stderr == null);
     });
 
     let d = null;
     it("random PCA should produce a 3x3 array", async function () {
       d = await randomPCA();
       const sz = M.size(d);
-      return assert(sz[0] === 3 && sz[1] === 3);
+      assert(sz[0] === 3 && sz[1] === 3);
     });
 
     return it("should deconvolve axes", function () {
@@ -45,7 +45,6 @@ describe("math module", function () {
       const line = functions.nominalPlane(e);
       const points = line.geometry.coordinates.map((d) => ({
         type: "Feature",
-
         geometry: {
           type: "Point",
           coordinates: d,
@@ -54,7 +53,7 @@ describe("math module", function () {
 
       const pt = points[0];
       const v = d3.geoContains(polygon, pt);
-      return assert(v, "point is in polygon");
+      assert(v, "point is in polygon");
     });
   });
 });

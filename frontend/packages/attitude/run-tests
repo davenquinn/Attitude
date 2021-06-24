@@ -1,5 +1,5 @@
 #!/bin/zsh
 
-npm run build
-$(npm bin)/mocha --require coffeescript/register test/test.coffee
+#npm run build
+$(npm bin)/mocha --require ts-node/register test/test.ts
 #python -m pytest test/test-runner.py "$@"
