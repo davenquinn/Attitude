@@ -36,18 +36,16 @@ const setHoveredFill = function (d) {
 };
 
 class StereonetComponent extends React.Component {
-  static initClass() {
-    this.defaultProps = {
-      onRotate() {},
-      mode: "planes",
-      drawPlanes: true,
-      drawPoles: false,
-      hovered: [],
-      precision: 0.2,
-      center: [0, 0],
-      margin: 25,
-    };
-  }
+  static defaultProps = {
+    onRotate() {},
+    mode: "planes",
+    drawPlanes: true,
+    drawPoles: false,
+    hovered: [],
+    precision: 0.2,
+    center: [0, 0],
+    margin: 25,
+  };
   constructor(props) {
     super(props);
     this.state = { center: this.props.center };
@@ -127,6 +125,8 @@ class StereonetComponent extends React.Component {
     const { data, onHover, drawPlanes } = this.props;
     const c = (d) => d.color;
 
+    console.log(data);
+
     this.stereonet.dataArea().select("g.planes").remove();
     if (!drawPlanes) {
       return;
@@ -178,7 +178,6 @@ class StereonetComponent extends React.Component {
     return h("svg.stereonet");
   }
 }
-StereonetComponent.initClass();
 
 class InteractiveStereonetComponent extends React.Component {
   constructor(props) {

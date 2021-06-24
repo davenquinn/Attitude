@@ -23,7 +23,7 @@ describe("math module", function () {
     assert(math != null);
   });
 
-  return describe("`Attitude` python module", function () {
+  describe("`Attitude` python module", function () {
     it("should be importable", async function () {
       const [stdout, stderr] = await runCommand('python -c "import attitude"');
       assert(stderr == null);

@@ -33,13 +33,27 @@ const defaultOrientations: Orientation[] = [
   { strike: 10, dip: 5, rake: 2, maxError: 4, minError: 2 },
 ];
 
-const orientationFields = [
+interface Field<Key> {
+  name: string;
+  key: Key;
+  required?: boolean;
+}
+
+type OrientationKey =
+  | "strike"
+  | "dip"
+  | "rake"
+  | "maxError"
+  | "minError"
+  | "color";
+
+const orientationFields: Field<OrientationKey>[] = [
   { name: "Strike", key: "strike" },
   { name: "Dip", key: "dip" },
   { name: "Rake", key: "rake" },
   { name: "Max.", key: "maxError", category: "Errors" },
   { name: "Min.", key: "minError", category: "Errors" },
-  { name: "Color", key: "color" },
+  { name: "Color", key: "color", required: false },
 ];
 
 function transformData(data: Orientation): GridElement[] {
@@ -100,7 +114,6 @@ function Sheet({ className, children }) {
 }
 
 function DataArea({ data, updateData }) {
-  console.log(data);
   return h("div.data-area", [
     h(ReactDataSheet, {
       data,
@@ -122,14 +135,44 @@ function DataArea({ data, updateData }) {
 
 const defaultData = addEmptyRows(defaultOrientations.map(transformData), 10);
 
+function constructOrientation(row): Orientation {
+  // Construct an orientation from a row
+  let ix = 0;
+  let orientation: Partial<Orientation> = {};
+  for (const field of orientationFields) {
+    const required = field.required ?? true;
+    // Validation
+    let val = parseFloat(row[ix].value);
+    if (required && isNaN(val)) return null;
+    orientation[field.key] = val;
+    ix++;
+  }
+  return orientation as Orientation;
+}
+
 export function App() {
   const [data, setState] = useState<SheetContent>(defaultData);
+
+  const cleanedData: Orientation[] = data
+    .map(constructOrientation)
+    .filter((d) => d != null);
+
+  console.log(cleanedData);
 
   return h("div.app", [
     h("h1", "Uncertain orientations plotter"),
     h("div.main", [
       h(DataArea, { data, updateData: setState }),
-      h("div.plot-area", null, h(Stereonet, { data: [], margin: 50 })),
+      h(
+        "div.plot-area",
+        null,
+        h(Stereonet, {
+          data: cleanedData,
+          margin: 50,
+          drawPoles: true,
+          drawPlanes: false,
+        })
+      ),
     ]),
   ]);
 }

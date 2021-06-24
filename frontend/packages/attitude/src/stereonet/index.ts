@@ -139,9 +139,8 @@ const Stereonet = function () {
       throw "Stereonet must be initialized to an element before adding data";
     }
 
-    if (o.selector == null) {
-      o.selector = "g.poles";
-    }
+    o.selector ??= "g.poles";
+
     const con = dataArea.selectAppend(o.selector);
 
     const o1 = { ...opts, ...o };
