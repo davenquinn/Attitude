@@ -23,13 +23,16 @@ interface OrientationRow {
 }
 
 const defaultOrientations: Orientation[] = [
-  { strike: 10, dip: 5, rake: 2, maxError: 4, minError: 2 },
+  { strike: 10, dip: 8, rake: 2, maxError: 20, minError: 8, color: "#65499e" },
+  { strike: 120, dip: 46, rake: 5, maxError: 45, minError: 2, color: "dodgerblue" },
 ];
 
 interface Field<Key> {
   name: string;
   key: Key;
   required?: boolean;
+  isValid?(k: any): boolean;
+  transform?(k: any): any;
 }
 
 type OrientationKey =
@@ -46,7 +49,13 @@ const orientationFields: Field<OrientationKey>[] = [
   { name: "Rake", key: "rake" },
   { name: "Max.", key: "maxError", category: "Errors" },
   { name: "Min.", key: "minError", category: "Errors" },
-  { name: "Color", key: "color", required: false },
+  {
+    name: "Color",
+    key: "color",
+    required: false,
+    isValid: (d) => d != null && d != "",
+    transform: (d) => d,
+  },
 ];
 
 function transformData(data: Orientation): GridElement[] {
@@ -55,8 +64,13 @@ function transformData(data: Orientation): GridElement[] {
   });
 }
 
-function addEmptyRows(data: SheetContent, modulus: number = 10): SheetContent {
-  const nToAdd = Math.ceil(data.length / modulus) * modulus - data.length;
+function addEmptyRows(
+  data: SheetContent,
+  modulus: number = 10,
+  targetN = 0
+): SheetContent {
+  const nToAdd =
+    Math.ceil((data.length + targetN) / modulus) * modulus - data.length;
   if (nToAdd <= 0) return data;
   const emptyData = Array(orientationFields.length).fill({ value: null });
   const addedRows = Array(nToAdd).fill(emptyData);
@@ -108,6 +122,7 @@ function Sheet({ className, children }) {
 
 function DataArea({ data, updateData }) {
   return h("div.data-area", [
+    h("p.instructions", "Enter data here. Use degrees for orientations, and html colors (string, rgba, or hex codes). Pasting from a spreadsheet should work!")
     h(ReactDataSheet, {
       data,
       valueRenderer: (cell) => cell.value,
@@ -122,7 +137,27 @@ function DataArea({ data, updateData }) {
         updateData(update(data, spec));
       },
     }),
-    h(Button, { size: "small" }, "Add more rows"),
+    h(
+      Button,
+      {
+        size: "small",
+        onClick() {
+          console.log(data);
+          updateData(addEmptyRows(data, 10, 10));
+        },
+      },
+      "Add more rows"
+    ),
+    h(
+      Button,
+      {
+        size: "small",
+        onClick() {
+          updateData(defaultData);
+        },
+      },
+      "Reset data"
+    ),
   ]);
 }
 
@@ -133,11 +168,18 @@ function constructOrientation(row): Orientation {
   let ix = 0;
   let orientation: Partial<Orientation> = {};
   for (const field of orientationFields) {
-    const required = field.required ?? true;
+    const {
+      transform = (d) => parseFloat(d),
+      isValid = (d) => !isNaN(d),
+      required = true,
+    } = field;
     // Validation
-    let val = parseFloat(row[ix].value);
-    if (required && isNaN(val)) return null;
-    orientation[field.key] = val;
+    let val = transform(row[ix].value);
+    const valid = isValid(val);
+    if (required && !valid) return null;
+    if (valid) {
+      orientation[field.key] = val;
+    }
     ix++;
   }
   return orientation as Orientation;

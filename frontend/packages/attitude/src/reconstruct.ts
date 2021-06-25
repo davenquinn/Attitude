@@ -1,8 +1,5 @@
 import { Vector3, Matrix3 } from "./math";
-import {
-  RotationMatrix_fromAxisAngle,
-  versor_toRotationMatrix,
-} from "attitude/src/matrix";
+import { versor_toRotationMatrix } from "attitude/src/matrix";
 import { versor_fromAxisAngle, versor_multiply } from "attitude/src/versor";
 export interface Orientation {
   strike: number;

@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "description": "[Rollup](https://github.com/rollup/rollup/wiki/pkg.module) is used to build this into a functional module for Node.js and the browser.",
-  "main": "index.js",
+  "main": "dist/index.html",
   "devDependencies": {
     "@parcel/transformer-coffeescript": "2.0.0-beta.3.1",
     "@parcel/transformer-stylus": "2.0.0-beta.3.1",
@@ -17,7 +17,9 @@
   "scripts": {
     "postinstall": "lerna bootstrap --hoist",
     "dev": "parcel serve index.html",
-    "test": "npm --prefix packages/attitude run test"
+    "build": "parcel build --public-url /projects/attitude/plotter/ index.html",
+    "test": "npm --prefix packages/attitude run test",
+    "dist": "rclone sync --s3-acl=public-read -L dist davenquinn-spaces:davenquinn-sites/projects/attitude/plotter/"
   },
   "author": "Daven Quinn",
   "license": "ISC",

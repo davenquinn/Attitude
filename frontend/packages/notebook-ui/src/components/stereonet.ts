@@ -72,7 +72,7 @@ class StereonetComponent extends React.Component {
     });
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps, prevState) {
     let { hovered, drawPlanes, drawPoles, data } = this.props;
     if (data !== prevProps.data) {
       drawPlanes = drawPoles = null;
@@ -86,6 +86,13 @@ class StereonetComponent extends React.Component {
       this.updatePoles();
       hovered = null;
     }
+
+    console.log(prevState, this.state);
+
+    if (prevProps.center != this.props.center) {
+      this.stereonet.center(this.props.center);
+    }
+
     this.__finishUpdate();
     if (prevProps.hovered !== hovered) {
       return this.updateHovered();
@@ -211,7 +218,7 @@ class InteractiveStereonetComponent extends React.Component {
         }),
         h(
           Button,
-          { onClick: this.setVertical, className: "pt-small" },
+          { onClick: this.setVertical.bind(this), className: "bp3-small" },
           "Vertical"
         ),
       ]),
@@ -219,6 +226,7 @@ class InteractiveStereonetComponent extends React.Component {
   }
 
   setVertical() {
+    this.setState({ center: [0, -90] });
     return console.log("Want to set vertical");
   }
 
