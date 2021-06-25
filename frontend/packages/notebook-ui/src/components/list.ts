@@ -1,15 +1,7 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * DS206: Consider reworking classes to avoid initClass
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
-import h from 'react-hyperscript';
-import ReactDOM from 'react-dom';
-import React from 'react';
-import {CopyToClipboard} from 'react-copy-to-clipboard';
-import classNames from 'classnames';
+import h from "react-hyperscript";
+import React from "react";
+import { CopyToClipboard } from "react-copy-to-clipboard";
+import classNames from "classnames";
 import { Button, Switch } from "@blueprintjs/core";
 
 class SelectionListComponent extends React.Component {
@@ -28,83 +20,98 @@ class SelectionListComponent extends React.Component {
       onHover() {},
       showGroups: true,
       zoomedToSelection: false,
-      zoomToSelection() {}
+      zoomToSelection() {},
     };
   }
   render() {
     let onClick;
-    const {attitudes, selection, onClearSelection} = this.props;
+    const { attitudes, selection, onClearSelection } = this.props;
     const disabled = selection.length === 0;
 
     let clearSelectionButton = null;
     if (onClearSelection != null) {
       onClick = onClearSelection;
-      clearSelectionButton = h(Button, {
-        disabled, onClick
-      }, "Clear selection");
+      clearSelectionButton = h(
+        Button,
+        {
+          disabled,
+          onClick,
+        },
+        "Clear selection"
+      );
     }
-    return h('div.selection-list', [
-      h('ul', attitudes.map(this.createListItem)),
+    return h("div.selection-list", [
+      h("ul", attitudes.map(this.createListItem)),
       h(Switch, {
         label: "Show groups",
         checked: this.props.showGroups,
-        onChange: this.props.onToggleShowGroups
+        onChange: this.props.onToggleShowGroups,
       }),
-      h(Button, {
-        disabled: disabled && (this.props.attitudes.length !== 0),
-        onClick: this.props.zoomToSelection
-      }, this.props.zoomedToSelection ? "Show all data" : "Show only selection"),
-      h(CopyToClipboard, {text: this.selectionText()}, [
-        h(Button, {disabled}, "Copy to clipboard")
+      h(
+        Button,
+        {
+          disabled: disabled && this.props.attitudes.length !== 0,
+          onClick: this.props.zoomToSelection,
+        },
+        this.props.zoomedToSelection ? "Show all data" : "Show only selection"
+      ),
+      h(CopyToClipboard, { text: this.selectionText() }, [
+        h(Button, { disabled }, "Copy to clipboard"),
       ]),
-      clearSelectionButton
+      clearSelectionButton,
     ]);
   }
 
-  createListItem(d){
-    const {selection, hovered, showGroups} = this.props;
-    if ((d.members != null) && !showGroups) {
+  createListItem(d) {
+    const { selection, hovered, showGroups } = this.props;
+    if (d.members != null && !showGroups) {
       return null;
     }
-    const selected = selection.find(sel => sel.uid === d.uid);
+    const selected = selection.find((sel) => sel.uid === d.uid);
     let isHovered = false;
-    const inGroup = (d.member_of != null);
+    const inGroup = d.member_of != null;
     if (hovered != null) {
-      isHovered = hovered.find(hov => hov.uid === d.uid);
+      isHovered = hovered.find((hov) => hov.uid === d.uid);
     }
 
-    const className = classNames({selected, hovered: isHovered});
+    const className = classNames({ selected, hovered: isHovered });
 
-    const style = (function() {
-      if (!isHovered) { return {}; }
-      const c = d.color || 'gray';
+    const style = (function () {
+      if (!isHovered) {
+        return {};
+      }
+      const c = d.color || "gray";
       if (inGroup) {
         return {
           stroke: c,
-          color: c
+          color: c,
         };
       }
       return {
         backgroundColor: c,
-        color: 'white'
+        color: "white",
       };
     })();
     const onClick = this.onClick(d);
     const key = d.uid;
     const onMouseOver = () => this.props.onHover(d);
-    return h('li', {className, onClick, key, onMouseOver, style}, d.uid);
+    return h("li", { className, onClick, key, onMouseOver, style }, d.uid);
   }
 
-  onClick(d){ return () => {
-    if (!this.props.onClick) { return; }
-    return this.props.onClick(d);
-  }; }
+  onClick(d) {
+    return () => {
+      if (!this.props.onClick) {
+        return;
+      }
+      return this.props.onClick(d);
+    };
+  }
 
-  selectionText(d){
-    const cid = this.props.selection.map(v => `\"${v.uid}\"`);
-    return `[${cid.join(',')}]`;
+  selectionText(d) {
+    const cid = this.props.selection.map((v) => `\"${v.uid}\"`);
+    return `[${cid.join(",")}]`;
   }
 }
 SelectionListComponent.initClass();
 
-export {SelectionListComponent};
+export { SelectionListComponent };

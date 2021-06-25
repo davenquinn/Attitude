@@ -1,5 +1,6 @@
 import h from "@macrostrat/hyper";
-import { Stereonet } from "attitude-notebook-ui/src";
+import { Orientation } from "@attitude/core";
+import { Stereonet } from "@attitude/notebook-ui/src";
 import ReactDataSheet from "react-datasheet";
 import { Button } from "evergreen-ui";
 import "react-datasheet/lib/react-datasheet.css";
@@ -11,14 +12,6 @@ interface GridElement extends ReactDataSheet.Cell<GridElement, number> {
 
 class OrientationDataSheet extends ReactDataSheet<GridElement, number> {}
 type SheetContent = GridElement[][];
-
-interface Orientation {
-  strike: number;
-  dip: number;
-  rake: number;
-  maxError: number;
-  minError: number;
-}
 
 interface OrientationRow {
   strike: number | null;

@@ -1,5 +1,5 @@
 {
-  "name": "attitude-notebook-ui",
+  "name": "@attitude/notebook-ui",
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.coffee",
@@ -8,7 +8,7 @@
     "test": "test"
   },
   "dependencies": {
-    "attitude": "*"
+    "@attitude/core": "*"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

@@ -1,29 +1,6 @@
 import * as d3 from "d3";
 import _ from "underscore";
 
-/*
-const transpose = function (array, length = null) {
-  if (length == null) {
-    ({ length } = array[0]);
-  }
-  const newArray = __range__(0, length, false).map(() => []);
-  for (
-    let i = 0, end = array.length, asc = 0 <= end;
-    asc ? i < end : i > end;
-    asc ? i++ : i--
-  ) {
-    for (
-      let j = 0, end1 = length, asc1 = 0 <= end1;
-      asc1 ? j < end1 : j > end1;
-      asc1 ? j++ : j--
-    ) {
-      newArray[j].push(array[i][j]);
-    }
-  }
-  return newArray;
-};
-*/
-
 const transpose = (res: Matrix3): Matrix3 => _.zip.apply(_, res);
 
 type Vector3 = [number, number, number];

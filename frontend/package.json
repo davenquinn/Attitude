@@ -21,6 +21,5 @@
   },
   "author": "Daven Quinn",
   "license": "ISC",
-  "prettier": {},
-  "dependencies": {}
+  "prettier": {}
 }

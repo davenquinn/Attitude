@@ -15,7 +15,7 @@ import {
   opacityByCertainty,
   globalLabels,
   chroma,
-} from "attitude/src";
+} from "@attitude/core/src";
 import { Switch, Button } from "@blueprintjs/core";
 
 const setHoveredFill = function (d) {

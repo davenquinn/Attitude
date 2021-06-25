@@ -8,6 +8,7 @@ import { geoArea, geoContains, select } from "d3";
 import "d3-selection-multi";
 import * as math from "./math";
 import { cloneOptions } from "./util";
+import { Orientation, reconstructErrors } from "./reconstruct";
 
 const { combinedErrors } = math;
 
@@ -101,16 +102,19 @@ interface ErrorEllipseProps {
 const __createErrorEllipse = function (opts) {
   //Function generator to create error ellipse
   //for a single error level
-  return function (props: ErrorEllipseProps) {
+  return function (props: ErrorEllipseProps | Orientation) {
+    console.log(props);
     let { hyperbolic_axes, axes, covariance } = props;
     // To preserve compatibility
-    if (hyperbolic_axes == null) {
-      hyperbolic_axes = covariance;
-    }
-    hyperbolic_axes = [1, 0.25, 0.02];
+    hyperbolic_axes ??= covariance;
 
     const f_ = function (sheet) {
       opts.sheet = sheet;
+      if (hyperbolic_axes == null && props.strike != null) {
+        const v = reconstructErrors(props as Orientation);
+        hyperbolic_axes = v.hyp;
+        axes = v.axes;
+      }
       const errors = math.normalErrors(hyperbolic_axes, axes, opts);
       let f = createFeature("Polygon", [errors]);
 
