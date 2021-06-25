@@ -128,13 +128,8 @@ const Stereonet = function () {
     return sel;
   };
 
-  const drawEllipses = function (data, o) {
-    if (o == null) {
-      o = {};
-    }
-    if (o.color == null) {
-      o.color = (d) => d.color || "#aaaaaa";
-    }
+  const drawEllipses = function (data, o = {}) {
+    o.color ??= (d) => d.color || "#aaaaaa";
     if (el == null) {
       throw "Stereonet must be initialized to an element before adding data";
     }
@@ -148,6 +143,7 @@ const Stereonet = function () {
     const fn = functions.errorEllipse(o1);
 
     const createEllipse = function (d) {
+      console.log(d);
       return select(this).append("path").attr("class", "error").datum(fn(d));
     };
 

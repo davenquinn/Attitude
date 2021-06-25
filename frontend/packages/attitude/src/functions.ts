@@ -92,26 +92,33 @@ const createGroupedPlane = function (opts) {
   };
 };
 
+interface ErrorEllipseProps {
+  hyperbolic_axes: math.Vector3;
+  axes: math.Matrix3;
+  covariance?: math.Vector3;
+}
+
 const __createErrorEllipse = function (opts) {
   //Function generator to create error ellipse
   //for a single error level
-  let createEllipse;
-  return (createEllipse = function (p) {
-    let { hyperbolic_axes, axes, covariance } = p;
+  return function (props: ErrorEllipseProps) {
+    let { hyperbolic_axes, axes, covariance } = props;
     // To preserve compatibility
     if (hyperbolic_axes == null) {
       hyperbolic_axes = covariance;
     }
+    hyperbolic_axes = [1, 0.25, 0.02];
+
     const f_ = function (sheet) {
       opts.sheet = sheet;
-      const e = math.normalErrors(hyperbolic_axes, axes, opts);
-      let f = createFeature("Polygon", [e]);
+      const errors = math.normalErrors(hyperbolic_axes, axes, opts);
+      let f = createFeature("Polygon", [errors]);
 
       // Check winding (note: only an issue with non-traditional
       // stereonet axes)
       let a = geoArea(f);
       if (a > 2 * Math.PI) {
-        f = createFeature("Polygon", [e.reverse()]);
+        f = createFeature("Polygon", [errors.reverse()]);
         a = geoArea(f);
       }
       f.properties = {
@@ -119,7 +126,7 @@ const __createErrorEllipse = function (opts) {
         level: opts.level,
         sheet,
       };
-      f.data = p;
+      f.data = props;
       return f;
     };
 
@@ -128,7 +135,7 @@ const __createErrorEllipse = function (opts) {
     const f = createFeature("MultiPolygon", coords);
     f.properties = v[0].properties;
     return f;
-  });
+  };
 };
 
 const createErrorEllipse = function (opts) {

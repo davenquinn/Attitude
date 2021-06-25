@@ -1,14 +1,7 @@
-/*
- * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
- * DS102: Remove unnecessary code created because of implicit returns
- * DS202: Simplify dynamic range loops
- * DS205: Consider reworking code to avoid use of IIFEs
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 import * as d3 from "d3";
+import _ from "underscore";
 
+/*
 const transpose = function (array, length = null) {
   if (length == null) {
     ({ length } = array[0]);
@@ -29,8 +22,14 @@ const transpose = function (array, length = null) {
   }
   return newArray;
 };
+*/
 
-const identity = [
+const transpose = (res: Matrix3): Matrix3 => _.zip.apply(_, res);
+
+type Vector3 = [number, number, number];
+type Matrix3 = [Vector3, Vector3, Vector3];
+
+const identity: Matrix3 = [
   [1, 0, 0],
   [0, 1, 0],
   [0, 0, 1],
@@ -166,33 +165,31 @@ const planeErrors = function (axesCovariance, axes, opts) {
   return ell(s[0], s[1]).map(stepFunc).map(cart2sph(opts));
 };
 
-const normalErrors = function (axesCovariance, axes, opts) {
+interface NormalErrorsOpts {
+  n?: number;
+  upperHemisphere?: boolean;
+  traditionalLayout?: boolean;
+  sheet?: string;
+  level?: number;
+}
+
+const normalErrors = function (
+  axesCovariance: Vector3,
+  axes: Matrix3,
+  opts: NormalErrorsOpts = {}
+) {
   // Get a single level of planar errors (or the
   // plane's nominal value) as a girdle
 
   // Should use adaptive resampling
   // https://bl.ocks.org/mbostock/5699934
-  if (opts == null) {
-    opts = {};
-  }
-  if (opts.n == null) {
-    opts.n = 100;
-  }
-  if (opts.upperHemisphere == null) {
-    opts.upperHemisphere = true;
-  }
-  if (opts.traditionalLayout == null) {
-    opts.traditionalLayout = true;
-  }
-  if (opts.sheet == null) {
-    opts.sheet = "upper";
-  }
-  if (axes == null) {
-    axes = identity;
-  }
-  if (opts.level == null) {
-    opts.level = 1;
-  }
+
+  opts.n ??= 100;
+  opts.upperHemisphere ??= true;
+  opts.traditionalLayout ??= true;
+  opts.sheet ??= "upper";
+  opts.level ??= 1;
+  axes ??= identity;
 
   const scales = {
     upper: 1,
@@ -291,6 +288,8 @@ export {
   transpose,
   convolveAxes,
   deconvolveAxes,
+  Vector3,
+  Matrix3,
 };
 
 function __range__(left, right, inclusive) {
