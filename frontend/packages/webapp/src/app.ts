@@ -5,7 +5,7 @@ import ReactDataSheet from "react-datasheet";
 import { Button } from "evergreen-ui";
 import "react-datasheet/lib/react-datasheet.css";
 import update, { Spec } from "immutability-helper";
-import { useState } from "react";
+import { useStoredState } from "@macrostrat/ui-components/lib/esm/util/local-storage";
 interface GridElement extends ReactDataSheet.Cell<GridElement, number> {
   value: number | null;
 }
@@ -144,7 +144,10 @@ function constructOrientation(row): Orientation {
 }
 
 export function App() {
-  const [data, setState] = useState<SheetContent>(defaultData);
+  const [data, setState] = useStoredState<SheetContent>(
+    "orientation-data",
+    defaultData
+  );
 
   const cleanedData: Orientation[] = data
     .map(constructOrientation)
