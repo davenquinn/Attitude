@@ -74,7 +74,7 @@ class StereonetComponent extends React.Component {
 
   componentDidUpdate(prevProps) {
     let { hovered, drawPlanes, drawPoles, data } = this.props;
-    if (data.length !== prevProps.data.length) {
+    if (data !== prevProps.data) {
       drawPlanes = drawPoles = null;
     }
     if (prevProps.drawPlanes !== drawPlanes) {
