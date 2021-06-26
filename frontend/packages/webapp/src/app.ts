@@ -2,10 +2,13 @@ import h from "@macrostrat/hyper";
 import { Orientation } from "@attitude/core";
 import { Stereonet } from "@attitude/notebook-ui/src";
 import ReactDataSheet from "react-datasheet";
-import { Button } from "evergreen-ui";
 import "react-datasheet/lib/react-datasheet.css";
 import update, { Spec } from "immutability-helper";
+import { Button, ButtonGroup } from "@blueprintjs/core";
+import { ErrorBoundary } from "@macrostrat/ui-components";
 import { useStoredState } from "@macrostrat/ui-components/lib/esm/util/local-storage";
+import { SwatchesPicker } from "react-color";
+
 interface GridElement extends ReactDataSheet.Cell<GridElement, number> {
   value: number | null;
 }
@@ -13,18 +16,16 @@ interface GridElement extends ReactDataSheet.Cell<GridElement, number> {
 class OrientationDataSheet extends ReactDataSheet<GridElement, number> {}
 type SheetContent = GridElement[][];
 
-interface OrientationRow {
-  strike: number | null;
-  dip: number | null;
-  rake: number | null;
-  maxError: number | null;
-  minError: number | null;
-  color: string | null;
-}
-
 const defaultOrientations: Orientation[] = [
   { strike: 10, dip: 8, rake: 2, maxError: 20, minError: 8, color: "#65499e" },
-  { strike: 120, dip: 46, rake: 5, maxError: 45, minError: 2, color: "dodgerblue" },
+  {
+    strike: 120,
+    dip: 46,
+    rake: 5,
+    maxError: 45,
+    minError: 2,
+    color: "dodgerblue",
+  },
 ];
 
 interface Field<Key> {
@@ -122,7 +123,10 @@ function Sheet({ className, children }) {
 
 function DataArea({ data, updateData }) {
   return h("div.data-area", [
-    h("p.instructions", "Enter data here. Use degrees for orientations, and html colors (string, rgba, or hex codes). Pasting from a spreadsheet should work!")
+    h(
+      "p.instructions",
+      "Enter data here. Use degrees for orientations, and html colors (string, rgba, or hex codes). Pasting from a spreadsheet should work!"
+    ),
     h(ReactDataSheet, {
       data,
       valueRenderer: (cell) => cell.value,
@@ -137,27 +141,29 @@ function DataArea({ data, updateData }) {
         updateData(update(data, spec));
       },
     }),
-    h(
-      Button,
-      {
-        size: "small",
-        onClick() {
-          console.log(data);
-          updateData(addEmptyRows(data, 10, 10));
-        },
-      },
-      "Add more rows"
-    ),
-    h(
-      Button,
-      {
-        size: "small",
-        onClick() {
-          updateData(defaultData);
-        },
-      },
-      "Reset data"
-    ),
+    //h(SwatchesPicker),
+    h("div.controls", [
+      h(ButtonGroup, [
+        h(
+          Button,
+          {
+            onClick() {
+              updateData(addEmptyRows(data, 10, 10));
+            },
+          },
+          "Add more rows"
+        ),
+        h(
+          Button,
+          {
+            onClick() {
+              updateData(defaultData);
+            },
+          },
+          "Reset data"
+        ),
+      ]),
+    ]),
   ]);
 }
 
@@ -194,8 +200,6 @@ export function App() {
   const cleanedData: Orientation[] = data
     .map(constructOrientation)
     .filter((d) => d != null);
-
-  console.log(cleanedData);
 
   return h("div.app", [
     h("h1", "Uncertain orientations plotter"),

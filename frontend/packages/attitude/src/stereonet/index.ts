@@ -470,7 +470,12 @@ const opacityByCertainty = function (colorFunc, accessor = null) {
     const angError = angularError(d);
     const al = alphaScale(angError);
 
-    const color = chroma(colorFunc(d));
+    let color;
+    try {
+      color = chroma(colorFunc(d));
+    } catch (err) {
+      color = chroma("#aaaaaa");
+    }
     const fill = color.alpha(al).css();
     const stroke = color.alpha(al + darkenStroke).css();
 
