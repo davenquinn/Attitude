@@ -4,7 +4,8 @@
     "lib": ["esnext", "dom"],
     "esModuleInterop": true,
     "paths": {
-      "~/*": ["src/*"]
+      "~/*": ["src/*"],
+      "@macrostrat/ui-components": ["./packages/ui-components/src/"]
     }
   },
   "include": ["src", "plugins", "default-content", "packages"]

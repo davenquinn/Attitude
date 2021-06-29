@@ -1,14 +1,13 @@
 import h from "@macrostrat/hyper";
-import { Orientation } from "@attitude/core";
+import { Orientation, getColor } from "@attitude/core";
 import { Stereonet } from "@attitude/notebook-ui/src";
 import ReactDataSheet from "react-datasheet";
 import "react-datasheet/lib/react-datasheet.css";
 import update, { Spec } from "immutability-helper";
 import { Button, ButtonGroup } from "@blueprintjs/core";
-import { ErrorBoundary } from "@macrostrat/ui-components";
-import { useStoredState } from "@macrostrat/ui-components/lib/esm/util/local-storage";
-import { SwatchesPicker } from "react-color";
-
+import { useStoredState, ErrorBoundary } from "@macrostrat/ui-components";
+//import { SwatchesPicker } from "react-color";
+//import classNames from "classnames";
 interface GridElement extends ReactDataSheet.Cell<GridElement, number> {
   value: number | null;
 }
@@ -54,14 +53,14 @@ const orientationFields: Field<OrientationKey>[] = [
     name: "Color",
     key: "color",
     required: false,
-    isValid: (d) => d != null && d != "",
+    isValid: (d) => getColor(d) != null,
     transform: (d) => d,
   },
 ];
 
 function transformData(data: Orientation): GridElement[] {
   return orientationFields.map((d) => {
-    return { value: data[d.key] ?? null };
+    return { value: data[d.key] ?? null, className: "test" };
   });
 }
 
@@ -121,26 +120,53 @@ function Sheet({ className, children }) {
   ]);
 }
 
+function getFieldData<K>(field: Field<K>): Field<K> {
+  const {
+    transform = (d) => parseFloat(d),
+    isValid = (d) => !isNaN(d),
+    required = true,
+    ...rest
+  } = field;
+  return { ...rest, transform, isValid, required };
+}
+
 function DataArea({ data, updateData }) {
   return h("div.data-area", [
     h(
       "p.instructions",
       "Enter data here. Use degrees for orientations, and html colors (string, rgba, or hex codes). Pasting from a spreadsheet should work!"
     ),
-    h(ReactDataSheet, {
-      data,
-      valueRenderer: (cell) => cell.value,
-      rowRenderer: Row,
-      sheetRenderer: Sheet,
-      onCellsChanged: (changes) => {
-        let spec: Spec<SheetContent> = {};
-        changes.forEach(({ cell, row, col, value }) => {
-          spec[row] ??= {};
-          spec[row][col] = { $set: { value } };
-        });
-        updateData(update(data, spec));
-      },
-    }),
+    h(
+      ErrorBoundary,
+      null,
+      h(ReactDataSheet, {
+        data,
+        valueRenderer: (cell, row, col) => {
+          return cell.value;
+        },
+        rowRenderer: Row,
+        sheetRenderer: Sheet,
+        attributesRenderer(cell, row, col) {
+          const { isValid } = getFieldData(orientationFields[col]);
+          if (!isValid(cell.value)) {
+            return { invalid: true };
+          }
+          return {};
+        },
+        onContextMenu: (...args) => {
+          console.log("Context menu");
+          console.log(args);
+        },
+        onCellsChanged: (changes) => {
+          let spec: Spec<SheetContent> = {};
+          changes.forEach(({ cell, row, col, value }) => {
+            spec[row] ??= {};
+            spec[row][col] = { $set: { value } };
+          });
+          updateData(update(data, spec));
+        },
+      })
+    ),
     //h(SwatchesPicker),
     h("div.controls", [
       h(ButtonGroup, [
@@ -174,11 +200,8 @@ function constructOrientation(row): Orientation {
   let ix = 0;
   let orientation: Partial<Orientation> = {};
   for (const field of orientationFields) {
-    const {
-      transform = (d) => parseFloat(d),
-      isValid = (d) => !isNaN(d),
-      required = true,
-    } = field;
+    const { transform, isValid, required } = getFieldData(field);
+
     // Validation
     let val = transform(row[ix].value);
     const valid = isValid(val);

@@ -16,16 +16,15 @@
   ],
   "scripts": {
     "postinstall": "lerna bootstrap --hoist",
-    "dev": "parcel serve index.html",
+    "dev": "parcel index.html",
     "build": "parcel build --public-url /projects/attitude/plotter/ index.html",
     "test": "npm --prefix packages/attitude run test",
     "dist": "rclone sync --s3-acl=public-read -L dist davenquinn-spaces:davenquinn-sites/projects/attitude/plotter/"
   },
+  "alias": {
+    "@macrostrat/ui-components": "packages/ui-components/src"
+  },
   "author": "Daven Quinn",
   "license": "ISC",
-  "prettier": {},
-  "dependencies": {
-    "@macrostrat/ui-components": "^0.5.2",
-    "react-color": "^2.19.3"
-  }
+  "prettier": {}
 }
