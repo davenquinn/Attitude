@@ -4,19 +4,11 @@ import { Stereonet } from "@attitude/notebook-ui/src";
 import ReactDataSheet from "react-datasheet";
 import "react-datasheet/lib/react-datasheet.css";
 import { useStoredState } from "@macrostrat/ui-components";
-import {
-  DataArea,
-  getFieldData,
-  orientationFields,
-  addEmptyRows
-} from "./sheet";
+import { DataArea, getFieldData, orientationFields } from "./sheet";
 //import classNames from "classnames";
 interface GridElement extends ReactDataSheet.Cell<GridElement, number> {
   value: number | null;
 }
-
-type OrientationRow = Partial<Orientation> | null;
-type OrientationData = OrientationRow[];
 
 class OrientationDataSheet extends ReactDataSheet<GridElement, number> {}
 type SheetContent = GridElement[][];
@@ -33,36 +25,52 @@ const defaultOrientations: Orientation[] = [
   }
 ];
 
-function transformData(data: OrientationRow): GridElement[] {
+function transformData(data: Orientation): GridElement[] {
   return orientationFields.map(d => {
-    const { dataEditor } = getFieldData(d);
-    return { value: data[d.key] ?? null, dataEditor };
+    return { value: data[d.key] ?? null, className: "test" };
   });
+}
+
+function addEmptyRows(
+  data: SheetContent,
+  modulus: number = 10,
+  targetN = 0
+): SheetContent {
+  const nToAdd =
+    Math.ceil((data.length + targetN) / modulus) * modulus - data.length;
+  if (nToAdd <= 0) return data;
+  const emptyData = Array(orientationFields.length).fill({ value: null });
+  const addedRows = Array(nToAdd).fill(emptyData);
+  return [...data, ...addedRows];
 }
 
 const defaultData = addEmptyRows(defaultOrientations.map(transformData), 10);
 
-function constructOrientation(row: OrientationRow): Orientation {
+function constructOrientation(row: GridElement[]): Orientation {
   // Construct an orientation from a row
-  let ix = 0;
-  let orientation: Partial<Orientation> = {};
-  for (const field of orientationFields) {
-    const { transform, isValid, required } = getFieldData(field);
+  try {
+    let ix = 0;
+    let orientation: Partial<Orientation> = {};
+    for (const field of orientationFields) {
+      const { transform, isValid, required } = getFieldData(field);
 
-    // Validation
-    let val = transform(row[ix].value);
-    const valid = isValid(val);
-    if (required && !valid) return null;
-    if (valid) {
-      orientation[field.key] = val;
+      // Validation
+      let val = transform(row[ix].value);
+      const valid = isValid(val);
+      if (required && !valid) return null;
+      if (valid) {
+        orientation[field.key] = val;
+      }
+      ix++;
     }
-    ix++;
+    return orientation as Orientation;
+  } catch (err) {
+    return null;
   }
-  return orientation as Orientation;
 }
 
 export function App() {
-  const [data, setState] = useStoredState<OrientationRow[]>(
+  const [data, updateData, resetData] = useStoredState<SheetContent>(
     "orientation-data",
     defaultData
   );
@@ -74,7 +82,7 @@ export function App() {
   return h("div.app", [
     h("h1", "Uncertain orientations plotter"),
     h("div.main", [
-      h(DataArea, { data, updateData: setState }),
+      h(DataArea, { data, updateData, resetData }),
       h(
         "div.plot-area",
         null,

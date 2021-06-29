@@ -1,13 +1,17 @@
 import h from "@macrostrat/hyper";
 import { Orientation, getColor } from "@attitude/core";
 import { Stereonet } from "@attitude/notebook-ui/src";
-import ReactDataSheet from "react-datasheet";
+import ReactDataSheet, { DataEditor } from "react-datasheet";
 import "react-datasheet/lib/react-datasheet.css";
 import update, { Spec } from "immutability-helper";
 import { Button, ButtonGroup } from "@blueprintjs/core";
 import { useStoredState, ErrorBoundary } from "@macrostrat/ui-components";
 import { SketchPicker } from "react-color";
 import React, { useState } from "react";
+import { Popover2 } from "@blueprintjs/popover2";
+import "@blueprintjs/popover2/lib/css/blueprint-popover2.css";
+import chroma from "chroma-js";
+
 //import classNames from "classnames";
 interface GridElement extends ReactDataSheet.Cell<GridElement, number> {
   value: number | null;
@@ -16,16 +20,62 @@ interface GridElement extends ReactDataSheet.Cell<GridElement, number> {
 type OrientationRow = Partial<Orientation> | null;
 type OrientationData = OrientationRow[];
 
-function ColorEditor({
-  handleChange,
-  handleKeyDown,
-  onCommit,
-  onRevert,
-  value
-}) {
-  const [editingColor, setColor] = useState(value);
+function ColorEditor(props) {
+  const { value, onKeyDown, onChange } = props;
+  //const initialColor = chroma(value);
+  //const [editingColor, setColor] = useState(initialColor);
+  console.log(value);
+  const target = h(DataEditor, props);
 
-  return h("div", "I am an editor");
+  let color = null;
+  try {
+    color = chroma(value).hex();
+  } catch {}
+  console.log(color);
+  return h([
+    target,
+    h(
+      ErrorBoundary,
+      { fallback: target },
+      h(Popover2, {
+        content: h(
+          "div.interaction-barrier",
+          {
+            onMouseDown(evt) {
+              evt.nativeEvent.stopImmediatePropagation();
+            }
+          },
+          [
+            h(SketchPicker, {
+              disableAlpha: true,
+              color: color ?? "#aaaaaa",
+              enforceFocus: false,
+              onChange(color, evt) {
+                let c = "";
+                console.log(color);
+                try {
+                  c = chroma(color.hex).name();
+                } finally {
+                  onChange(c);
+                  evt.stopPropagation();
+                }
+              }
+            })
+          ]
+        ),
+        minimal: true,
+        interactionKind: "hover",
+        isOpen: true,
+        onClose(evt) {
+          console.log("trying to close");
+          onKeyDown(evt);
+        },
+        renderTarget(props) {
+          return h("span.popover-target", props);
+        }
+      })
+    )
+  ]);
 }
 
 class OrientationDataSheet extends ReactDataSheet<GridElement, number> {}
@@ -91,7 +141,7 @@ function Columns() {
 
 function Row(props) {
   const { children, row } = props;
-  return h("tr", [h("td.index-cell.cell.read-only.index", row), children]);
+  return h("tr", [h("td.index-cell.cell.read-only.index", row + 1), children]);
 }
 
 function Header() {
@@ -130,7 +180,7 @@ export function getFieldData<K>(field: Field<K>): Field<K> {
   return { ...rest, transform, isValid, required };
 }
 
-function Controls({ updateData }) {
+function Controls({ data, updateData, resetData }) {
   return h("div.controls", [
     h(ButtonGroup, [
       h(
@@ -145,9 +195,7 @@ function Controls({ updateData }) {
       h(
         Button,
         {
-          onClick() {
-            updateData(defaultData);
-          }
+          onClick: resetData
         },
         "Reset data"
       )
@@ -155,7 +203,46 @@ function Controls({ updateData }) {
   ]);
 }
 
-export function DataArea({ data, updateData }) {
+function enhanceData(row: GridElement[]): GridElement[] {
+  console.log(row);
+  if (row == null) return [];
+  return row.map((cellData, i) => {
+    const { dataEditor } = getFieldData(orientationFields[i]);
+    return { dataEditor, ...cellData };
+  });
+}
+
+function DataSheet({ data, updateData }) {
+  return h(ReactDataSheet, {
+    data: data.map(enhanceData),
+    valueRenderer: (cell, row, col) => {
+      return cell.value;
+    },
+    rowRenderer: Row,
+    sheetRenderer: Sheet,
+    attributesRenderer(cell, row, col) {
+      if (cell.value == null || cell.value == "")
+        return { "data-status": "empty" };
+      const { isValid } = getFieldData(orientationFields[col]);
+      const status = isValid(cell.value) ? "ok" : "invalid";
+      return { "data-status": status };
+    },
+    onContextMenu: (...args) => {
+      console.log("Context menu");
+      console.log(args);
+    },
+    onCellsChanged: changes => {
+      let spec: Spec<SheetContent> = {};
+      changes.forEach(({ cell, row, col, value }) => {
+        if (!(row in spec)) spec[row] = {};
+        spec[row][col] = { $set: { value } };
+      });
+      updateData(update(data, spec));
+    }
+  });
+}
+
+export function DataArea({ data, updateData, resetData }) {
   return h("div.data-area", [
     h(
       "p.instructions",
@@ -163,40 +250,11 @@ export function DataArea({ data, updateData }) {
     ),
     h("div.data-area-main", [
       h("div.left-column", [
-        h(
-          ErrorBoundary,
-          null,
-          h(ReactDataSheet, {
-            data,
-            valueRenderer: (cell, row, col) => {
-              return cell.value;
-            },
-            rowRenderer: Row,
-            sheetRenderer: Sheet,
-            attributesRenderer(cell, row, col) {
-              if (cell.value == null) return { "data-status": "empty" };
-              const { isValid } = getFieldData(orientationFields[col]);
-              const status = isValid(cell.value) ? "ok" : "invalid";
-              return { "data-status": status };
-            },
-            onContextMenu: (...args) => {
-              console.log("Context menu");
-              console.log(args);
-            },
-            onCellsChanged: changes => {
-              let spec: Spec<SheetContent> = {};
-              changes.forEach(({ cell, row, col, value }) => {
-                if (!(row in spec)) spec[row] = {};
-                spec[row][col] = { $set: { value } };
-              });
-              updateData(update(data, spec));
-            }
-          })
-        ),
-        h(Controls, { updateData })
+        h(ErrorBoundary, null, h(DataSheet, { data, updateData })),
+        h(Controls, { data, updateData, resetData })
       ]),
 
-      h("div.sidebar", [h(SketchPicker)])
+      h("div.sidebar", [])
     ])
   ]);
 }
