@@ -21,9 +21,6 @@
     "test": "npm --prefix packages/attitude run test",
     "dist": "rclone sync --s3-acl=public-read -L dist davenquinn-spaces:davenquinn-sites/projects/attitude/plotter/"
   },
-  "alias": {
-    "@macrostrat/ui-components": "packages/ui-components/src"
-  },
   "author": "Daven Quinn",
   "license": "ISC",
   "prettier": {}
