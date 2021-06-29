@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@macrostrat/hyper": "^1.2.13",
-    "@macrostrat/ui-components": "^0.6.2",
+    "@macrostrat/ui-components": "^0.6.3",
     "attitude-notebook-ui": "*",
     "immutability-helper": "^3.1.1",
     "react": "^17.0.2",

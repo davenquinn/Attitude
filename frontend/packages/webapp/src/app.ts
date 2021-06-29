@@ -5,7 +5,9 @@ import ReactDataSheet from "react-datasheet";
 import "react-datasheet/lib/react-datasheet.css";
 import update, { Spec } from "immutability-helper";
 import { Button, ButtonGroup } from "@blueprintjs/core";
-import { useStoredState, ErrorBoundary } from "@macrostrat/ui-components";
+import { useStoredState } from "@macrostrat/ui-components/lib/esm/util/local-storage";
+import { ErrorBoundary } from "@macrostrat/ui-components/lib/esm/error-boundary";
+import JSONTree from "react-json-tree";
 //import { SwatchesPicker } from "react-color";
 //import classNames from "classnames";
 interface GridElement extends ReactDataSheet.Cell<GridElement, number> {
@@ -23,8 +25,8 @@ const defaultOrientations: Orientation[] = [
     rake: 5,
     maxError: 45,
     minError: 2,
-    color: "dodgerblue",
-  },
+    color: "dodgerblue"
+  }
 ];
 
 interface Field<Key> {
@@ -53,13 +55,13 @@ const orientationFields: Field<OrientationKey>[] = [
     name: "Color",
     key: "color",
     required: false,
-    isValid: (d) => getColor(d) != null,
-    transform: (d) => d,
-  },
+    isValid: d => getColor(d) != null,
+    transform: d => d
+  }
 ];
 
 function transformData(data: Orientation): GridElement[] {
-  return orientationFields.map((d) => {
+  return orientationFields.map(d => {
     return { value: data[d.key] ?? null, className: "test" };
   });
 }
@@ -83,9 +85,9 @@ function Columns() {
     orientationFields.map(({ key }) => {
       return h("col", {
         className: key,
-        key,
+        key
       });
-    }),
+    })
   ]);
 }
 
@@ -103,12 +105,12 @@ function Header() {
           "td.cell.header.read-only.header-cell",
           {
             key: col.key,
-            index,
+            index
           },
           col.name
         );
-      }),
-    ]),
+      })
+    ])
   ]);
 }
 
@@ -116,14 +118,14 @@ function Sheet({ className, children }) {
   return h("table", { className }, [
     h(Columns),
     h(Header),
-    h("tbody", children),
+    h("tbody", children)
   ]);
 }
 
 function getFieldData<K>(field: Field<K>): Field<K> {
   const {
-    transform = (d) => parseFloat(d),
-    isValid = (d) => !isNaN(d),
+    transform = d => parseFloat(d),
+    isValid = d => !isNaN(d),
     required = true,
     ...rest
   } = field;
@@ -147,24 +149,23 @@ function DataArea({ data, updateData }) {
         rowRenderer: Row,
         sheetRenderer: Sheet,
         attributesRenderer(cell, row, col) {
+          if (cell.value == null) return { "data-status": "empty" };
           const { isValid } = getFieldData(orientationFields[col]);
-          if (!isValid(cell.value)) {
-            return { invalid: true };
-          }
-          return {};
+          const status = isValid(cell.value) ? "ok" : "invalid";
+          return { "data-status": status };
         },
         onContextMenu: (...args) => {
           console.log("Context menu");
           console.log(args);
         },
-        onCellsChanged: (changes) => {
+        onCellsChanged: changes => {
           let spec: Spec<SheetContent> = {};
           changes.forEach(({ cell, row, col, value }) => {
-            spec[row] ??= {};
+            if (!(row in spec)) spec[row] = {};
             spec[row][col] = { $set: { value } };
           });
           updateData(update(data, spec));
-        },
+        }
       })
     ),
     //h(SwatchesPicker),
@@ -175,7 +176,7 @@ function DataArea({ data, updateData }) {
           {
             onClick() {
               updateData(addEmptyRows(data, 10, 10));
-            },
+            }
           },
           "Add more rows"
         ),
@@ -184,12 +185,12 @@ function DataArea({ data, updateData }) {
           {
             onClick() {
               updateData(defaultData);
-            },
+            }
           },
           "Reset data"
-        ),
-      ]),
-    ]),
+        )
+      ])
+    ])
   ]);
 }
 
@@ -222,7 +223,7 @@ export function App() {
 
   const cleanedData: Orientation[] = data
     .map(constructOrientation)
-    .filter((d) => d != null);
+    .filter(d => d != null);
 
   return h("div.app", [
     h("h1", "Uncertain orientations plotter"),
@@ -235,9 +236,9 @@ export function App() {
           data: cleanedData,
           margin: 50,
           drawPoles: true,
-          drawPlanes: false,
+          drawPlanes: false
         })
-      ),
-    ]),
+      )
+    ])
   ]);
 }
