@@ -1,5 +1,5 @@
 {
-  "name": "attitude-frontend",
+  "name": "@attitude/frontend",
   "private": true,
   "version": "1.0.0",
   "description": "[Rollup](https://github.com/rollup/rollup/wiki/pkg.module) is used to build this into a functional module for Node.js and the browser.",
@@ -24,10 +24,5 @@
   },
   "author": "Daven Quinn",
   "license": "ISC",
-  "prettier": {},
-  "dependencies": {
-    "@blueprintjs/popover2": "^0.11.0",
-    "chroma-js": "^1.4.1",
-    "react-json-tree": "^0.15.0"
-  }
+  "prettier": {}
 }

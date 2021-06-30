@@ -25,7 +25,7 @@ function ColorEditor(props) {
   //const initialColor = chroma(value);
   //const [editingColor, setColor] = useState(initialColor);
   console.log(value);
-  const target = h(DataEditor, props);
+  const target = h("span.popover-target");
 
   let color = null;
   try {
@@ -33,48 +33,57 @@ function ColorEditor(props) {
   } catch {}
   console.log(color);
   return h([
-    target,
-    h(
-      ErrorBoundary,
-      { fallback: target },
-      h(Popover2, {
-        content: h(
-          "div.interaction-barrier",
-          {
-            onMouseDown(evt) {
-              evt.nativeEvent.stopImmediatePropagation();
-            }
-          },
-          [
-            h(SketchPicker, {
-              disableAlpha: true,
-              color: color ?? "#aaaaaa",
-              enforceFocus: false,
-              onChange(color, evt) {
-                let c = "";
-                console.log(color);
-                try {
-                  c = chroma(color.hex).name();
-                } finally {
-                  onChange(c);
-                  evt.stopPropagation();
-                }
+    h(DataEditor, props),
+    h("span.popover-container", [
+      h(
+        Popover2,
+        {
+          content: h(
+            "div.interaction-barrier",
+            {
+              onMouseDown(evt) {
+                evt.nativeEvent.stopImmediatePropagation();
+              },
+              onKeyDown(evt) {
+                console.log(evt);
               }
-            })
-          ]
-        ),
-        minimal: true,
-        interactionKind: "hover",
-        isOpen: true,
-        onClose(evt) {
-          console.log("trying to close");
-          onKeyDown(evt);
+            },
+            [
+              h(ErrorBoundary, [
+                h(SketchPicker, {
+                  disableAlpha: true,
+                  color: color ?? "#aaaaaa",
+                  onChange(color, evt) {
+                    let c = "";
+                    console.log(color);
+                    try {
+                      c = chroma(color.hex).name();
+                    } finally {
+                      onChange(c);
+                      evt.stopPropagation();
+                    }
+                  }
+                })
+              ])
+            ]
+          ),
+          enforceFocus: false,
+          autoFocus: false,
+          minimal: true,
+          modifiers: {
+            offset: { enabled: true, options: { offset: [0, 8] } }
+          },
+          interactionKind: "hover-target",
+          isOpen: true,
+          onClose(evt) {
+            console.log("trying to close");
+            onKeyDown(evt);
+          },
+          usePortal: false
         },
-        renderTarget(props) {
-          return h("span.popover-target", props);
-        }
-      })
-    )
+        target
+      )
+    ])
   ]);
 }
 
@@ -203,12 +212,23 @@ function Controls({ data, updateData, resetData }) {
   ]);
 }
 
-function enhanceData(row: GridElement[]): GridElement[] {
+function enhanceData(row: GridElement[]): any[] {
   console.log(row);
   if (row == null) return [];
   return row.map((cellData, i) => {
-    const { dataEditor } = getFieldData(orientationFields[i]);
-    return { dataEditor, ...cellData };
+    const { dataEditor, key } = getFieldData(orientationFields[i]);
+
+    let addedProps = {};
+    // if (key == "color") {
+    //   addedProps.valueViewer = cell =>
+    //     h(
+    //       "span.value-viewer",
+    //       { style: { color: getColor(cell.value), bacbac  } },
+    //       cell.value
+    //     );
+    // }
+
+    return { dataEditor, ...cellData, ...addedProps };
   });
 }
 
