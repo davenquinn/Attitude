@@ -28,8 +28,28 @@ col
     width: calc(100% + 2px)
   &>.value-viewer
     padding 0 4px
+  &[data-status="invalid"]
+    box-shadow: inset 0 0 0 1px salmon;
 
 .neatline
   fill: none
   stroke: black
   stroke-width: 2px
+
+.data-area-main
+  display: flex
+  flex-direction row
+  &>*
+    margin-right 4px
+    &:last-child
+      margin-right 0
+
+span.popover-target, span.bp3-popover2-target
+  display inline !important
+  pointer-events none
+  transform
+  width 10px !important
+  height: 10px !important
+
+.interaction-barrier
+  pointer-events: all

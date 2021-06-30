@@ -6,7 +6,7 @@
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 import * as d3 from "d3";
-import chroma from "chroma-js";
+import chroma, { Color } from "chroma-js";
 import { select } from "../selection";
 import * as functions from "../functions";
 import * as math from "../math";
@@ -460,6 +460,14 @@ const Stereonet = function () {
   return f;
 };
 
+function getColor(colorString: string): Color | null {
+  try {
+    return chroma(colorString);
+  } catch (err) {
+    return null;
+  }
+}
+
 const opacityByCertainty = function (colorFunc, accessor = null) {
   let angularError = (d) => d.max_angular_error;
   const darkenStroke = 0.2;
@@ -470,12 +478,7 @@ const opacityByCertainty = function (colorFunc, accessor = null) {
     const angError = angularError(d);
     const al = alphaScale(angError);
 
-    let color;
-    try {
-      color = chroma(colorFunc(d));
-    } catch (err) {
-      color = chroma("#aaaaaa");
-    }
+    const color = getColor(colorFunc(d)) ?? chroma("#aaaaaa");
     const fill = color.alpha(al).css();
     const stroke = color.alpha(al + darkenStroke).css();
 
@@ -496,4 +499,4 @@ const opacityByCertainty = function (colorFunc, accessor = null) {
   return f;
 };
 
-export { globalLabels, Stereonet, opacityByCertainty };
+export { globalLabels, Stereonet, opacityByCertainty, getColor };

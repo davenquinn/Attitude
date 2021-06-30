@@ -1,14 +1,11 @@
 import h from "@macrostrat/hyper";
-import { Orientation } from "@attitude/core";
+import { Orientation, getColor } from "@attitude/core";
 import { Stereonet } from "@attitude/notebook-ui/src";
 import ReactDataSheet from "react-datasheet";
 import "react-datasheet/lib/react-datasheet.css";
-import update, { Spec } from "immutability-helper";
-import { Button, ButtonGroup } from "@blueprintjs/core";
-import { ErrorBoundary } from "@macrostrat/ui-components";
-import { useStoredState } from "@macrostrat/ui-components/lib/esm/util/local-storage";
-import { SwatchesPicker } from "react-color";
-
+import { useStoredState } from "@macrostrat/ui-components";
+import { DataArea, getFieldData, orientationFields } from "./sheet";
+//import classNames from "classnames";
 interface GridElement extends ReactDataSheet.Cell<GridElement, number> {
   value: number | null;
 }
@@ -24,44 +21,13 @@ const defaultOrientations: Orientation[] = [
     rake: 5,
     maxError: 45,
     minError: 2,
-    color: "dodgerblue",
-  },
-];
-
-interface Field<Key> {
-  name: string;
-  key: Key;
-  required?: boolean;
-  isValid?(k: any): boolean;
-  transform?(k: any): any;
-}
-
-type OrientationKey =
-  | "strike"
-  | "dip"
-  | "rake"
-  | "maxError"
-  | "minError"
-  | "color";
-
-const orientationFields: Field<OrientationKey>[] = [
-  { name: "Strike", key: "strike" },
-  { name: "Dip", key: "dip" },
-  { name: "Rake", key: "rake" },
-  { name: "Max.", key: "maxError", category: "Errors" },
-  { name: "Min.", key: "minError", category: "Errors" },
-  {
-    name: "Color",
-    key: "color",
-    required: false,
-    isValid: (d) => d != null && d != "",
-    transform: (d) => d,
-  },
+    color: "dodgerblue"
+  }
 ];
 
 function transformData(data: Orientation): GridElement[] {
-  return orientationFields.map((d) => {
-    return { value: data[d.key] ?? null };
+  return orientationFields.map(d => {
+    return { value: data[d.key] ?? null, className: "test" };
   });
 }
 
@@ -78,133 +44,45 @@ function addEmptyRows(
   return [...data, ...addedRows];
 }
 
-function Columns() {
-  return h("colgroup", [
-    h("col.index-column", { key: "index" }),
-    orientationFields.map(({ key }) => {
-      return h("col", {
-        className: key,
-        key,
-      });
-    }),
-  ]);
-}
-
-function Row(props) {
-  const { children, row } = props;
-  return h("tr", [h("td.index-cell.cell.read-only.index", row), children]);
-}
-
-function Header() {
-  return h("thead", [
-    h("tr.header", [
-      h("td.index-column.cell.read-only", ""),
-      orientationFields.map((col, index) => {
-        return h(
-          "td.cell.header.read-only.header-cell",
-          {
-            key: col.key,
-            index,
-          },
-          col.name
-        );
-      }),
-    ]),
-  ]);
-}
-
-function Sheet({ className, children }) {
-  return h("table", { className }, [
-    h(Columns),
-    h(Header),
-    h("tbody", children),
-  ]);
-}
-
-function DataArea({ data, updateData }) {
-  return h("div.data-area", [
-    h(
-      "p.instructions",
-      "Enter data here. Use degrees for orientations, and html colors (string, rgba, or hex codes). Pasting from a spreadsheet should work!"
-    ),
-    h(ReactDataSheet, {
-      data,
-      valueRenderer: (cell) => cell.value,
-      rowRenderer: Row,
-      sheetRenderer: Sheet,
-      onCellsChanged: (changes) => {
-        let spec: Spec<SheetContent> = {};
-        changes.forEach(({ cell, row, col, value }) => {
-          spec[row] ??= {};
-          spec[row][col] = { $set: { value } };
-        });
-        updateData(update(data, spec));
-      },
-    }),
-    //h(SwatchesPicker),
-    h("div.controls", [
-      h(ButtonGroup, [
-        h(
-          Button,
-          {
-            onClick() {
-              updateData(addEmptyRows(data, 10, 10));
-            },
-          },
-          "Add more rows"
-        ),
-        h(
-          Button,
-          {
-            onClick() {
-              updateData(defaultData);
-            },
-          },
-          "Reset data"
-        ),
-      ]),
-    ]),
-  ]);
-}
-
 const defaultData = addEmptyRows(defaultOrientations.map(transformData), 10);
 
-function constructOrientation(row): Orientation {
+function constructOrientation(row: GridElement[]): Orientation {
   // Construct an orientation from a row
-  let ix = 0;
-  let orientation: Partial<Orientation> = {};
-  for (const field of orientationFields) {
-    const {
-      transform = (d) => parseFloat(d),
-      isValid = (d) => !isNaN(d),
-      required = true,
-    } = field;
-    // Validation
-    let val = transform(row[ix].value);
-    const valid = isValid(val);
-    if (required && !valid) return null;
-    if (valid) {
-      orientation[field.key] = val;
+  try {
+    let ix = 0;
+    let orientation: Partial<Orientation> = {};
+    for (const field of orientationFields) {
+      const { transform, isValid, required } = getFieldData(field);
+
+      // Validation
+      let val = transform(row[ix].value);
+      const valid = isValid(val);
+      if (required && !valid) return null;
+      if (valid) {
+        orientation[field.key] = val;
+      }
+      ix++;
     }
-    ix++;
+    return orientation as Orientation;
+  } catch (err) {
+    return null;
   }
-  return orientation as Orientation;
 }
 
 export function App() {
-  const [data, setState] = useStoredState<SheetContent>(
+  const [data, updateData, resetData] = useStoredState<SheetContent>(
     "orientation-data",
     defaultData
   );
 
   const cleanedData: Orientation[] = data
     .map(constructOrientation)
-    .filter((d) => d != null);
+    .filter(d => d != null);
 
   return h("div.app", [
     h("h1", "Uncertain orientations plotter"),
     h("div.main", [
-      h(DataArea, { data, updateData: setState }),
+      h(DataArea, { data, updateData, resetData }),
       h(
         "div.plot-area",
         null,
@@ -212,9 +90,9 @@ export function App() {
           data: cleanedData,
           margin: 50,
           drawPoles: true,
-          drawPlanes: false,
+          drawPlanes: false
         })
-      ),
-    ]),
+      )
+    ])
   ]);
 }
