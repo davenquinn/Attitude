@@ -59,12 +59,12 @@ function buildPlot(el, data, opts = {}) {
   //return d3.select(el).selectAll("text.outer").attr("dy", -4);
 }
 
-function VerticalClippedStereonet({ data }) {
+function VerticalClippedStereonet({ data, clipAngle = 15 }) {
   const ref = useRef();
   useEffect(() => {
     if (ref.current == null) return;
-    buildPlot(ref.current, data);
-  }, [ref, data]);
+    buildPlot(ref.current, data, { clipAngle });
+  }, [ref, data, clipAngle]);
   return h("div.plot-container", null, h("svg.plot", { ref }));
 }
 

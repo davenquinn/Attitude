@@ -4,7 +4,7 @@ import { Stereonet } from "@attitude/notebook-ui/src";
 import ReactDataSheet from "react-datasheet";
 import "react-datasheet/lib/react-datasheet.css";
 import { useStoredState } from "@macrostrat/ui-components";
-import { Tab, Tabs } from "@blueprintjs/core";
+import { Tab, Tabs, Card, NumericInput, Label } from "@blueprintjs/core";
 import { DataArea, getFieldData, orientationFields } from "./sheet";
 import {
   VerticalClippedStereonet,
@@ -75,6 +75,25 @@ function constructOrientation(row: GridElement[]): Orientation {
   }
 }
 
+function ClippedStereonetPanel({ data }) {
+  const [clipAngle, setClipAngle] = useStoredState("clipAngle", 15, (d) => {
+    const val = parseFloat(d);
+    return !isNaN(val) && val > 0 && val <= 90;
+  });
+  return h("div", [
+    h(VerticalClippedStereonet, { data, clipAngle }),
+    h(Card, { className: "controls" }, [
+      h(Label, { className: "bp3-inline" }, [
+        "Clip angle",
+        h(NumericInput, {
+          value: clipAngle,
+          onValueChange: (e) => setClipAngle(e),
+        }),
+      ]),
+    ]),
+  ]);
+}
+
 function PlotTabs({ data }) {
   return h(Tabs, { renderActiveTabPanelOnly: true }, [
     h(Tab, {
@@ -95,7 +114,7 @@ function PlotTabs({ data }) {
       title: "Vertical clipped stereonet",
       panel: h([
         h("p.description", "Poles to near-horizontal bedding"),
-        h(VerticalClippedStereonet, { data }),
+        h(ClippedStereonetPanel, { data }),
       ]),
     }),
     // h(Tab, {

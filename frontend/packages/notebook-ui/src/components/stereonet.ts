@@ -188,20 +188,21 @@ class StereonetComponent extends React.Component {
 
 class InteractiveStereonetComponent extends React.Component {
   constructor(props) {
+    const { drawPlanes = false, drawPoles = true, ...rest } = props;
     super(props);
     this.setVertical = this.setVertical.bind(this);
     this.handleSwitchPoles = this.handleSwitchPoles.bind(this);
     this.handleSwitchPlanes = this.handleSwitchPlanes.bind(this);
-    this.state = { drawPlanes: true, drawPoles: false, center: [0, 0] };
+    this.state = { drawPlanes, drawPoles, center: [0, 0] };
   }
   render() {
     const { drawPlanes, drawPoles, center } = this.state;
 
     return h("div.stereonet-outer", [
       h(StereonetComponent, {
+        ...this.props,
         drawPlanes,
         drawPoles,
-        ...this.props,
         center,
         ref: "component",
       }),

@@ -60,20 +60,33 @@ const flipAxesIfNeeded = function (axes) {
   return axes;
 };
 
+interface AxesProps {
+  hyperbolic_axes: math.Vector3;
+  axes: math.Matrix3;
+}
+
+function constructAxes(props: any): AxesProps {
+  let { hyperbolic_axes, axes, covariance } = props;
+  // To preserve compatibility
+  hyperbolic_axes ??= covariance;
+
+  if (hyperbolic_axes == null && props.strike != null) {
+    const v = reconstructErrors(props as Orientation);
+    hyperbolic_axes = v.hyp;
+    axes = v.axes;
+  }
+  axes = flipAxesIfNeeded(axes);
+
+  return { hyperbolic_axes, axes };
+}
+
 const createGroupedPlane = function (opts) {
   if (opts.nominal == null) {
     opts.nominal = true;
   }
 
   return function (p) {
-    let { hyperbolic_axes, axes, covariance } = p;
-    // To preserve compatibility
-    if (hyperbolic_axes == null) {
-      hyperbolic_axes = covariance;
-    }
-
-    // Make sure axes are not inverted
-    axes = flipAxesIfNeeded(axes);
+    const { hyperbolic_axes, axes } = constructAxes(p);
 
     const e = combinedErrors(hyperbolic_axes, axes, opts);
     const el = select(this);
@@ -93,9 +106,7 @@ const createGroupedPlane = function (opts) {
   };
 };
 
-interface ErrorEllipseProps {
-  hyperbolic_axes: math.Vector3;
-  axes: math.Matrix3;
+interface ErrorEllipseProps extends AxesProps {
   covariance?: math.Vector3;
 }
 
@@ -103,18 +114,11 @@ const __createErrorEllipse = function (opts) {
   //Function generator to create error ellipse
   //for a single error level
   return function (props: ErrorEllipseProps | Orientation) {
-    let { hyperbolic_axes, axes, covariance } = props;
-    // To preserve compatibility
-    hyperbolic_axes ??= covariance;
+    const { hyperbolic_axes, axes } = constructAxes(props);
 
     const f_ = function (sheet) {
       opts.sheet = sheet;
-      if (hyperbolic_axes == null && props.strike != null) {
-        const v = reconstructErrors(props as Orientation);
-        hyperbolic_axes = v.hyp;
-        axes = v.axes;
-      }
-      console.log(props, hyperbolic_axes);
+
       const errors = math.normalErrors(hyperbolic_axes, axes, opts);
       let f = createFeature("Polygon", [errors]);
 
