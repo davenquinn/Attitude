@@ -4,7 +4,10 @@ import { Stereonet } from "@attitude/notebook-ui/src";
 import ReactDataSheet from "react-datasheet";
 import "react-datasheet/lib/react-datasheet.css";
 import { useStoredState } from "@macrostrat/ui-components";
+import { Tab, Tabs } from "@blueprintjs/core";
 import { DataArea, getFieldData, orientationFields } from "./sheet";
+import { VerticalClippedStereonet } from "@attitude/plots";
+
 //import classNames from "classnames";
 interface GridElement extends ReactDataSheet.Cell<GridElement, number> {
   value: number | null;
@@ -21,12 +24,12 @@ const defaultOrientations: Orientation[] = [
     rake: 5,
     maxError: 45,
     minError: 2,
-    color: "dodgerblue"
-  }
+    color: "dodgerblue",
+  },
 ];
 
 function transformData(data: Orientation): GridElement[] {
-  return orientationFields.map(d => {
+  return orientationFields.map((d) => {
     return { value: data[d.key] ?? null, className: "test" };
   });
 }
@@ -77,7 +80,7 @@ export function App() {
 
   const cleanedData: Orientation[] = data
     .map(constructOrientation)
-    .filter(d => d != null);
+    .filter((d) => d != null);
 
   return h("div.app", [
     h("h1", "Uncertain orientations plotter"),
@@ -86,13 +89,27 @@ export function App() {
       h(
         "div.plot-area",
         null,
-        h(Stereonet, {
-          data: cleanedData,
-          margin: 50,
-          drawPoles: true,
-          drawPlanes: false
-        })
-      )
-    ])
+        h(Tabs, { renderActiveTabPanelOnly: true }, [
+          h(Tab, {
+            id: "stereonet",
+            title: "Interactive stereonet",
+            panel: h(Stereonet, {
+              data: cleanedData,
+              margin: 50,
+              drawPoles: true,
+              drawPlanes: false,
+            }),
+          }),
+          h(Tab, {
+            id: "upper-hemisphere",
+            title: "Vertical clipped stereonet",
+            panel: h([
+              h("p", "Poles to near-horizontal bedding"),
+              h(VerticalClippedStereonet, { data: cleanedData }),
+            ]),
+          }),
+        ])
+      ),
+    ]),
   ]);
 }

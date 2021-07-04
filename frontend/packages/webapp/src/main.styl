@@ -1,8 +1,10 @@
 .main
   display flex
   flex-direction row
+  justify-content: space-between
   .data-area, .plot-area
     flex-grow 1
+    margin-right 1em
 
 .stereonet
   margin 1em
@@ -35,6 +37,9 @@ col
   fill: none
   stroke: black
   stroke-width: 2px
+
+.data-area
+  max-width: 600px
 
 .data-area-main
   display: flex

@@ -1,28 +1,27 @@
-const fs = require("fs");
 const d3 = require("d3");
 require("d3-selection-multi");
-const { functions, math } = require("attitude");
-const style = require("./main.styl");
-const { Stereonet } = require("attitude");
-const chroma = require("chroma-js");
-require("stereonet/style.styl");
-const regroupData = require("../regroup-data.coffee");
+import { functions, math, Stereonet } from "@attitude/core";
+import chroma from "chroma-js";
+import "./main.styl";
+import "./plot.styl";
+import { useEffect, useRef } from "react";
+import h from "@macrostrat/hyper";
 
 const opts = {
   degrees: true,
   traditionalLayout: false,
   adaptive: true,
   n: 60, // Bug if we go over 60?
-  level: [1] // 95% ci for 2 degrees of freedom
+  level: [1], // 95% ci for 2 degrees of freedom
 };
 
 // Functions for two levels of error ellipse
 const createEllipses = functions.errorEllipse(opts);
 
-const setStyle = function(d, i) {
+function setStyle(d, i) {
   const e = d3.select(this);
 
-  const cfunc = function(max) {
+  const cfunc = function (max) {
     let a = (max / d.max_angular_error) * 5;
     if (a > 0.8) {
       a = 0.8;
@@ -33,38 +32,27 @@ const setStyle = function(d, i) {
     return a;
   };
 
-  const color = chroma(d.color);
+  const color = chroma(d.color ?? "#aaaaaa");
   const fill = color.alpha(cfunc(1)).css();
   const stroke = color.alpha(cfunc(2)).css();
   console.log(cfunc(1));
 
-  const v = e.selectAll("path").attrs({ fill, stroke });
+  const v = e.selectAll("path").attr("fill", fill).attr("stroke", stroke);
   if (d.in_group) {
-    return v.attrs({
-      "stroke-dasharray": "2,2",
-      fill: "transparent"
-    });
+    v.attr("stroke-dasharray", "2,2").attr("fill", "transparent");
   }
-};
+}
 
-export default function(el, data, opts = {}) {
-  if (opts.clipAngle == null) {
-    opts.clipAngle = 15;
-  }
-  if (opts.size == null) {
-    opts.size = 400;
-  }
-  if (opts.margin == null) {
-    opts.margin = 25;
-  }
+function buildPlot(el, data, opts = {}) {
+  const { clipAngle = 15, margin = 25, size = 400 } = opts;
 
-  const stereonet = Stereonet()
-    .margin(opts.margin)
-    .clipAngle(opts.clipAngle)
-    .size(opts.size)
+  const stereonet = Stereonet({ interactive: false })
+    .margin(margin)
+    .clipAngle(clipAngle)
+    .size(size)
     .graticule(30, 2.5);
 
-  const svg = el.classed("stereonet", true).call(stereonet);
+  const svg = d3.select(el).attr("class", "stereonet").call(stereonet);
 
   //const fn = regroupData(opts.groupings || []);
   //data = await fn(data);
@@ -72,10 +60,21 @@ export default function(el, data, opts = {}) {
   stereonet
     .ellipses(data) //.filter (d)-> not d.in_group
     .each(setStyle)
-    .on("mouseover", d => console.log(d.id, d.in_group, d.ids || []));
+    .on("mouseover", (d) => console.log(d.id, d.in_group, d.ids || []));
 
   stereonet.vertical();
   stereonet.draw();
 
-  return el.selectAll("text.outer").attr("dy", -4);
+  return d3.select(el).selectAll("text.outer").attr("dy", -4);
 }
+
+function VerticalClippedStereonet({ data }) {
+  const ref = useRef();
+  useEffect(() => {
+    if (ref.current == null) return;
+    buildPlot(ref.current, data);
+  }, [ref, data]);
+  return h("div.plot-container", null, h("svg.plot", { ref }));
+}
+
+export { VerticalClippedStereonet };

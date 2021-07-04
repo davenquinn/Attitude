@@ -268,13 +268,7 @@ export function DataArea({ data, updateData, resetData }) {
       "p.instructions",
       "Enter data here. Use degrees for orientations, and html colors (string, rgba, or hex codes). Pasting from a spreadsheet should work!"
     ),
-    h("div.data-area-main", [
-      h("div.left-column", [
-        h(ErrorBoundary, null, h(DataSheet, { data, updateData })),
-        h(Controls, { data, updateData, resetData })
-      ]),
-
-      h("div.sidebar", [])
-    ])
+    h(ErrorBoundary, null, h(DataSheet, { data, updateData })),
+    h(Controls, { data, updateData, resetData })
   ]);
 }

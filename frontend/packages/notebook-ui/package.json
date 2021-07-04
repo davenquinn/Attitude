@@ -2,8 +2,8 @@
   "name": "@attitude/notebook-ui",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/index.coffee",
-  "source": "src/index.coffee",
+  "main": "dist/index.ts",
+  "source": "src/index.ts",
   "directories": {
     "test": "test"
   },

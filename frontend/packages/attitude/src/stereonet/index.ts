@@ -44,7 +44,8 @@ const getterSetter = (main) =>
     };
   };
 
-const Stereonet = function () {
+function Stereonet(o1 = {}) {
+  const { interactive = true } = o1;
   const planes = null;
   const ellipses = null;
   let data = null;
@@ -455,10 +456,12 @@ const Stereonet = function () {
   f.horizontal = horizontal(f);
   f.vertical = vertical(f);
 
-  f.call(interaction);
+  if (interactive) {
+    f.call(interaction);
+  }
 
   return f;
-};
+}
 
 function getColor(colorString: string): Color | null {
   try {

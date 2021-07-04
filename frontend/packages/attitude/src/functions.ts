@@ -103,7 +103,6 @@ const __createErrorEllipse = function (opts) {
   //Function generator to create error ellipse
   //for a single error level
   return function (props: ErrorEllipseProps | Orientation) {
-    console.log(props);
     let { hyperbolic_axes, axes, covariance } = props;
     // To preserve compatibility
     hyperbolic_axes ??= covariance;
@@ -115,6 +114,7 @@ const __createErrorEllipse = function (opts) {
         hyperbolic_axes = v.hyp;
         axes = v.axes;
       }
+      console.log(props, hyperbolic_axes);
       const errors = math.normalErrors(hyperbolic_axes, axes, opts);
       let f = createFeature("Polygon", [errors]);
 
