@@ -318,26 +318,16 @@ function Stereonet(o1 = {}) {
 
   f.on = (event, callback) => dispatch.on(uid + event, callback);
 
-  f.rectangular = function (opts) {
-    if (opts == null) {
-      opts = {};
-    }
-    let { width, height, x, y } = opts;
+  f.rectangular = function (opts: any = {}) {
+    let {
+      width = scale - 2 * margin,
+      height = scale - 2 * margin,
+      x = margin,
+      y = margin,
+    } = opts;
     // Create a rectangular neatline
     __createNeatline = function (sel, id) {
-      if (width == null) {
-        width = scale - 2 * margin;
-      }
-      if (height == null) {
-        height = scale - 2 * margin;
-      }
-      if (x == null) {
-        x = margin;
-      }
-      if (y == null) {
-        y = margin;
-      }
-      sel.append("rect");
+      const rect = sel.append("rect");
 
       const object = {
         id: id.slice(1),
@@ -348,10 +338,10 @@ function Stereonet(o1 = {}) {
       };
       for (let k in object) {
         const v = object[k];
-        sel.attr(k, v);
+        rect.attr(k, v);
       }
       proj.clipAngle(90).translate([width / 2 + margin, height / 2 + margin]);
-      return (__overrideNeatlineClip = true);
+      __overrideNeatlineClip = true;
     };
     return f;
   };

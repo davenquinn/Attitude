@@ -6,7 +6,10 @@ import "react-datasheet/lib/react-datasheet.css";
 import { useStoredState } from "@macrostrat/ui-components";
 import { Tab, Tabs } from "@blueprintjs/core";
 import { DataArea, getFieldData, orientationFields } from "./sheet";
-import { VerticalClippedStereonet } from "@attitude/plots";
+import {
+  VerticalClippedStereonet,
+  RectangularStereonet,
+} from "@attitude/plots";
 
 //import classNames from "classnames";
 interface GridElement extends ReactDataSheet.Cell<GridElement, number> {
@@ -106,6 +109,14 @@ export function App() {
             panel: h([
               h("p", "Poles to near-horizontal bedding"),
               h(VerticalClippedStereonet, { data: cleanedData }),
+            ]),
+          }),
+          h(Tab, {
+            id: "rectangular",
+            title: "Rectangular stereonet",
+            panel: h([
+              h("p", "Rectangular stereonet"),
+              h(RectangularStereonet, { data: cleanedData }),
             ]),
           }),
         ])
