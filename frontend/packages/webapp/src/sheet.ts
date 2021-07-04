@@ -46,7 +46,7 @@ function ColorEditor(props) {
               },
               onKeyDown(evt) {
                 console.log(evt);
-              }
+              },
             },
             [
               h(ErrorBoundary, [
@@ -62,16 +62,16 @@ function ColorEditor(props) {
                       onChange(c);
                       evt.stopPropagation();
                     }
-                  }
-                })
-              ])
+                  },
+                }),
+              ]),
             ]
           ),
           enforceFocus: false,
           autoFocus: false,
           minimal: true,
           modifiers: {
-            offset: { enabled: true, options: { offset: [0, 8] } }
+            offset: { enabled: true, options: { offset: [0, 8] } },
           },
           interactionKind: "hover-target",
           isOpen: true,
@@ -79,11 +79,11 @@ function ColorEditor(props) {
             console.log("trying to close");
             onKeyDown(evt);
           },
-          usePortal: false
+          usePortal: false,
         },
         target
-      )
-    ])
+      ),
+    ]),
   ]);
 }
 
@@ -117,10 +117,10 @@ export const orientationFields: Field<OrientationKey>[] = [
     name: "Color",
     key: "color",
     required: false,
-    isValid: d => getColor(d) != null,
-    transform: d => d,
-    dataEditor: ColorEditor
-  }
+    isValid: (d) => getColor(d) != null,
+    transform: (d) => d,
+    dataEditor: ColorEditor,
+  },
 ];
 
 export function addEmptyRows(
@@ -142,9 +142,9 @@ function Columns() {
     orientationFields.map(({ key }) => {
       return h("col", {
         className: key,
-        key
+        key,
       });
-    })
+    }),
   ]);
 }
 
@@ -162,12 +162,12 @@ function Header() {
           "td.cell.header.read-only.header-cell",
           {
             key: col.key,
-            index
+            index,
           },
           col.name
         );
-      })
-    ])
+      }),
+    ]),
   ]);
 }
 
@@ -175,14 +175,14 @@ function Sheet({ className, children }) {
   return h("table", { className }, [
     h(Columns),
     h(Header),
-    h("tbody", children)
+    h("tbody", children),
   ]);
 }
 
 export function getFieldData<K>(field: Field<K>): Field<K> {
   const {
-    transform = d => parseFloat(d),
-    isValid = d => !isNaN(d),
+    transform = (d) => parseFloat(d),
+    isValid = (d) => !isNaN(d),
     required = true,
     ...rest
   } = field;
@@ -197,18 +197,18 @@ function Controls({ data, updateData, resetData }) {
         {
           onClick() {
             updateData(addEmptyRows(data, 10, 10));
-          }
+          },
         },
         "Add more rows"
       ),
       h(
         Button,
         {
-          onClick: resetData
+          onClick: resetData,
         },
         "Reset data"
-      )
-    ])
+      ),
+    ]),
   ]);
 }
 
@@ -232,6 +232,18 @@ function enhanceData(row: GridElement[]): any[] {
   });
 }
 
+function finalizeRow(row: GridElement[]) {
+  // Validation function to ensure that max angular error is always greater than min angular error
+  if (parseFloat(row[3]?.value) < parseFloat(row[4]?.value)) {
+    console.log("Row has errors");
+    let newRow = [...row];
+    newRow[3] = row[4];
+    newRow[4] = row[3];
+    return newRow;
+  }
+  return row;
+}
+
 function DataSheet({ data, updateData }) {
   return h(ReactDataSheet, {
     data: data.map(enhanceData),
@@ -251,24 +263,20 @@ function DataSheet({ data, updateData }) {
       console.log("Context menu");
       console.log(args);
     },
-    onCellsChanged: changes => {
+    onCellsChanged: (changes) => {
       let spec: Spec<SheetContent> = {};
       changes.forEach(({ cell, row, col, value }) => {
         if (!(row in spec)) spec[row] = {};
         spec[row][col] = { $set: { value } };
       });
-      updateData(update(data, spec));
-    }
+      updateData(update(data, spec).map(finalizeRow));
+    },
   });
 }
 
 export function DataArea({ data, updateData, resetData }) {
   return h("div.data-area", [
-    h(
-      "p.instructions",
-      "Enter data here. Use degrees for orientations, and html colors (string, rgba, or hex codes). Pasting from a spreadsheet should work!"
-    ),
     h(ErrorBoundary, null, h(DataSheet, { data, updateData })),
-    h(Controls, { data, updateData, resetData })
+    h(Controls, { data, updateData, resetData }),
   ]);
 }

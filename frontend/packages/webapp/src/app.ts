@@ -75,6 +75,40 @@ function constructOrientation(row: GridElement[]): Orientation {
   }
 }
 
+function PlotTabs({ data }) {
+  return h(Tabs, { renderActiveTabPanelOnly: true }, [
+    h(Tab, {
+      id: "stereonet",
+      title: "Interactive stereonet",
+      panel: h([
+        h("p.description", "Full, upper-hemisphere stereonet"),
+        h(Stereonet, {
+          data,
+          margin: 50,
+          drawPoles: true,
+          drawPlanes: false,
+        }),
+      ]),
+    }),
+    h(Tab, {
+      id: "upper-hemisphere",
+      title: "Vertical clipped stereonet",
+      panel: h([
+        h("p.description", "Poles to near-horizontal bedding"),
+        h(VerticalClippedStereonet, { data }),
+      ]),
+    }),
+    // h(Tab, {
+    //   id: "rectangular",
+    //   title: "Rectangular stereonet",
+    //   panel: h([
+    //     h("p", "Rectangular stereonet"),
+    //     h(RectangularStereonet, { data: cleanedData }),
+    //   ]),
+    // }),
+  ]);
+}
+
 export function App() {
   const [data, updateData, resetData] = useStoredState<SheetContent>(
     "orientation-data",
@@ -86,41 +120,22 @@ export function App() {
     .filter((d) => d != null);
 
   return h("div.app", [
-    h("h1", "Uncertain orientations plotter"),
     h("div.main", [
-      h(DataArea, { data, updateData, resetData }),
-      h(
-        "div.plot-area",
-        null,
-        h(Tabs, { renderActiveTabPanelOnly: true }, [
-          h(Tab, {
-            id: "stereonet",
-            title: "Interactive stereonet",
-            panel: h(Stereonet, {
-              data: cleanedData,
-              margin: 50,
-              drawPoles: true,
-              drawPlanes: false,
-            }),
-          }),
-          h(Tab, {
-            id: "upper-hemisphere",
-            title: "Vertical clipped stereonet",
-            panel: h([
-              h("p", "Poles to near-horizontal bedding"),
-              h(VerticalClippedStereonet, { data: cleanedData }),
-            ]),
-          }),
-          h(Tab, {
-            id: "rectangular",
-            title: "Rectangular stereonet",
-            panel: h([
-              h("p", "Rectangular stereonet"),
-              h(RectangularStereonet, { data: cleanedData }),
-            ]),
-          }),
-        ])
-      ),
+      h("div.left-panel", [
+        h("h1", "Uncertain orientations plotter"),
+        h("p.instructions", [
+          "This is a webapp that can plot uncertain orientations from a spreadsheet. ",
+          "You can download the plots for further adjustment in Illustrator using a SVG export plugin like ",
+          h("a", { href: "https://svgexport.io" }, "SVGExport"),
+          ". ",
+        ]),
+        h(
+          "p.instructions",
+          "Enter data here. Use degrees for orientations, and html colors (string, rgba, or hex codes). Pasting from a spreadsheet should work!"
+        ),
+        h(DataArea, { data, updateData, resetData }),
+      ]),
+      h("div.plot-area", null, h(PlotTabs, { data: cleanedData })),
     ]),
   ]);
 }

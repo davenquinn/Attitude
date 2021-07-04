@@ -462,7 +462,7 @@ function getColor(colorString: string): Color | null {
 }
 
 const opacityByCertainty = function (colorFunc, accessor = null) {
-  let angularError = (d) => d.max_angular_error;
+  let angularError = (d) => d.max_angular_error ?? d.maxError;
   const darkenStroke = 0.2;
   let maxOpacity = 5;
   let alphaScale = d3.scalePow(4).range([0.8, 0.1]).domain([0, maxOpacity]);
@@ -479,7 +479,7 @@ const opacityByCertainty = function (colorFunc, accessor = null) {
     if (accessor != null) {
       e = e.selectAll("path.error");
     }
-    return e.attr("fill", fill).attr("stroke", stroke);
+    e.attr("fill", fill).attr("stroke", stroke);
   };
 
   const __getSet = getterSetter(f);

@@ -7,22 +7,12 @@ import "./plot.styl";
 import { useEffect, useRef } from "react";
 import h from "@macrostrat/hyper";
 
-const opts = {
-  degrees: true,
-  traditionalLayout: false,
-  adaptive: true,
-  n: 60, // Bug if we go over 60?
-  level: [1], // 95% ci for 2 degrees of freedom
-};
-
-// Functions for two levels of error ellipse
-const createEllipses = functions.errorEllipse(opts);
-
-function setStyle(d, i) {
+function translucentEllipseStyle(d, i) {
   const e = d3.select(this);
 
   const cfunc = function (max) {
-    let a = (max / d.max_angular_error) * 5;
+    const maxError = d.max_angular_error ?? d.maxError;
+    let a = (max / maxError) * 5;
     if (a > 0.8) {
       a = 0.8;
     }
@@ -44,6 +34,7 @@ function setStyle(d, i) {
 }
 
 function buildPlot(el, data, opts = {}) {
+  el.innerHTML = "";
   const { clipAngle = 15, margin = 25, size = 400 } = opts;
 
   const stereonet = Stereonet({ interactive: false })
@@ -59,13 +50,13 @@ function buildPlot(el, data, opts = {}) {
 
   stereonet
     .ellipses(data) //.filter (d)-> not d.in_group
-    .each(setStyle)
+    .each(translucentEllipseStyle)
     .on("mouseover", (d) => console.log(d.id, d.in_group, d.ids || []));
 
   stereonet.vertical();
   stereonet.draw();
 
-  return d3.select(el).selectAll("text.outer").attr("dy", -4);
+  //return d3.select(el).selectAll("text.outer").attr("dy", -4);
 }
 
 function VerticalClippedStereonet({ data }) {
@@ -77,4 +68,4 @@ function VerticalClippedStereonet({ data }) {
   return h("div.plot-container", null, h("svg.plot", { ref }));
 }
 
-export { VerticalClippedStereonet };
+export { VerticalClippedStereonet, translucentEllipseStyle };

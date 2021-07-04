@@ -16,7 +16,7 @@ import {
   globalLabels,
   chroma,
 } from "@attitude/core/src";
-import { Switch, Button } from "@blueprintjs/core";
+import { Switch, Button, Card } from "@blueprintjs/core";
 
 const setHoveredFill = function (d) {
   const s = d3.select(this);
@@ -205,7 +205,7 @@ class InteractiveStereonetComponent extends React.Component {
         center,
         ref: "component",
       }),
-      h("div.toolbar", [
+      h(Card, { className: "controls" }, [
         h(Switch, {
           checked: drawPlanes,
           onChange: this.handleSwitchPlanes,

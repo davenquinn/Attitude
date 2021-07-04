@@ -1,13 +1,36 @@
+*
+  box-sizing border-box
+
 .main
+  width 100vw
   display flex
   flex-direction row
-  justify-content: space-between
-  .data-area, .plot-area
-    flex-grow 1
-    margin-right 1em
+  padding 1em
+  .left-panel, .plot-area
+    flex 1
+    margin-right 2em
+  .plot-area
+    margin-right 0
+    position relative
+    width 500px
+
+body, #root, .app
+  box-sizing: border-box
+  margin 0
+  padding 0
+  height 100vh
+  width 100vw
 
 .stereonet
   margin 1em
+
+.stereonet-outer
+  max-width 100%
+
+  .controls
+    max-width 400px
+
+  margin-bottom: 2em
 
 tr
   height 20px
@@ -38,7 +61,7 @@ col
   stroke: black
   stroke-width: 2px
 
-.data-area
+.left-panel
   max-width: 600px
 
 .data-area-main
@@ -58,3 +81,7 @@ span.popover-target, span.bp3-popover2-target
 
 .interaction-barrier
   pointer-events: all
+
+p.description
+  color #aaa
+  font-style: italic

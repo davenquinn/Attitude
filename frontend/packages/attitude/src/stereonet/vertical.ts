@@ -34,7 +34,7 @@ export default (stereonet) =>
     const labels = ["N", "E", "S", "W"];
     const textAnchor = ["middle", "start", "middle", "end"];
     const alignmentBaseline = [null, "middle", "hanging", "middle"];
-    const padding = [3, 0, 3, 0];
+    const padding = [5, 5, 5, 5];
     const locs = [0, 90, 180, 270];
 
     const az = g.append("g").attr("class", "azimuthLabels");
@@ -72,14 +72,15 @@ export default (stereonet) =>
 
       geometry: {
         type: "Point",
-        coordinates: [lon, -90 + d],
+        coordinates: [lon, 90 - d],
       },
     });
 
-    const a = stereonet.clipAngle();
+    const clipAngle = stereonet.clipAngle();
     if (dipLabels == null) {
-      dipLabels = scaleLinear([0, a]).ticks(nLabels);
+      dipLabels = scaleLinear().domain([0.1, clipAngle]).nice().ticks(nLabels);
     }
+    console.log(clipAngle, dipLabels);
 
     const proj = stereonet.projection();
     sel = dip.selectAll("text").data(dipLabels.map(feat));
@@ -89,13 +90,14 @@ export default (stereonet) =>
       .attr("class", "inner")
       .text((d) => d.label)
       .attr("transform", function (d) {
+        console.log(d.geometry.coordinates);
         const v = proj(d.geometry.coordinates);
         return `translate(${v[0]}, ${v[1]}) rotate(${180 - lon})`;
       });
 
     const sphereId = `#${stereonet.uid()}-sphere`;
 
-    const at = { dy: -dy - 3, class: "outer" };
+    const at = { dy: -dy - 5, class: "outer" };
     // Labels
     az.append("text")
       .attrs(at)
@@ -114,6 +116,6 @@ export default (stereonet) =>
       .attrs({
         method: "stretch",
         "xlink:href": sphereId,
-        startOffset: `${innerRadius * 70 * d2r}`,
+        startOffset: `${innerRadius * 60 * d2r}`,
       });
   };
