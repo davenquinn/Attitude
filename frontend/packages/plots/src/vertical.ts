@@ -2,8 +2,6 @@ const d3 = require("d3");
 require("d3-selection-multi");
 import { functions, math, Stereonet } from "@attitude/core";
 import chroma from "chroma-js";
-import "./main.styl";
-import "./plot.styl";
 import { useEffect, useRef } from "react";
 import h from "@macrostrat/hyper";
 

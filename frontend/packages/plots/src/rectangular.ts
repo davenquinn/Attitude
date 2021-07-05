@@ -7,7 +7,6 @@ import { select, scaleLinear } from "d3";
 import chroma from "chroma-js";
 import { useRef, useEffect } from "react";
 import h from "@macrostrat/hyper";
-import "./main.styl";
 
 import { Stereonet, opacityByCertainty, globalLabels } from "@attitude/core";
 import { AzimuthLabels, DipLabels } from "./graticule-labels";

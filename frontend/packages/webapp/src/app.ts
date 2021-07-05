@@ -10,6 +10,7 @@ import {
   VerticalClippedStereonet,
   RectangularStereonet,
 } from "@attitude/plots";
+import "./main.styl";
 
 //import classNames from "classnames";
 interface GridElement extends ReactDataSheet.Cell<GridElement, number> {
