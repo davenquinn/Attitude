@@ -1,5 +1,4 @@
-const d3 = require("d3");
-require("d3-selection-multi");
+import * as d3 from "d3";
 import { functions, math, Stereonet } from "@attitude/core";
 import chroma from "chroma-js";
 import { useEffect, useRef } from "react";

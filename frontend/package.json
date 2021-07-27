@@ -18,7 +18,7 @@
   "scripts": {
     "postinstall": "lerna bootstrap --hoist",
     "dev": "parcel index.html",
-    "build": "parcel build --public-url /projects/attitude/plotter/ index.html",
+    "build": "parcel --public-url /projects/attitude/plotter/ index.html",
     "test": "npm --prefix packages/attitude run test",
     "dist": "rclone sync --s3-acl=public-read -L dist davenquinn-spaces:davenquinn-sites/projects/attitude/plotter/"
   },

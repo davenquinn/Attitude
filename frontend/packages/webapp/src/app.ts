@@ -1,5 +1,5 @@
 import h from "@macrostrat/hyper";
-import { Orientation, getColor } from "@attitude/core";
+import { Orientation } from "@attitude/core";
 import { Stereonet } from "@attitude/notebook-ui/src";
 import ReactDataSheet from "react-datasheet";
 import "react-datasheet/lib/react-datasheet.css";

@@ -2,7 +2,7 @@
   "name": "@attitude/core",
   "version": "0.0.0",
   "description": "Attitude computes the orientations of planes from point data",
-  "main": "lib/attitude.node.js",
+  "main": "src/index.ts",
   "source": "src/index.ts",
   "dependencies": {
     "@blueprintjs/core": "^2.0.0-beta.3",
