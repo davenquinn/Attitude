@@ -5,6 +5,6 @@ mplstereonet
 jinja2
 colour
 pytest
-pytest-mpl
+pytest-mpl==0.13
 IPython
 subdivide >= 1
