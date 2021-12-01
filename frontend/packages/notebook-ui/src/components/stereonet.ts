@@ -6,7 +6,7 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-import React from "react";
+import React, { useEffect } from "react";
 import ReactDOM from "react-dom";
 import h from "react-hyperscript";
 import * as d3 from "d3";
@@ -21,18 +21,15 @@ import { Switch, Button, Card } from "@blueprintjs/core";
 const setHoveredFill = function (d) {
   const s = d3.select(this);
   const err = s.select("path.error");
-  err.styles({
-    fill: d.color,
-    stroke: d.color,
-    "fill-opacity": 0.1,
-  });
+  err.style("fill", d.color);
+  err.style("stroke", d.color);
+  err.style("opacity", 1);
+
   s.select("path.nominal").style("stroke", d.color);
   if (d.member_of != null) {
     return;
   }
-  return err.styles({
-    "fill-opacity": 0.5,
-  });
+  return err.style("fill-opacity", 0.5);
 };
 
 class StereonetComponent extends React.Component {
