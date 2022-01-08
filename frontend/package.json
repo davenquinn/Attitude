@@ -1,0 +1,28 @@
+{
+  "name": "@attitude/frontend",
+  "private": true,
+  "version": "1.0.0",
+  "description": "[Rollup](https://github.com/rollup/rollup/wiki/pkg.module) is used to build this into a functional module for Node.js and the browser.",
+  "main": "dist/index.html",
+  "devDependencies": {
+    "@parcel/transformer-coffeescript": "2.0.0-beta.3.1",
+    "@parcel/transformer-stylus": "2.0.0-beta.3.1",
+    "lerna": "^4.0.0",
+    "parcel": "2.0.0-beta.3.1",
+    "prettier": "^2.3.2",
+    "typescript": "^4.3.4"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "postinstall": "lerna bootstrap --hoist",
+    "dev": "parcel index.html",
+    "build": "parcel --public-url /projects/attitude/plotter/ index.html",
+    "test": "npm --prefix packages/attitude run test",
+    "dist": "rclone sync --s3-acl=public-read -L dist davenquinn-spaces:davenquinn-sites/projects/attitude/plotter/"
+  },
+  "author": "Daven Quinn",
+  "license": "ISC",
+  "prettier": {}
+}

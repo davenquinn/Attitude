@@ -1,0 +1,38 @@
+
+.background
+  fill: white
+
+text
+  fill: black
+
+.map text
+  fill: white
+
+.map .scale text
+  fill: #444
+
+.neatline
+  stroke: black
+  stroke-width: 2
+  fill: none
+
+.graticule {
+  fill: none;
+  stroke: #eee;
+  }
+
+.plane
+  .nominal
+    stroke: red
+    stroke-width: 2
+
+.azimuthLabels, .dipLabels
+  text, textPath
+    font-size: 10pt
+    &.outer text
+      baseline-shift: 5px
+    &.outer textPath
+      text-anchor: start
+
+.dipLabels text
+  baseline-shift: 10px

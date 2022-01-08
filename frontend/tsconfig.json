@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "lib": ["esnext", "dom"],
+    "esModuleInterop": true,
+    "paths": {
+      "~/*": ["src/*"]
+    }
+  },
+  "include": ["src", "plugins", "default-content", "packages"]
+}

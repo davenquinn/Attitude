@@ -1,0 +1,19 @@
+{
+  "name": "@attitude/notebook-ui",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.ts",
+  "source": "src/index.ts",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "@attitude/core": "*"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --config webpack.ui.js"
+  },
+  "author": "",
+  "license": "ISC"
+}

@@ -1,0 +1,31 @@
+{
+  "name": "attitude-webapp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "parcel serve ./index.html",
+    "build": "parcel build ./index.html"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.12.0",
+    "@parcel/transformer-coffeescript": "2.0.0-beta.3.1",
+    "@parcel/transformer-stylus": "2.0.0-beta.3.1",
+    "parcel": "2.0.0-beta.3.1"
+  },
+  "dependencies": {
+    "@macrostrat/hyper": "^1.2.13",
+    "@macrostrat/ui-components": "^0.6.4",
+    "@attitude/notebook-ui": "*",
+    "immutability-helper": "^3.1.1",
+    "react": "^17.0.2",
+    "react-color": "^2.19.3",
+    "react-datasheet": "^1.4.9",
+    "react-dom": "^17.0.2",
+    "@blueprintjs/popover2": "^0.11.0",
+    "chroma-js": "^1.4.1",
+    "react-json-tree": "^0.15.0"
+  }
+}
