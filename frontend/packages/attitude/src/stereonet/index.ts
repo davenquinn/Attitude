@@ -17,8 +17,6 @@ import interaction from "./interaction";
 import { globalLabels } from "./labels";
 import uuid from "uuid";
 
-export { selection };
-
 const opts = {
   degrees: true,
   traditionalLayout: false,
