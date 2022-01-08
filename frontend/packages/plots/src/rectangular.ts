@@ -14,7 +14,6 @@ import { AzimuthLabels, DipLabels } from "./graticule-labels";
 const scale = scaleLinear().domain([2, 10]).range([0.8, 0.2]).clamp(true);
 
 function drawStereonet(el_, data) {
-  console.log(data);
 
   const margin = 25;
   const size = { height: 390, width: 800 };

@@ -151,7 +151,6 @@ class AttitudeUI extends React.Component {
     } else {
       hovered = [d];
     }
-    console.log(hovered);
     return this.setState({ hovered });
   }
 
@@ -159,7 +158,6 @@ class AttitudeUI extends React.Component {
     return d3
       .select(ReactDOM.findDOMNode(this))
       .on("mouseenter", function () {
-        console.log("Focusing on", this);
         return this.focus();
       })
       .on("mouseleave", () => this.onHover());

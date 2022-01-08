@@ -142,7 +142,6 @@ function Stereonet(o1 = {}) {
     const fn = functions.errorEllipse(o1);
 
     const createEllipse = function (d) {
-      console.log(d);
       return select(this).append("path").attr("class", "error").datum(fn(d));
     };
 

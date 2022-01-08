@@ -70,7 +70,6 @@ const globalLabels = function(opts){
 
 
     const updateLabels = function() {
-      console.log("Updating labels");
       proj = this.projection();
       const centerPos = proj.invert([sz/2,sz/2]);
       const width = stereonet.size();

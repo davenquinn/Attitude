@@ -77,7 +77,6 @@ class SideViewComponent extends React.Component {
 
     xsize *= 1.1;
     ysize *= 1.1;
-    console.log(xsize, ysize);
 
     const margin = 30;
     const marginLeft = 50;
@@ -183,7 +182,6 @@ class SideViewComponent extends React.Component {
   }
 
   updateAzimuth() {
-    console.log("Updated constraints");
     const angle = this.props.azimuth - Math.PI / 2;
     const { x, y } = this.scales;
 

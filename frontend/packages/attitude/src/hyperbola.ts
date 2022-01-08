@@ -66,7 +66,6 @@ const apparentDipCorrection = function (screenRatio) {
     //a0 = M.divide(a0,M.norm(a0))
     //a1 = M.divide(a1,M.norm(a1))
     const cosA = dot(a0, a1);
-    console.log("Axes", a0, cosA);
     const angle = Math.atan2(
       Math.tan(Math.acos(cosA / (M.norm(a0) * M.norm(a1)))),
       screenRatio

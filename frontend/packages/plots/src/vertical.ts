@@ -22,7 +22,6 @@ function translucentEllipseStyle(d, i) {
   const color = chroma(d.color ?? "#aaaaaa");
   const fill = color.alpha(cfunc(1)).css();
   const stroke = color.alpha(cfunc(2)).css();
-  console.log(cfunc(1));
 
   const v = e.selectAll("path").attr("fill", fill).attr("stroke", stroke);
   if (d.in_group) {

@@ -78,7 +78,6 @@ class GraticuleLabels {
       const { points } = Intersection.intersect(path, this.shape);
       for (let point of Array.from(points)) {
         point.value = coords[0][ix];
-        console.log(point);
         intersections.push(point);
       }
     }

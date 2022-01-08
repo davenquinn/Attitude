@@ -84,8 +84,6 @@ class StereonetComponent extends React.Component {
       hovered = null;
     }
 
-    console.log(prevState, this.state);
-
     if (prevProps.center != this.props.center) {
       this.stereonet.center(this.props.center);
     }
@@ -97,7 +95,6 @@ class StereonetComponent extends React.Component {
   }
 
   updateHovered() {
-    console.log("Updating hovered on stereonet");
     const { hovered, drawPlanes, drawPoles } = this.props;
     this.stereonet.dataArea().select("g.hovered").remove();
     if (hovered == null) {
@@ -128,8 +125,6 @@ class StereonetComponent extends React.Component {
   updatePlanes() {
     const { data, onHover, drawPlanes } = this.props;
     const c = (d) => d.color;
-
-    console.log(data);
 
     this.stereonet.dataArea().select("g.planes").remove();
     if (!drawPlanes) {
@@ -225,7 +220,6 @@ class InteractiveStereonetComponent extends React.Component {
 
   setVertical() {
     this.setState({ center: [0, -90] });
-    return console.log("Want to set vertical");
   }
 
   handleSwitchPoles() {
