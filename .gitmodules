@@ -1,3 +1,6 @@
 [submodule "docs/_build/html"]
 	path = docs/_build/html
 	url = git://github.com/davenquinn/Attitude.git
+[submodule "frontend/packages/map-components"]
+	path = frontend/packages/map-components
+	url = git://github.com/UW-Macrostrat/map-components.git
