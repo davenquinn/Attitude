@@ -146,11 +146,9 @@ const __createErrorEllipse = function (opts) {
   };
 };
 
-const createErrorEllipse = function (opts) {
+const createErrorEllipse = function (opts = {}) {
   // Level can be single or array of error levels
-  if (opts.level == null) {
-    opts.level = 1;
-  }
+  opts.level ??= 1;
   const levels = opts.level;
 
   const __fnAtLevel = function (l) {
