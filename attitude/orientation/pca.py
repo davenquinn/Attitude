@@ -17,42 +17,50 @@ from ..geom.util import dot, vector
 from ..geom.util import angle as vector_angle
 from ..geom.conics import conic
 
-log = logging.getLogger('attitude')
+log = logging.getLogger("attitude")
+
 
 def random_pca(scattered=True):
     if scattered:
-        arr,coeffs = scattered_plane()
+        arr, coeffs = scattered_plane()
     else:
         arr, coeffs = random_plane()
     arr = N.array(arr).transpose()
     return PCAOrientation(arr)
 
+
 def augment(matrix):
     size = matrix.shape
-    _ = N.identity(size[0]+1)
-    _[:size[0],:size[1]] = matrix
+    _ = N.identity(size[0] + 1)
+    _[: size[0], : size[1]] = matrix
     return _
 
-def augment_vector(vec):
-    return N.append(vec,[1],axis=0)
 
-def rotate_tensor(tensor,transform):
+def augment_vector(vec):
+    return N.append(vec, [1], axis=0)
+
+
+def rotate_tensor(tensor, transform):
     """
     Transforms a tensor by an affine transform
     """
     return dot(transform, tensor, transform.T)
 
+
 def compose_affine(*transforms):
     """
     Returns a composite of several affine transformations.
     """
-    return reduce(N.dot,reversed(transforms))
+    return reduce(N.dot, reversed(transforms))
+
 
 def normalize(v):
-    return v/N.linalg.norm(v)
+    return v / N.linalg.norm(v)
+
 
 ## magnitude of vector (by row)
-norm = lambda x: N.linalg.norm(x,2,1)
+norm = lambda x: N.linalg.norm(x, 2, 1)
+
 
 def axis_transform(pca_axes):
     """
@@ -66,7 +74,7 @@ def axis_transform(pca_axes):
     # y = M x -> M = y (x)^(-1)
     # We don't need to do least-squares since
     # there is a simple transformation
-    trans_matrix = N.linalg.lstsq(from_,to_)[0]
+    trans_matrix = N.linalg.lstsq(from_, to_)[0]
     return trans_matrix
 
 
@@ -77,8 +85,9 @@ def test_SVD(pca):
     data.
     """
     _ = pca
-    rec = N.dot(_.U,N.dot(_.sigma,_.V))
-    assert N.allclose(_.arr,rec)
+    rec = N.dot(_.U, N.dot(_.sigma, _.V))
+    assert N.allclose(_.arr, rec)
+
 
 def covariance_matrix(self):
     """
@@ -101,16 +110,18 @@ def covariance_matrix(self):
      matrix from PCA to Cartesian space
     """
 
-    a = N.dot(self.U,self.sigma)
-    cv = N.dot(a,a.T)
+    a = N.dot(self.U, self.sigma)
+    cv = N.dot(a, a.T)
     # This yields the covariance matrix in Cartesian
     # coordinates
     return cv
 
+
 class PCAOrientation(BaseOrientation):
-    """ Gets the axis-aligned principle components
-        of the dataset.
+    """Gets the axis-aligned principle components
+    of the dataset.
     """
+
     @classmethod
     def from_axes(axes):
         """
@@ -120,7 +131,7 @@ class PCAOrientation(BaseOrientation):
         """
         pass
 
-    def __init__(self, arr, weights=None,  axes=None):
+    def __init__(self, arr, weights=None, axes=None):
         """
         Perform PCA on on an input array
 
@@ -181,19 +192,19 @@ class PCAOrientation(BaseOrientation):
         ### Apply factor weights
         # We should be careful that they aren't too
         # large so we don't run into numerical difficulties
-        w = self.weights[N.newaxis,:]
-        arr = self.arr/w
-        res = N.linalg.svd(arr,
-            full_matrices=False)
+        w = self.weights[N.newaxis, :]
+        arr = self.arr / w
+        res = N.linalg.svd(arr, full_matrices=False)
 
         self._U, s, V = res
         ### Divide by weights ###
-        #V *= w
-        #V /= N.linalg.norm(V,axis=1)
+        # V *= w
+        # V /= N.linalg.norm(V, axis=1)
         s *= self.weights
 
         self.singular_values = s
-        self.V = V
+
+        self.V = V * self.weights
 
     def __load_saved_fit(self, axes):
 
@@ -203,8 +214,8 @@ class PCAOrientation(BaseOrientation):
         ## Get from axes if these are defined
         # In this case, axes must be equivalent
         # to self.axes*self.singular_values
-        s = N.linalg.norm(axes,axis=0)
-        self.V = axes/s
+        s = N.linalg.norm(axes, axis=0)
+        self.V = axes / s
         # Don't compute U unless we have to
         self._U = None
         self.singular_values = s
@@ -214,7 +225,7 @@ class PCAOrientation(BaseOrientation):
         self.sigma = N.diag(self.singular_values)
 
         # Normal vector in axis-aligned coordinate frame
-        self.offset = N.cross(self.sigma[0],self.sigma[1])
+        self.offset = N.cross(self.sigma[0], self.sigma[1])
 
         self.normal = self.axes[-1]
         if self.normal[-1] < 0:
@@ -224,17 +235,17 @@ class PCAOrientation(BaseOrientation):
         v = N.zeros_like(self.normal)
         v[-1] = 1
         self._vertical = v
-        self.strike = N.cross(self.normal,self._vertical)
+        self.strike = N.cross(self.normal, self._vertical)
         try:
-            self.dip_dr = normalize(N.cross(self.strike,self.normal))
+            self.dip_dr = normalize(N.cross(self.strike, self.normal))
         except ValueError:
             # Can't do this in 2D cases
             self.dip_dr = None
 
         # Hyperbolic form of PCA
-        #self.hyp = self.as_hyperbola(rotated=False)
-        #d = N.abs(N.diagonal(self.hyp)[:-1])
-        #self.hyp_axes = N.sqrt(1/d)
+        # self.hyp = self.as_hyperbola(rotated=False)
+        # d = N.abs(N.diagonal(self.hyp)[:-1])
+        # self.hyp_axes = N.sqrt(1/d)
 
     @property
     def U(self):
@@ -242,8 +253,8 @@ class PCAOrientation(BaseOrientation):
         Property to support lazy evaluation of residuals
         """
         if self._U is None:
-            sinv = N.diag(1/self.singular_values)
-            self._U = dot(self.arr,self.V.T,sinv)
+            sinv = N.diag(1 / self.singular_values)
+            self._U = dot(self.arr, self.V.T, sinv)
         return self._U
 
     @property
@@ -251,7 +262,7 @@ class PCAOrientation(BaseOrientation):
         """
         Eigenvalues of the data covariance matrix
         """
-        return self.singular_values**2/(self.n-1)
+        return self.singular_values**2 / (self.n - 1)
 
     def rotated(self):
         """
@@ -259,7 +270,7 @@ class PCAOrientation(BaseOrientation):
         it is aligned with the princpal
         axes of the dataset.
         """
-        return N.dot(self.arr,self.V.T)
+        return N.dot(self.arr, self.V.T)
 
     def residuals(self):
         """
@@ -269,8 +280,8 @@ class PCAOrientation(BaseOrientation):
         singular axis 3 (axes 1 and 2 define the plane)
         """
         _ = self.rotated()
-        _[:,-1] = 0
-        _ = N.dot(_,self.axes)
+        _[:, -1] = 0
+        _ = N.dot(_, self.axes)
         return self.arr - _
 
     @property
@@ -292,7 +303,7 @@ class PCAOrientation(BaseOrientation):
         an intermediate direction).
         """
         hyp_axes = self.method(self)
-        return N.arctan2(hyp_axes[-1],axis_length)
+        return N.arctan2(hyp_axes[-1], axis_length)
 
     def angular_errors(self, degrees=True):
         """
@@ -306,15 +317,15 @@ class PCAOrientation(BaseOrientation):
             v = N.degrees(v)
         return tuple(v)
 
-    def _covariance_matrix(self, type='noise'):
+    def _covariance_matrix(self, type="noise"):
         """
         Constructs the covariance matrix from PCA
         residuals
         """
-        if type == 'sampling':
-            return self.sigma**2/(self.n-1)
-        elif type == 'noise':
-            return 4*self.sigma*N.var(self.rotated(), axis=0)
+        if type == "sampling":
+            return self.sigma**2 / (self.n - 1)
+        elif type == "noise":
+            return 4 * self.sigma * N.var(self.rotated(), axis=0)
 
     @property
     def covariance_matrix(self):
@@ -334,7 +345,7 @@ class PCAOrientation(BaseOrientation):
         linear least squares.
         """
         v = N.diagonal(self.covariance_matrix)
-        return v[0:2].sum()/v.sum()
+        return v[0:2].sum() / v.sum()
 
     @property
     def coefficients(self):
@@ -343,19 +354,19 @@ class PCAOrientation(BaseOrientation):
     @property
     def azimuth(self):
         c = self.coefficients
-        return N.arctan2(c[0],c[1])
+        return N.arctan2(c[0], c[1])
 
     @property
     def slope(self):
         _ = self.coefficients
         mag = N.linalg.norm(_)
-        return N.arccos(_[2]/mag)
+        return N.arccos(_[2] / mag)
 
     def _strike_dip(self):
         n = self.axes[2]
         r = N.linalg.norm(n)
-        strike = N.arctan2(n[0],n[1])-N.pi/2
-        dip = N.arccos(n[2]/r)
+        strike = N.arctan2(n[0], n[1]) - N.pi / 2
+        dip = N.arccos(n[2] / r)
         return strike, dip
 
     def strike_dip(self, degrees=True):
@@ -368,8 +379,8 @@ class PCAOrientation(BaseOrientation):
         """
         n = self.axes[2]
         r = N.linalg.norm(n)
-        strike = N.degrees(N.arctan2(n[0],n[1]))-90
-        dip = N.degrees(N.arccos(n[2]/r))
+        strike = N.degrees(N.arctan2(n[0], n[1])) - 90
+        dip = N.degrees(N.arccos(n[2] / r))
 
         # Since PCA errors are not pinned to the XYZ plane,
         # we need to make sure our results are in the
@@ -397,18 +408,18 @@ class PCAOrientation(BaseOrientation):
 
     def strike_dip_rake(self):
         _ = self.strike_dip()
-        return (_[0],_[1], self.rake())
+        return (_[0], _[1], self.rake())
 
     def as_conic(self, level=1):
 
-        if dot(self.axes[2],vector(0,0,1)) < 0:
+        if dot(self.axes[2], vector(0, 0, 1)) < 0:
             self.axes *= -1
 
         cov = self.covariance_matrix
         idx = N.diag_indices(3)
         ell = N.identity(4)
-        ell[idx] = 1/cov[idx]*level**2 #cov*level**2#
-        ell[3,3] = -1
+        ell[idx] = 1 / cov[idx] * level**2  # cov*level**2#
+        ell[3, 3] = -1
         ell = conic(ell)
 
         # Translate ellipse along 3rd major axis
@@ -424,11 +435,11 @@ class PCAOrientation(BaseOrientation):
         Hyperbolic error area
         """
         idx = N.diag_indices(3)
-        _ = 1/self.covariance_matrix[idx]
+        _ = 1 / self.covariance_matrix[idx]
         d = list(_)
         d[-1] *= -1
 
-        arr = N.identity(4)*-1
+        arr = N.identity(4) * -1
         arr[idx] = d
         hyp = conic(arr)
         if rotated:
@@ -444,42 +455,42 @@ class PCAOrientation(BaseOrientation):
         ax = con.major_axes()
 
         # Rotate major axes into 3d space
-        axs_ = N.append(ax,N.zeros((2,1)),axis=1)
-        axs = dot(axs_,matrix[:3])
-        u = N.linspace(0,2*N.pi,1000)
+        axs_ = N.append(ax, N.zeros((2, 1)), axis=1)
+        axs = dot(axs_, matrix[:3])
+        u = N.linspace(0, 2 * N.pi, 1000)
 
         # Get a bundle of vectors defining cone
         # which circumscribes ellipsoid
-        angles = N.array([N.cos(u),N.sin(u)]).T
+        angles = N.array([N.cos(u), N.sin(u)]).T
         # Turn into vectors
-        return dot(angles,axs),center
+        return dot(angles, axs), center
 
     def plane_errors(self, **kwargs):
-        return plane_errors(self.axes,self.covariance_matrix, **kwargs)
+        return plane_errors(self.axes, self.covariance_matrix, **kwargs)
 
     def error_coords(self, **kwargs):
-        return error_coords(self.axes,self.covariance_matrix, **kwargs)
+        return error_coords(self.axes, self.covariance_matrix, **kwargs)
 
     @property
     def slope(self):
         _ = self.coefficients
         mag = N.linalg.norm(_)
-        return N.arccos(_[2]/mag)
+        return N.arccos(_[2] / mag)
 
     def error_ellipse(self, spherical=True, vector=False, level=1):
-        data,center = self._ellipse(level)
+        data, center = self._ellipse(level)
         data += center
 
-        r = N.linalg.norm(data,axis=1)
-        plunge = N.arcsin(data[:,2]/r)
-        trend = N.arctan2(data[:,0],data[:,1])
+        r = N.linalg.norm(data, axis=1)
+        plunge = N.arcsin(data[:, 2] / r)
+        trend = N.arctan2(data[:, 0], data[:, 1])
 
-        return (trend,plunge)
+        return (trend, plunge)
 
-    def to_mapping(self,**values):
+    def to_mapping(self, **values):
         """Creates a representation suitable for javascript plotting.
         All angles are expressed in degrees.
-        
+
         JSON keys:
 
         Metadata (optional):
@@ -491,7 +502,7 @@ class PCAOrientation(BaseOrientation):
 
         Spherical errors:
         - `strike`: Azimuth (in degrees) of horizontal line within plane
-        - `dip`: Steepest angle from horizontal 
+        - `dip`: Steepest angle from horizontal
         - `rake`: Angle (within plane) between strike direction and maximum angular error axis
         - `max_angular_error`: Maximum angular error
         - `min_angular_error`: Minimum angular error
@@ -506,18 +517,19 @@ class PCAOrientation(BaseOrientation):
 
 
         """
-        values.setdefault('centered_array',self.centered_array.tolist())
-        values.setdefault('center',self.center.tolist())
+        values.setdefault("centered_array", self.centered_array.tolist())
+        values.setdefault("center", self.center.tolist())
         if self.member_of is not None:
-            values['member_of'] = self.member_of.hash
+            values["member_of"] = self.member_of.hash
 
         return super().to_mapping(**values)
 
     def __repr__(self):
         sdr = self.strike_dip_rake()
         ae = self.angular_errors()
-        return ("Orientation:: strike: {0:.2f} dip: {1:.2f}\n"
-                "      error:: min: {3:.2f} max: {4:.2f} rake: {2:.2f}"
-                .format(sdr[0],sdr[1],sdr[2], ae[0],ae[1]))
-
-
+        return (
+            "Orientation:: strike: {0:.2f} dip: {1:.2f}\n"
+            "      error:: min: {3:.2f} max: {4:.2f} rake: {2:.2f}".format(
+                sdr[0], sdr[1], sdr[2], ae[0], ae[1]
+            )
+        )
