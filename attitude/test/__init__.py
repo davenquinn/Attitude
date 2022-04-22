@@ -1,7 +1,9 @@
 from __future__ import division, print_function
+
 import numpy as N
+
+from ..coordinates import cartesian, spherical
 from ..orientation.linear import Regression
-from ..coordinates import spherical, cartesian
 from .io import load_test_plane, save_test_plane
 
 

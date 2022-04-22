@@ -1,6 +1,7 @@
-from . import Regression
-from ..tests import random_plane, scattered_plane
 import numpy as N
+
+from ..tests import random_plane, scattered_plane
+from . import Regression
 
 
 def test_coordinates():

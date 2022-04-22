@@ -2,10 +2,10 @@
 Tests that check the consistency of matplotlib plots
 with known-good versions.
 """
-import pytest
 import matplotlib.pyplot as plt
 import mplstereonet
 import numpy as N
+import pytest
 
 
 @pytest.mark.mpl_image_compare

@@ -1,6 +1,7 @@
-from .util import vector
 import numpy as N
 import pytest
+
+from .util import vector
 
 
 @pytest.mark.xfail(reason="Half-finished and likely unnecessary")

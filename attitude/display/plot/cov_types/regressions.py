@@ -3,6 +3,7 @@ A temporary module for holding regression functions before merging
 with the main regression functionality of the module
 """
 import numpy as N
+
 from ....geom import dot
 
 

@@ -1,9 +1,9 @@
 import numpy as N
 from mplstereonet import stereonet_math
-from scipy.stats import chi2
 from numpy.testing import assert_array_almost_equal
+from scipy.stats import chi2
 
-from .geom.util import vector, unit_vector, dot
+from .geom.util import dot, unit_vector, vector
 
 
 def quaternion(vector, angle):

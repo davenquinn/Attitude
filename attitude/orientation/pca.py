@@ -1,21 +1,24 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
-import numpy as N
+
 import logging
-from scipy.sparse import bsr_matrix
-from scipy.linalg import lu
-from scipy.sparse.linalg import svds
-from scipy.integrate import quad
 from itertools import chain
+
+import numpy as N
+from scipy.integrate import quad
+from scipy.linalg import lu
+from scipy.sparse import bsr_matrix
+from scipy.sparse.linalg import svds
+
 from ..coordinates import centered
-from .base import BaseOrientation, rotation
+from ..error.axes import angular_errors, noise_axes, sampling_axes, sampling_covariance
 from ..error.ellipse import ellipse
-from ..stereonet import plane_errors, error_coords
-from ..error.axes import sampling_axes, sampling_covariance, angular_errors, noise_axes
-from ..test import scattered_plane
-from ..geom.util import dot, vector
-from ..geom.util import angle as vector_angle
 from ..geom.conics import conic
+from ..geom.util import angle as vector_angle
+from ..geom.util import dot, vector
+from ..stereonet import error_coords, plane_errors
+from ..test import scattered_plane
+from .base import BaseOrientation, rotation
 
 log = logging.getLogger("attitude")
 

@@ -4,6 +4,7 @@ Methods for dealing with saved test data
 from __future__ import print_function
 
 from os import path
+
 import numpy as N
 
 try:

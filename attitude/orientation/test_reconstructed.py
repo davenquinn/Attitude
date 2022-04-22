@@ -1,9 +1,10 @@
 import numpy as N
-from .reconstructed import ReconstructedPlane
-from .pca import random_pca
-from ..geom.util import angle
 import pytest
 from numpy.testing import assert_array_almost_equal
+
+from ..geom.util import angle
+from .pca import random_pca
+from .reconstructed import ReconstructedPlane
 
 
 def test_rake_angle():

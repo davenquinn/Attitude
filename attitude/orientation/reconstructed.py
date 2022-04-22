@@ -1,10 +1,10 @@
-import numpy as N
 import mplstereonet.stereonet_math as M
+import numpy as N
 
-from ..geom import dot
-from .base import BaseOrientation, hash_array
 from ..coordinates.rotations import transform
-from ..stereonet import plane_errors, normal_errors
+from ..geom import dot
+from ..stereonet import normal_errors, plane_errors
+from .base import BaseOrientation, hash_array
 
 
 class ErrorShell(object):

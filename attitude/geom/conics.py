@@ -2,7 +2,7 @@ from __future__ import division
 
 import numpy as N
 
-from .util import dot, vector, augment, Plane, angle, perpendicular_vector
+from .util import Plane, angle, augment, dot, perpendicular_vector, vector
 
 
 def angle_subtended(ell, **kwargs):

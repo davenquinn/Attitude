@@ -1,8 +1,11 @@
 from __future__ import division, print_function
-import numpy as N
-from ..geom.util import dot
-from ..error.ellipse import ellipse
+
 from hashlib import sha1
+
+import numpy as N
+
+from ..error.ellipse import ellipse
+from ..geom.util import dot
 
 
 def hash_array(a):

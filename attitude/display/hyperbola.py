@@ -1,10 +1,9 @@
-from matplotlib.patches import Polygon
 import numpy as N
+from matplotlib.patches import Polygon
 
-from .parametric import hyperbola
-from ..geom.util import dot, augment_tensor
-from ..geom.util import vector, plane, angle
 from ..geom.conics import Conic, conic
+from ..geom.util import angle, augment_tensor, dot, plane, vector
+from .parametric import hyperbola
 
 
 def apparent_dip_correction(axes):

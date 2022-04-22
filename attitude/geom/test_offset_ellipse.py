@@ -4,10 +4,11 @@ defined from covariance matrices and the hyperbolic and ellipsoidal error bounds
 """
 
 import numpy as N
-from .util import vector, dot
-from ..error.axes import sampling_axes, noise_axes
-from .conics import Conic, conic
 import pytest
+
+from ..error.axes import noise_axes, sampling_axes
+from .conics import Conic, conic
+from .util import dot, vector
 
 origin = vector(0, 0)
 

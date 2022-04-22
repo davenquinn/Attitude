@@ -7,23 +7,22 @@ Deprecated code for generating HTML reports is also included
 in this module.
 """
 
-from .hyperbola import HyperbolicErrors
-from .nbextension import init_notebook_mode, plot_interactive
-from .plot import (
-    setup_figure,
-    strike_dip,
-    normal,
-    trend_plunge,
-    error_ellipse,
-    strike_dip_montecarlo,
-    plane_confidence,
-    error_asymptotes,
-)
-
-from .error_comparison import error_comparison
-from .pca_aligned import plot_aligned
-from .stereonet import girdle_error, pole_error, uncertain_plane
+from ..error.axes import noise_axes, sampling_axes
 
 # These aren't particularly well-organized
-from ..stereonet import plane_errors, normal_errors
-from ..error.axes import sampling_axes, noise_axes
+from ..stereonet import normal_errors, plane_errors
+from .error_comparison import error_comparison
+from .hyperbola import HyperbolicErrors
+from .nbextension import init_notebook_mode, plot_interactive
+from .pca_aligned import plot_aligned
+from .plot import (
+    error_asymptotes,
+    error_ellipse,
+    normal,
+    plane_confidence,
+    setup_figure,
+    strike_dip,
+    strike_dip_montecarlo,
+    trend_plunge,
+)
+from .stereonet import girdle_error, pole_error, uncertain_plane

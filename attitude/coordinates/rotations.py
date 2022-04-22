@@ -4,9 +4,11 @@ Helper functions for rotations
 Prior art: http://bl.ocks.org/ivyywang/7c94cb5a3accd9913263
 """
 from __future__ import division
+
 import numpy as N
-from mplstereonet import stereonet_math, stereonet2xyz, xyz2stereonet
-from ..geom.util import angle, vector, dot
+from mplstereonet import stereonet2xyz, stereonet_math, xyz2stereonet
+
+from ..geom.util import angle, dot, vector
 
 
 def transform(v1, v2):

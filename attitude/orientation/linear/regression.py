@@ -1,7 +1,8 @@
 from __future__ import division
-import numpy as N
 
 import logging
+
+import numpy as N
 
 log = logging.getLogger(__name__)
 

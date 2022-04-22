@@ -1,8 +1,9 @@
+from collections.abc import Sequence
+from json import dumps
 from os import path
 from uuid import uuid4
-from json import dumps
-from collections.abc import Sequence
-from IPython.display import display, Javascript, HTML
+
+from IPython.display import HTML, Javascript, display
 
 __here__ = path.dirname(__file__)
 lib = path.join(__here__, "lib")

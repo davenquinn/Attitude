@@ -7,8 +7,9 @@ CartoPy is sometimes difficult to install.
 import numpy as N
 from cartopy import crs, feature
 from shapely.geometry import Polygon
+
 from ..error.axes import hyperbolic_axes
-from ..stereonet import plane_errors, normal_errors
+from ..stereonet import normal_errors, plane_errors
 
 
 def fix_stereonet_coords(coords):

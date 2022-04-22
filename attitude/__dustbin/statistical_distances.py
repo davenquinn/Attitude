@@ -7,8 +7,9 @@ from __future__ import division
 
 import numpy as N
 import pytest
-from .test_pca import random_pca
+
 from ..geom.util import dot
+from .test_pca import random_pca
 
 
 def bhattacharyya_distance(pca1, pca2):

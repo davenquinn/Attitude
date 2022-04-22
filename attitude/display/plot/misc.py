@@ -1,6 +1,7 @@
 from __future__ import division
-import numpy as N
+
 import matplotlib.pyplot as P
+import numpy as N
 import seaborn
 
 

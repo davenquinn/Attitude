@@ -2,14 +2,15 @@ from __future__ import division
 
 import numpy as N
 import pytest
-from scipy.integrate import quad
-from ..test import random_plane, scattered_plane, load_test_plane
-from .pca import PCAOrientation, centered, random_pca
-from ..geom.util import dot, vector, angle
 from mplstereonet.stereonet_math import sph2cart
+from scipy.integrate import quad
 from scipy.stats import chi2
-from ..error.axes import variance_axes, sampling_axes
-from ..error import to_normal_errors, from_normal_errors
+
+from ..error import from_normal_errors, to_normal_errors
+from ..error.axes import sampling_axes, variance_axes
+from ..geom.util import angle, dot, vector
+from ..test import load_test_plane, random_plane, scattered_plane
+from .pca import PCAOrientation, centered, random_pca
 
 
 def test_rotation():

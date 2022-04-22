@@ -1,24 +1,25 @@
 from __future__ import print_function
 
-import pytest
-import numpy as N
-from subprocess import check_output
+from codecs import getreader
+from itertools import product
 from json import dumps, loads
 from os import path
-from itertools import product
-from codecs import getreader
+from subprocess import check_output
 from sys import argv
 
-from attitude.test import random_plane
+import numpy as N
+import pytest
+
 from attitude import Orientation
+from attitude.geom.util import dot
 from attitude.orientation.test_pca import random_pca
 from attitude.stereonet import (
-    plane_errors,
+    iterative_normal_errors,
     iterative_plane_errors,
     normal_errors,
-    iterative_normal_errors,
+    plane_errors,
 )
-from attitude.geom.util import dot
+from attitude.test import random_plane
 
 here = path.dirname(__file__)
 script = path.join(here, "test-plane.coffee")

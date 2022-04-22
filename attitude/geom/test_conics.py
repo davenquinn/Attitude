@@ -2,17 +2,18 @@
 
 # https://en.wikipedia.org/wiki/Quadric
 
-from __future__ import print_function, division
+from __future__ import division, print_function
+
+import traceback
 
 import numpy as N
+import pytest
+from numpy.linalg import norm
 from scipy.linalg import lu
 from scipy.optimize import fsolve
-import traceback
-from numpy.linalg import norm
-import pytest
 
-from attitude.geom.util import dot, vector, augment, column, angle
-from attitude.geom.conics import conic, Conic
+from attitude.geom.conics import Conic, conic
+from attitude.geom.util import angle, augment, column, dot, vector
 
 same = N.allclose
 

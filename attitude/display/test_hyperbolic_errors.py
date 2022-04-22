@@ -6,11 +6,11 @@ expressions.
 import numpy as N
 from scipy.stats import chi2
 
-from .plot.cov_types.regressions import hyperbola
-from ..orientation.test_pca import random_pca
-from ..geom.util import dot, augment_tensor, plane
 from ..error.axes import sampling_axes
 from ..geom.conics import conic
+from ..geom.util import augment_tensor, dot, plane
+from ..orientation.test_pca import random_pca
+from .plot.cov_types.regressions import hyperbola
 
 
 def simple_hyperbola(cov, xvals, n=1, level=1):

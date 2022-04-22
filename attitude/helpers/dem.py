@@ -1,14 +1,13 @@
-import numpy as N
 from functools import partial
 
+import numpy as N
 import rasterio
 import rasterio.env
-from rasterio.features import rasterize, geometry_mask
 from affine import Affine
-from subdivide import subdivide
-
-from shapely.geometry import shape, mapping, asShape
+from rasterio.features import geometry_mask, rasterize
+from shapely.geometry import asShape, mapping, shape
 from shapely.ops import transform
+from subdivide import subdivide
 
 from .interpolation import bilinear
 

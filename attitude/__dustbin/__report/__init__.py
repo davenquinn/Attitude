@@ -1,7 +1,8 @@
-from jinja2 import FileSystemLoader, Environment
 import numpy as N
-from ...orientation import PCAOrientation, LinearOrientation
+from jinja2 import Environment, FileSystemLoader
+
 from ...geom.util import unit_vector
+from ...orientation import LinearOrientation, PCAOrientation
 from ..util import encode, to_json
 
 _ = path.join(path.dirname(__file__), "templates")

@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 # Requires output json file to be specified
 
-from attitude import Orientation
-from attitude.test import load_test_plane
-from attitude.error.axes import sampling_axes, angular_errors
-import numpy as N
-from sys import argv
 from json import dump
+from sys import argv
+
+import numpy as N
+
+from attitude import Orientation
+from attitude.error.axes import angular_errors, sampling_axes
+from attitude.test import load_test_plane
+
 
 def serialize(pca, **kwargs):
     """

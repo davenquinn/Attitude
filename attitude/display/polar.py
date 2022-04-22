@@ -8,12 +8,12 @@ polar axes.
     released. See https://github.com/joferkington/mplstereonet/issues/16
 """
 
+import mplstereonet.stereonet_math as M
 import numpy as N
 from matplotlib.path import Path
-import mplstereonet.stereonet_math as M
 
 from ..orientation.reconstructed import ReconstructedPlane
-from ..stereonet import ellipse, dot
+from ..stereonet import dot, ellipse
 from .stereonet import plot_patch
 
 

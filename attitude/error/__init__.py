@@ -2,8 +2,7 @@ from __future__ import division
 
 import numpy as N
 
-from ..geom.util import dot, augment_tensor
-from ..geom.util import vector, plane, angle
+from ..geom.util import angle, augment_tensor, dot, plane, vector
 
 
 def error_bounds(hyp_errors):

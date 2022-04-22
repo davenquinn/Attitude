@@ -1,8 +1,8 @@
 import numpy as N
-from .util import dot
+
 from .conics import conic
-from .util import angle, vector
 from .transform import rotate_2D
+from .util import angle, dot, vector
 
 
 def aligned_covariance(fit, type="noise"):

@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
-from mplstereonet.stereonet_math import line, pole
+
 import logging
+
 import numpy as N
-from matplotlib.patches import Polygon
 from matplotlib.gridspec import GridSpec
-from matplotlib.ticker import FuncFormatter
+from matplotlib.patches import Polygon
 from matplotlib.pyplot import subplots
+from matplotlib.ticker import FuncFormatter
+from mplstereonet.stereonet_math import line, pole
 
 from ..display.hyperbola import HyperbolicErrors
-from ..error.axes import sampling_axes, noise_axes
-from ..geom.util import vector, plane
+from ..error.axes import noise_axes, sampling_axes
+from ..geom.util import plane, vector
 
 log = logging.getLogger(__name__)
 

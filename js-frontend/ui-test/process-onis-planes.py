@@ -1,12 +1,14 @@
-from os import path, environ
+from json import dumps
+from os import environ, path
+from sys import argv
+
 import fiona
 import numpy as N
+import palettable as P
+
 import attitude
 from attitude import Orientation, ReconstructedPlane, create_groups
-from attitude.display import plot_interactive, init_notebook_mode
-from json import dumps
-from sys import argv
-import palettable as P
+from attitude.display import init_notebook_mode, plot_interactive
 
 DATA = environ["DATA"]
 

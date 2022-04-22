@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
-import matplotlib
-from mplstereonet.stereonet_math import line, pole
-import numpy as N
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from matplotlib.patches import Polygon
-from matplotlib.gridspec import GridSpec
-from matplotlib.ticker import FuncFormatter, MaxNLocator
 
-from ...geom.util import vector, plane
+import matplotlib
+import numpy as N
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
+from matplotlib.gridspec import GridSpec
+from matplotlib.patches import Polygon
+from matplotlib.ticker import FuncFormatter, MaxNLocator
+from mplstereonet.stereonet_math import line, pole
+
+from ...geom.util import plane, vector
 
 
 def current_axes():

@@ -9,6 +9,7 @@ Possible options are:
 
 """
 from __future__ import division
+
 from shapely.geometry import MultiLineString
 
 
@@ -17,7 +18,7 @@ def __factory__(order):
         """Interpolates geometries to the specified order"""
         import numpy as N
         from scipy.ndimage import map_coordinates
-        from shapely.geometry import shape, mapping, asLineString
+        from shapely.geometry import asLineString, mapping, shape
 
         if hasattr(array, "mask"):
             array = array.astype(float).filled(N.nan)

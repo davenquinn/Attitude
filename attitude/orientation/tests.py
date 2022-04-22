@@ -1,8 +1,9 @@
-from . import Orientation
-import numpy as N
 import functools
-from ..test import random_plane, scattered_plane
 
+import numpy as N
+
+from ..test import random_plane, scattered_plane
+from . import Orientation
 
 simple_cases = [
     ([(1, 0, 1), (0, 0, 1), (0, 1, 0)], [-90, 45], "North-dipping"),

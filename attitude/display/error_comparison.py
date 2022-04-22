@@ -2,11 +2,11 @@ import numpy as N
 from matplotlib.pyplot import subplots
 from scipy.stats import chi2
 
-from ..orientation import Orientation
-from ..error.axes import sampling_axes, noise_axes
+from ..error.axes import noise_axes, sampling_axes
 from ..geom.util import vector
-from .plot.cov_types import hyperbola, bootstrap_noise, augment, ci
+from ..orientation import Orientation
 from .hyperbola import HyperbolicErrors
+from .plot.cov_types import augment, bootstrap_noise, ci, hyperbola
 
 
 def bootstrap_ci(deskewed_data):

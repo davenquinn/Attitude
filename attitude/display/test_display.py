@@ -1,22 +1,23 @@
 from __future__ import print_function
 
-import pytest
-import numpy as N
-from subprocess import check_output
+from itertools import product
 from json import dumps, loads
 from os import path
+from subprocess import check_output
+
+import numpy as N
+import pytest
 from mplstereonet.stereonet_math import cart2sph
-from itertools import product
 from numpy.testing import assert_array_almost_equal
 
+from ..geom.util import dot
 from ..orientation.test_pca import random_pca
 from ..stereonet import (
-    plane_errors,
+    iterative_normal_errors,
     iterative_plane_errors,
     normal_errors,
-    iterative_normal_errors,
+    plane_errors,
 )
-from ..geom.util import dot
 
 n = 100
 sheets = ("upper", "lower", "nominal")

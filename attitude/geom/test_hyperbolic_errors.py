@@ -6,13 +6,13 @@ expressions.
 import numpy as N
 from scipy.stats import chi2
 
-from ..display.plot.cov_types.regressions import hyperbola
-from ..orientation.test_pca import random_pca
-from ..orientation.pca import augment as augment_matrix
-from .conics import Conic, conic
 from ..display.hyperbola import hyperbolic_errors
+from ..display.plot.cov_types.regressions import hyperbola
 from ..error.axes import sampling_axes
-from .util import vector, plane, dot
+from ..orientation.pca import augment as augment_matrix
+from ..orientation.test_pca import random_pca
+from .conics import Conic, conic
+from .util import dot, plane, vector
 
 
 def simple_hyperbola(cov, xvals, n=1, level=1):

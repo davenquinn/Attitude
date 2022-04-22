@@ -1,6 +1,6 @@
 import json
-from io import BytesIO
 from base64 import b64encode
+from io import BytesIO
 
 # For python 3 compatibility
 try:

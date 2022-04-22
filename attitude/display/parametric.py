@@ -9,8 +9,8 @@ We could generalize this to n dimensions, but that is probably
 not super useful at the moment.
 """
 import numpy as N
-from matplotlib import pyplot as P
 from colour import Color
+from matplotlib import pyplot as P
 
 defaults = dict(center=N.zeros(2), n=500)
 

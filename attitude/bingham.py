@@ -1,14 +1,16 @@
 from __future__ import division
-import numpy as N
-from math import factorial
-from scipy.special import gamma, hyp1f1
-from scipy.linalg import expm
+
 from itertools import product
+from math import factorial
+
+import numpy as N
+from mplstereonet.stereonet_math import _rotate, cart2sph, sph2cart
+from scipy.linalg import expm
+from scipy.special import gamma, hyp1f1
+
+from .error.axes import sampling_axes, sampling_covariance
 from .geom.util import dot
 from .stereonet import sph2cart
-from .error.axes import sampling_covariance, sampling_axes
-
-from mplstereonet.stereonet_math import _rotate, cart2sph, sph2cart
 
 
 def confluent_hypergeometric_function(k1, k2, n=10):

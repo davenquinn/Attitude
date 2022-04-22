@@ -1,6 +1,8 @@
-from .pca import PCAOrientation, centered
-import numpy as N
 from copy import copy
+
+import numpy as N
+
+from .pca import PCAOrientation, centered
 
 """
 A helper class and functions for grouped orientations

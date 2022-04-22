@@ -1,12 +1,12 @@
-import numpy as N
-from matplotlib.path import Path
-from matplotlib.patches import PathPatch
 import mplstereonet.stereonet_math as M
+import numpy as N
+from matplotlib.patches import PathPatch
+from matplotlib.path import Path
 
-from ..orientation.reconstructed import ReconstructedPlane
-from ..stereonet import plane_errors, ellipse, dot, error_ellipse, normal_errors
 from ..error.axes import sampling_axes
 from ..geom.transform import rotate_2D
+from ..orientation.reconstructed import ReconstructedPlane
+from ..stereonet import dot, ellipse, error_ellipse, normal_errors, plane_errors
 
 
 def plot_patch(ax, vertices, codes, **kwargs):
