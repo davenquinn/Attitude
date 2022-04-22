@@ -14,6 +14,7 @@ from ..display.hyperbola import hyperbolic_errors
 from ..error.axes import sampling_axes
 from .util import vector, plane, dot
 
+
 def simple_hyperbola(cov, xvals, n=1, level=1):
     """
     Simple hyperbolic error bounds for 2d errors
@@ -30,11 +31,12 @@ def simple_hyperbola(cov, xvals, n=1, level=1):
     b = N.sqrt(cov[-1])
 
     def y(x):
-        return level*b*N.sqrt(x**2/(a*n)+1/n)
+        return level * b * N.sqrt(x**2 / (a * n) + 1 / n)
 
     # Top values of error bar only
-    t = N.array([xvals,y(xvals)])
+    t = N.array([xvals, y(xvals)])
     return t
+
 
 # Create a basic fit to test against
 # (we could probably speed this up)
@@ -43,10 +45,11 @@ fit = random_pca()
 sv = fit.singular_values
 n = len(fit.arr)
 
-covariance = sv**2/(n-1)
+covariance = sv**2 / (n - 1)
 
-xvals = N.linspace(-100,100,100)
-level = N.sqrt(chi2.ppf(0.95,n-3))
+xvals = N.linspace(-100, 100, 100)
+level = N.sqrt(chi2.ppf(0.95, n - 3))
+
 
 def test_sampling_covariance():
     """
@@ -57,26 +60,21 @@ def test_sampling_covariance():
     # variation
     cov = covariance[1:]
 
-    res1 = simple_hyperbola(cov,xvals, n, level)
+    res1 = simple_hyperbola(cov, xvals, n, level)
     res2 = hyperbola(
-        cov,
-        N.identity(2), # rotation
-        N.array([0,0]), # mean
-        xvals,
-        n=n,
-        level=level)
+        cov, N.identity(2), N.array([0, 0]), xvals, n=n, level=level  # rotation  # mean
+    )
 
     # In axis-aligned frame, magnitude of top and bottom
     # of error bars should be the same
-    assert N.allclose(
-        N.abs(res2[1]),
-        res2[2])
+    assert N.allclose(N.abs(res2[1]), res2[2])
     # Get only top values (bottom will be the same
     # implicitly)
-    res2 = (res2[0],res2[-1])
+    res2 = (res2[0], res2[-1])
 
-    for a,b in zip(res1,res2):
-        assert N.allclose(a,b)
+    for a, b in zip(res1, res2):
+        assert N.allclose(a, b)
+
 
 def test_hyperbolic_simple():
     """
@@ -85,14 +83,15 @@ def test_hyperbolic_simple():
     """
     # Integrate error level at first
     hyp_axes = N.copy(covariance)
-    hyp_axes[-1]*=level**2/n
+    hyp_axes[-1] *= level**2 / n
     hyp_axes = hyp_axes[1:]
     cov = covariance[1:]
 
-    res1 = simple_hyperbola(cov,xvals, n, level)
-    res2 = simple_hyperbola(hyp_axes,xvals)
-    for a,b in zip(res1,res2):
-        assert N.allclose(a,b)
+    res1 = simple_hyperbola(cov, xvals, n, level)
+    res2 = simple_hyperbola(hyp_axes, xvals)
+    for a, b in zip(res1, res2):
+        assert N.allclose(a, b)
+
 
 def test_hyperbolic_projection():
     """
@@ -103,12 +102,12 @@ def test_hyperbolic_projection():
     # Convert covariance into hyperbolic axes
     # using assumptions of normal vectorization
     hyp_axes = N.copy(covariance)
-    hyp_axes[-1]*=level**2/n
+    hyp_axes[-1] *= level**2 / n
 
-    d = 1/hyp_axes
-    #d[-1] *= -1
+    d = 1 / hyp_axes
+    # d[-1] *= -1
     ndim = len(d)
-    arr = N.identity(ndim+1)*-1
+    arr = N.identity(ndim + 1) * -1
 
     arr[N.diag_indices(ndim)] = d
     hyp = conic(arr)
@@ -117,63 +116,65 @@ def test_hyperbolic_projection():
     # conic axes
     c1 = Conic.from_axes(hyp_axes)
     cd = c1.dual()
-    #assert cd.is_hyperbolic()
+    # assert cd.is_hyperbolic()
     assert N.allclose(hyp, cd)
-    #assert hyp.is_hyperbolic()
+    # assert hyp.is_hyperbolic()
 
     # Get hyperbolic slice on yz plane
     # (corresponding to maximum angle of variation)
-    normal = vector(1,0,0) # normal to plane (view direction)
-    p = plane(normal) # no offset (goes through origin)
+    normal = vector(1, 0, 0)  # normal to plane (view direction)
+    p = plane(normal)  # no offset (goes through origin)
 
     h1 = cd.slice(p)[0]
-    #assert h1.is_hyperbolic()
+    # assert h1.is_hyperbolic()
 
     # Not sure why we need to reverse array
     # but it seems to work
     d = N.abs(N.diagonal(h1)[:-1])
-    axes = N.sqrt(1/d)
+    axes = N.sqrt(1 / d)
 
-    assert N.allclose(axes**2,hyp_axes[1:])
+    assert N.allclose(axes**2, hyp_axes[1:])
 
-    u = lambda x: N.arcsinh(x/axes[0])
-    y = lambda x: axes[1]*N.cosh(u(x))
+    u = lambda x: N.arcsinh(x / axes[0])
+    y = lambda x: axes[1] * N.cosh(u(x))
 
     # Test that this is the same as our simple conception
     y0 = y(xvals)
-    y1 = simple_hyperbola(hyp_axes[1:],xvals)[1]
-    axes = N.array([[0,1,0],[0,0,1]])
-    y2 = hyperbolic_errors(hyp_axes,xvals, axes=axes)[2][1]
-    assert N.allclose(y0,y1)
-    assert N.allclose(y0,y2)
+    y1 = simple_hyperbola(hyp_axes[1:], xvals)[1]
+    axes = N.array([[0, 1, 0], [0, 0, 1]])
+    y2 = hyperbolic_errors(hyp_axes, xvals, axes=axes)[2][1]
+    assert N.allclose(y0, y1)
+    assert N.allclose(y0, y2)
+
 
 def test_sampling_covariance():
     hyp_axes = covariance.copy()
-    hyp_axes[-1]*=level**2/n
+    hyp_axes[-1] *= level**2 / n
     a = sampling_axes(fit)
-    N.allclose(a,hyp_axes)
+    N.allclose(a, hyp_axes)
 
 
 def test_minimum_variation():
     hyp_axes = sampling_axes(fit)
-    hax2 = N.delete(hyp_axes,1,0)
+    hax2 = N.delete(hyp_axes, 1, 0)
 
-    res1 = simple_hyperbola(hax2,xvals)[1]
-    axes = N.array([[1,0,0],[0,0,1]])
-    res2 = hyperbolic_errors(hyp_axes,xvals,axes=axes)
-    for a,b in zip(res1,res2[2][1]):
-        assert N.allclose(a,b)
+    res1 = simple_hyperbola(hax2, xvals)[1]
+    axes = N.array([[1, 0, 0], [0, 0, 1]])
+    res2 = hyperbolic_errors(hyp_axes, xvals, axes=axes)
+    for a, b in zip(res1, res2[2][1]):
+        assert N.allclose(a, b)
+
 
 def test_error_projection():
     """
     Test projection of errors into error ellipsoid and
     hyperboloid, and recovery of angular errors
     """
-    axial_lengths = N.array([500,200,10])
-    errors = N.array([30,15,10])
+    axial_lengths = N.array([500, 200, 10])
+    errors = N.array([30, 15, 10])
 
-    axes = N.identity(3)*axial_lengths
-    normal = N.cross(axes[0],axes[1])
+    axes = N.identity(3) * axial_lengths
+    normal = N.cross(axes[0], axes[1])
 
     c = Conic.from_axes(axial_lengths)
     pass

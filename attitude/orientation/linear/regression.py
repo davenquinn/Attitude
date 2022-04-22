@@ -2,19 +2,23 @@ from __future__ import division
 import numpy as N
 
 import logging
+
 log = logging.getLogger(__name__)
 
 from ...coordinates import centered
 
+
 def add_ones(a):
     """Adds a column of 1s at the end of the array"""
-    arr = N.ones((a.shape[0],a.shape[1]+1))
-    arr[:,:-1] = a
+    arr = N.ones((a.shape[0], a.shape[1] + 1))
+    arr[:, :-1] = a
     return arr
+
 
 def matrix_squared(array):
     """Returns a pseudo-squared matrix by solving X^T.X"""
-    return N.dot(array.transpose(),array)
+    return N.dot(array.transpose(), array)
+
 
 class Regression(object):
     def __init__(self, coordinates):
@@ -26,29 +30,29 @@ class Regression(object):
         if len(coordinates[0]) > 3:
             coordinates = N.swapaxes(coordinates, 0, 1)
 
-        self.C = add_ones(coordinates[:,0:2])
-        self.Z = coordinates[:,-1]
+        self.C = add_ones(coordinates[:, 0:2])
+        self.Z = coordinates[:, -1]
         self.__coefficients__ = None
         self.__covariance__ = None
 
-        self.nobs = self.Z.shape[0]                     # number of observations
-        self.ncoef = self.C.shape[1]                    # number of coef.
-        self.df_e = self.nobs - self.ncoef              # degrees of freedom, error 
-        self.df_r = self.ncoef - 1                      # degrees of freedom, regression 
-        self.n,self.k = self.C.shape
+        self.nobs = self.Z.shape[0]  # number of observations
+        self.ncoef = self.C.shape[1]  # number of coef.
+        self.df_e = self.nobs - self.ncoef  # degrees of freedom, error
+        self.df_r = self.ncoef - 1  # degrees of freedom, regression
+        self.n, self.k = self.C.shape
 
     @property
     def coefficients(self):
         if self.__coefficients__ is not None:
             return self.__coefficients__
         self.xTx = N.linalg.inv(matrix_squared(self.C))
-        self.xy = N.dot(self.C.transpose(),self.Z)
-        self.__coefficients__ = N.dot(self.xTx,self.xy)
+        self.xy = N.dot(self.C.transpose(), self.Z)
+        self.__coefficients__ = N.dot(self.xTx, self.xy)
         return self.__coefficients__
 
     @property
     def predictions(self):
-        return self.C[:,0], self.C[:,1], N.dot(self.C,self.coefficients)
+        return self.C[:, 0], self.C[:, 1], N.dot(self.C, self.coefficients)
 
     @property
     def residuals(self):
@@ -60,12 +64,12 @@ class Regression(object):
             return self.__covariance__
         if self.n == self.k:
             # solution is fully defined (i.e. only three points)
-            self.__covariance__ = N.zeros((self.n,self.k))
+            self.__covariance__ = N.zeros((self.n, self.k))
         else:
-            #rTr = matrix_squared(self.residuals())
+            # rTr = matrix_squared(self.residuals())
             e = self.residuals
-            sse = N.dot(e,e) #/self.df_e #SSE
-            self.__covariance__ = N.dot(sse,self.xTx)
+            sse = N.dot(e, e)  # /self.df_e #SSE
+            self.__covariance__ = N.dot(sse, self.xTx)
         return self.__covariance__
 
     def standard_errors(self):

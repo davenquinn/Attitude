@@ -5,6 +5,7 @@ from ..geom.util import angle
 import pytest
 from numpy.testing import assert_array_almost_equal
 
+
 def test_rake_angle():
     """
     Test that we can reconstruct rake angle
@@ -13,6 +14,7 @@ def test_rake_angle():
     ang = fit._rake()
     ang2 = angle(fit.axes[0], fit.dip_dr)
     assert N.allclose(ang, ang2)
+
 
 def test_reconstructed_plane():
     """
@@ -34,12 +36,11 @@ def test_reconstructed_plane():
 
     fax = fit.axes
     rax = reconstructed.axes
-    if fax[-1,-1] < 0:
-       fax *= -1
+    if fax[-1, -1] < 0:
+        fax *= -1
     # Tolerance should be zero
     assert_array_almost_equal(fax, rax)
 
-    cov = N.diag(fit.covariance_matrix / fit.covariance_matrix[-1,-1])
+    cov = N.diag(fit.covariance_matrix / fit.covariance_matrix[-1, -1])
     rcov = N.diag(reconstructed.covariance_matrix)
     assert N.allclose(cov, rcov)
-

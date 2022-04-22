@@ -8,6 +8,7 @@ import numpy as N
 from mplstereonet import stereonet_math, stereonet2xyz, xyz2stereonet
 from ..geom.util import angle, vector, dot
 
+
 def transform(v1, v2):
     """
     Create an affine transformation matrix that maps vector 1
@@ -15,17 +16,15 @@ def transform(v1, v2):
 
     https://math.stackexchange.com/questions/293116/rotating-one-3d-vector-to-another
     """
-    theta = angle(v1,v2)
-    x = N.cross(v1,v2)
+    theta = angle(v1, v2)
+    x = N.cross(v1, v2)
     x = x / N.linalg.norm(x)
 
-    A = N.array([
-        [0, -x[2], x[1]],
-        [x[2], 0, -x[0]],
-        [-x[1], x[0], 0]])
-    R = N.exp(A*theta)
+    A = N.array([[0, -x[2], x[1]], [x[2], 0, -x[0]], [-x[1], x[0], 0]])
+    R = N.exp(A * theta)
 
     return R
+
 
 def stereonet_transformation():
     """
@@ -34,8 +33,9 @@ def stereonet_transformation():
     Map [1,0,0] to [0,0,1]
         stereonet  normal
     """
-    T = N.array([[0, 0, 1], [0,1,0], [1,0,0]])
+    T = N.array([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
     return T
+
 
 def cartesian(lon, lat):
     """
@@ -49,17 +49,14 @@ def cartesian(lon, lat):
     traditional stereonet representation, which puts the X-Y plane along the prime
     meridian.
     """
-    return N.array([
-        N.cos(lat)*N.cos(lon),
-        N.cos(lat)*N.sin(lon),
-        N.sin(lat)
-        ])
+    return N.array([N.cos(lat) * N.cos(lon), N.cos(lat) * N.sin(lon), N.sin(lat)])
 
-def from_stereonet(lon,lat):
-    x,y,z = stereonet_math.sph2cart(lon,lat)
-    return stereonet_math.cart2sph(y,z,-x)
 
-def to_stereonet(lon,lat):
-    x,y,z = stereonet_math.sph2cart(lon,lat)
-    return stereonet_math.cart2sph(-z,x,y)
+def from_stereonet(lon, lat):
+    x, y, z = stereonet_math.sph2cart(lon, lat)
+    return stereonet_math.cart2sph(y, z, -x)
 
+
+def to_stereonet(lon, lat):
+    x, y, z = stereonet_math.sph2cart(lon, lat)
+    return stereonet_math.cart2sph(-z, x, y)
