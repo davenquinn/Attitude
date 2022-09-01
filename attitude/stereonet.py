@@ -44,11 +44,33 @@ def scale_errors(cov_axes, confidence_level=0.95):
     return N.sqrt(x2t * cov_axes)
 
 
+def cart2sph(x, y, z):
+    """
+    Converts cartesian coordinates `x`, `y`, `z` into a longitude and latitude.
+    x=0, y=0, z=0 is assumed to correspond to the center of the globe.
+    Returns lon and lat in radians.
+
+    Parameters
+    ----------
+    `x`, `y`, `z` : Arrays of cartesian coordinates
+
+    Returns
+    -------
+    lon : Longitude in radians
+    lat : Latitude in radians
+    """
+    r = N.sqrt(x**2 + y**2 + z**2)
+    lat = N.arcsin(z / r)
+    lon = N.arctan2(x, -y)
+    return lon, lat
+
+
 def normal_errors(axes, covariance_matrix, **kwargs):
     """
     Currently assumes upper hemisphere of stereonet
     """
     level = kwargs.pop("level", 1)
+    return_cartesian = kwargs.pop("cartesian", False)
     traditional_layout = kwargs.pop("traditional_layout", True)
     d = N.diagonal(covariance_matrix)
     ell = ellipse(**kwargs)
@@ -65,12 +87,18 @@ def normal_errors(axes, covariance_matrix, **kwargs):
     e0 = -ell.T * d[2] * c1
     e = N.vstack((e0, f))
 
-    _ = dot(e.T, axes).T
+    coords = dot(e.T, axes)
+    coords = coords / N.linalg.norm(coords, axis=1)[:, N.newaxis]
+
+    if return_cartesian:
+        return coords @ N.diag([1, -1, 1])
+
+    _ = coords.T
 
     if traditional_layout:
         lon, lat = stereonet_math.cart2sph(_[2], _[0], -_[1])
     else:
-        lon, lat = stereonet_math.cart2sph(-_[1], _[0], _[2])
+        lon, lat = cart2sph(_[0], _[1], _[2])
     return list(zip(lon, lat))
 
 
@@ -114,7 +142,8 @@ def plane_errors(axes, covariance_matrix, sheet="upper", **kwargs):
     elif sheet == "lower":
         bundle -= res
 
-    _ = dot(bundle, axes).T
+    coords = dot(bundle, axes)
+    _ = coords.T
 
     if traditional_layout:
         lon, lat = stereonet_math.cart2sph(_[2], _[0], _[1])

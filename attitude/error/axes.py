@@ -9,8 +9,7 @@ from __future__ import division
 import numpy as N
 from scipy.stats import chi2, f, norm
 
-from ..geom import angle, dot, vector
-from ..orientation.linear import Regression
+from ..geom import dot
 
 
 def mean_estimator(data_variance, n, ddof=1):

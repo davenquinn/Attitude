@@ -35,10 +35,10 @@ class ErrorShell(object):
         from shapely.geometry import Polygon
 
         cm = self.covariance_matrix
-        upper = N.degrees(normal_errors(self.axes, cm, traditional_layout=False))
+        upper = normal_errors(self.axes, cm, traditional_layout=False, cartesian=True)
         geom = Polygon(upper)
         geometries = [geom]
-        return feature.ShapelyFeature(geometries, crs.PlateCarree())
+        return feature.ShapelyFeature(geometries, crs.Geocentric())
 
 
 class ReconstructedPlane(ErrorShell, BaseOrientation):

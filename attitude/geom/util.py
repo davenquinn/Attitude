@@ -47,11 +47,20 @@ def augment(vec):
     return N.append(vec, [1])
 
 
-def unit_vector(vec):
+def normalize(v):
     """
     Return a normalized version of the vector
     """
-    return vec / N.linalg.norm(vec)
+    return v / N.linalg.norm(v)
+
+
+def unit_vector(vec):
+    """
+    Return a normalized version of the vector
+
+    Synonym for `normalize`
+    """
+    return normalize(vec)
 
 
 def column(vec):
@@ -72,6 +81,14 @@ def angle(v1, v2, cos=False):
     n = norm(v1) * norm(v2)
     _ = dot(v1, v2) / n
     return _ if cos else N.arccos(_)
+
+
+def rotate_tensor(tensor, transform):
+    """
+    Transform a tensor by an affine transformation
+    $R \dot X \dot R^T$.
+    """
+    return dot(transform, tensor, transform.T)
 
 
 class Plane(N.ndarray):

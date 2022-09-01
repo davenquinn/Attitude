@@ -1,5 +1,7 @@
 import numpy as N
 
+from .rotations import transform
+
 
 def spherical(coordinates):
     """No error is propagated"""

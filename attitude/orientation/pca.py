@@ -15,7 +15,7 @@ from ..error.axes import angular_errors, noise_axes, sampling_axes, sampling_cov
 from ..error.ellipse import ellipse
 from ..geom.conics import conic
 from ..geom.util import angle as vector_angle
-from ..geom.util import dot, vector
+from ..geom.util import dot, normalize, rotate_tensor, vector
 from ..stereonet import error_coords, plane_errors
 from ..test import scattered_plane
 from .base import BaseOrientation, rotation
@@ -43,22 +43,11 @@ def augment_vector(vec):
     return N.append(vec, [1], axis=0)
 
 
-def rotate_tensor(tensor, transform):
-    """
-    Transforms a tensor by an affine transform
-    """
-    return dot(transform, tensor, transform.T)
-
-
 def compose_affine(*transforms):
     """
     Returns a composite of several affine transformations.
     """
     return reduce(N.dot, reversed(transforms))
-
-
-def normalize(v):
-    return v / N.linalg.norm(v)
 
 
 ## magnitude of vector (by row)

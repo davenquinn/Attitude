@@ -33,4 +33,4 @@ def cartopy_normal(fit, **kw):
     cm = N.diag(d)
     upper = N.degrees(normal_errors(fit.axes, cm))
     geom = Polygon(upper)
-    return feature.ShapelyFeature(geom, crs.PlateCarree())
+    return feature.ShapelyFeature([geom], crs.PlateCarree())
