@@ -9,7 +9,6 @@ not super useful at the moment.
 """
 import numpy as N
 from matplotlib import pyplot as P
-from colour import Color
 
 defaults = dict(
     center=N.zeros(2),
@@ -79,11 +78,8 @@ def plot_conjugate_conics(ax, axes, width=None, plot_foci=False, plot_inverse_hy
 
     if plot_inverse_hyperbola:
         # Plot inverse hyperbola
-        color = Color('red')
-        color.saturation = 0.8
-        color.luminance = 0.85
         hyp_inv, = ax.plot(*hyperbola(1/axes, opens_up=True),
-                            color=str(color), zorder=-1,
+                            color=color, zorder=-1,
                            label='Inverse hyperboloid')
 
     ell, = ax.plot(*ellipse(ax1, center=[0,center]), color='red',
